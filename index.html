@@ -1,0 +1,1398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gold Ledger – Sone Ka Hisaab</title>
+<meta name="theme-color" content="#B8860B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gold Ledger">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --gold:#B8860B;--gold-mid:#D4A017;--gold-dark:#7A5A00;
+  --gold-bg:#FFF8E7;--gold-border:#E8C96A;
+  --bg:#FFFDF7;--surface:#FFF8E7;--card:#FFFFFF;
+  --text:#1A1208;--muted:#6B5B2E;--hint:#9A8A5E;
+  --border:#E8DFC0;
+  --green:#2D7A3A;--green-bg:#EAF5EC;--green-border:#97C459;
+  --red:#A32D2D;--red-bg:#FCEBEB;--red-border:#F09595;
+  --blue:#185FA5;--blue-bg:#E6F1FB;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --r:12px;--rs:8px;
+  --nav-h:60px;
+  --top-h:56px;
+}
+
+/* ── FULL SCREEN FOUNDATION ── */
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Mobile layout: header + content + nav all stacked, filling screen */
+#app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+/* ── TOP BAR ── */
+.topbar {
+  width: 100%;
+  flex: 0 0 auto;
+  background: var(--card);
+  border-bottom: 1.5px solid var(--border);
+  padding: 10px 16px;
+}
+.topbar-inner { display: flex; align-items: center; gap: 10px; }
+.topbar-logo {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg,#D4A017,#B8860B);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 20px; flex-shrink: 0;
+}
+.topbar-title { font-size: 17px; font-family: 'Playfair Display',serif; }
+.topbar-sub { font-size: 11px; color: var(--muted); }
+
+/* ── SCROLL CONTENT ── */
+.scroll-area {
+  flex: 1 1 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+  /* Critical: min-height 0 allows flex child to shrink */
+  min-height: 0;
+}
+.page { display: none; padding: 14px 14px 80px; }
+.page.active { display: block; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  width: 100%;
+  flex: 0 0 auto;
+  background: var(--card);
+  border-top: 1.5px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* Safe area for iPhone home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-btn {
+  background: none; border: none;
+  padding: 10px 4px 8px;
+  cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  color: var(--hint);
+  font-size: 11px; font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+}
+.nav-icon { font-size: 22px; line-height: 1; display: block; }
+.nav-btn.active { color: var(--gold-dark); }
+
+/* ══════════════════════════════
+   DESKTOP (≥768px) — sidebar layout
+══════════════════════════════ */
+@media (min-width: 768px) {
+  html, body { overflow: auto; }
+
+  #app {
+    flex-direction: row;
+    height: 100vh;
+    min-height: 100vh;
+  }
+
+  /* Hide mobile elements */
+  .topbar { display: none; }
+  .bottom-nav { display: none; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    flex: 0 0 240px;
+    background: var(--card);
+    border-right: 1.5px solid var(--border);
+    display: flex !important;
+    flex-direction: column;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    display: flex; align-items: center; gap: 10px;
+    padding: 20px 16px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo-icon {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg,#D4A017,#B8860B);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px; flex-shrink: 0;
+  }
+  .sidebar-title { font-size: 17px; font-family: 'Playfair Display',serif; }
+  .sidebar-sub { font-size: 11px; color: var(--muted); }
+  .sidebar-nav { padding: 12px 10px; flex: 1; }
+  .side-btn {
+    width: 100%; background: none; border: none;
+    border-radius: var(--rs); padding: 11px 14px;
+    cursor: pointer; display: flex; align-items: center; gap: 10px;
+    color: var(--muted); font-size: 14px;
+    font-family: 'DM Sans',sans-serif; font-weight: 400;
+    text-align: left; margin-bottom: 3px; transition: all 0.15s;
+  }
+  .side-btn .sb-icon { font-size: 18px; }
+  .side-btn:hover { background: var(--surface); color: var(--text); }
+  .side-btn.active {
+    background: var(--gold-bg); color: var(--gold-dark);
+    font-weight: 600; border: 1px solid var(--gold-border);
+  }
+  .sidebar-stats {
+    padding: 14px; border-top: 1px solid var(--border); font-size: 13px;
+  }
+  .stat-mini-row {
+    display: flex; justify-content: space-between; padding: 4px 0;
+  }
+
+  /* Main content column */
+  .main-col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .scroll-area {
+    flex: 1 1 0;
+    height: 100%;
+    overflow-y: auto;
+    min-height: 0;
+  }
+  .page { padding: 28px; max-width: 860px; }
+}
+
+/* ══════════════════════════════
+   COMPONENTS
+══════════════════════════════ */
+h1,h2,h3 { font-family: 'Playfair Display',serif; font-weight: 500; }
+button,input,select,textarea { font-family: 'DM Sans',sans-serif; font-size: 14px; outline: none; }
+input,select,textarea {
+  width: 100%; padding: 10px 12px;
+  border: 1.5px solid var(--border); border-radius: var(--rs);
+  background: var(--card); color: var(--text);
+  transition: border-color 0.15s;
+  -webkit-appearance: none; appearance: none;
+}
+input:focus,select:focus { border-color: var(--gold-mid); }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B5B2E' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+}
+
+.summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+.stat-card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px 6px; text-align: center; }
+.stat-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.stat-val { font-size: 17px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.stat-val.get { color: var(--green); } .stat-val.give { color: var(--red); } .stat-val.net { color: var(--gold-dark); }
+
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.section-title { font-size: 15px; font-family: 'Playfair Display',serif; }
+.section-count { font-size: 13px; color: var(--muted); }
+
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+.search-wrap input { padding-left: 32px; }
+
+.client-list { display: flex; flex-direction: column; gap: 8px; }
+.client-card {
+  background: var(--card); border: 1.5px solid var(--border); border-radius: var(--r);
+  padding: 12px 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 12px;
+}
+.client-card:active, .client-card:hover { background: var(--surface); border-color: var(--gold-border); }
+.avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg,#D4A017,#B8860B);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.client-info { flex: 1; min-width: 0; }
+.client-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.client-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.client-bal { text-align: right; flex-shrink: 0; }
+.bal-amt { font-size: 16px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.bal-amt.get { color: var(--green); } .bal-amt.give { color: var(--red); } .bal-amt.settled { color: var(--hint); }
+.bal-tag { font-size: 10px; margin-top: 3px; padding: 2px 7px; border-radius: 20px; display: inline-block; font-weight: 600; }
+.bal-tag.get { background: var(--green-bg); color: var(--green); }
+.bal-tag.give { background: var(--red-bg); color: var(--red); }
+.bal-tag.settled { background: var(--surface); color: var(--hint); }
+
+.bal-banner { border-radius: var(--r); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; position:relative; overflow:hidden; }
+.bal-banner::before { content:''; position:absolute; right:-20px; bottom:-20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,0.08); }
+.bal-banner.get { background: linear-gradient(145deg, #1B5E30, #2D8A42); border: none; box-shadow: 0 3px 12px rgba(27,94,48,0.25); }
+.bal-banner.give { background: linear-gradient(145deg, #7A1A1A, #B83232); border: none; box-shadow: 0 3px 12px rgba(122,26,26,0.25); }
+.bal-banner.settled { background: linear-gradient(145deg, #5A3E00, #C49010); border: none; box-shadow: 0 3px 12px rgba(90,62,0,0.2); }
+.ban-label { font-size: 11px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.8; }
+.ban-amount { font-size: 28px; font-family: 'Playfair Display',serif; font-weight: 600; letter-spacing: -0.5px; }
+.bal-banner.get .ban-label,.bal-banner.get .ban-amount { color: #fff; }
+.bal-banner.give .ban-label,.bal-banner.give .ban-amount { color: #fff; }
+.bal-banner.settled .ban-label,.bal-banner.settled .ban-amount { color: #fff; }
+.ban-icon { font-size: 32px; opacity: 0.25; z-index:1; }
+
+.txn-item { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--rs); padding: 11px; margin-bottom: 7px; }
+.txn-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.txn-dot.delivered { background: var(--blue); }
+.txn-dot.received { background: var(--green); }
+.txn-dot.payment { background: var(--amber); }
+.txn-label { font-size: 13px; font-weight: 500; }
+.txn-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.txn-grams { font-size: 15px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.txn-grams.delivered { color: var(--red); }
+.txn-grams.received,.txn-grams.payment { color: var(--green); }
+.txn-del { background: none; border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); cursor: pointer; padding: 3px 8px; font-size: 12px; font-weight: 600; }
+.txn-gram-mg { font-size: 11px; color: var(--hint); font-weight: 400; }
+.txn-calc-info { font-size: 11px; color: var(--gold-dark); background: var(--gold-bg); border-radius: 4px; padding: 2px 6px; margin-top: 3px; display: inline-block; }
+
+.form-section { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--r); padding: 16px; margin-bottom: 12px; }
+.form-section h3 { font-size: 16px; margin-bottom: 14px; }
+.field { margin-bottom: 11px; }
+.field label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.type-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; max-width: 480px; margin-left: auto; margin-right: auto; }
+.type-opt { border: 1.5px solid var(--border); border-radius: var(--r); padding: 20px 12px; text-align: center; cursor: pointer; background: var(--card); transition: all 0.15s; }
+.type-opt:active { transform: scale(0.97); }
+.type-opt-icon { font-size: 30px; display: block; margin-bottom: 8px; }
+.type-opt-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.type-opt.sel-delivered { border-color: var(--blue); background: var(--blue-bg); box-shadow: 0 0 0 3px rgba(24,95,165,0.12); }
+.type-opt.sel-delivered .type-opt-label { color: var(--blue); }
+.type-opt.sel-received { border-color: var(--green); background: var(--green-bg); box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
+.type-opt.sel-received .type-opt-label { color: var(--green); }
+
+.preview-box { background: var(--gold-bg); border: 1.5px solid var(--gold-border); border-radius: var(--rs); padding: 10px 14px; font-size: 13px; color: var(--gold-dark); margin-bottom: 12px; display: none; line-height: 1.6; }
+.preview-box.show { display: block; }
+
+.btn { border-radius: var(--rs); font-size: 14px; font-weight: 600; padding: 12px 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; border: none; transition: all 0.15s; }
+.btn:active { transform: scale(0.98); }
+.btn-gold { background: linear-gradient(135deg,#D4A017,#B8860B); color: #fff; }
+.btn-outline { background: var(--card); border: 1.5px solid var(--border); color: var(--text); }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1; }
+.btn-sm-danger { background: none; border: 1.5px solid var(--red-border); color: var(--red); border-radius: var(--rs); font-size: 13px; font-weight: 600; padding: 7px 13px; cursor: pointer; font-family: 'DM Sans',sans-serif; }
+
+.back-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.back-btn { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; font-family: 'DM Sans',sans-serif; font-weight: 500; }
+.detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.detail-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg,#D4A017,#B8860B); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.detail-name { font-size: 20px; font-family: 'Playfair Display',serif; }
+.detail-phone { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.action-row { display: flex; gap: 8px; margin-top: 14px; }
+.action-btn { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--rs); padding: 10px; font-size: 13px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'DM Sans',sans-serif; font-weight: 600; }
+.action-btn:hover { background: var(--card); border-color: var(--gold-border); color: var(--gold-dark); }
+.section-sub { font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+
+.empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.35; display: block; }
+.empty-state p { font-size: 14px; line-height: 1.7; }
+
+.report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+.report-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.report-row:last-child { border-bottom: none; }
+
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #2D7A3A; color: #fff; border-radius: var(--r);
+  padding: 10px 20px; font-size: 14px; font-weight: 500;
+  opacity: 0; transition: all 0.25s; pointer-events: none; z-index: 9999;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media(min-width:768px) { .toast { bottom: 24px; } }
+
+.install-banner { background: linear-gradient(135deg,#FFF3CC,#FAEEDA); border: 1.5px solid var(--gold-border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.install-text { flex: 1; font-size: 13px; color: var(--amber); }
+.install-text strong { display: block; font-size: 14px; color: var(--gold-dark); margin-bottom: 2px; }
+.install-btn-banner { background: var(--gold-mid); color: #fff; border: none; border-radius: var(--rs); padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'DM Sans',sans-serif; }
+
+/* ── ADD CLIENT BUTTON ── */
+.btn-add-client {
+  background: linear-gradient(135deg,#D4A017,#B8860B);
+  color: #fff;
+  border: none;
+  border-radius: var(--rs);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans',sans-serif;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: opacity 0.15s;
+}
+.btn-add-client:active { opacity: 0.85; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+.modal-box {
+  position: fixed;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 20px;
+  width: calc(100% - 32px);
+  max-width: 420px;
+  z-index: 1001;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:translate(-50%,-48%); }
+  to   { opacity:1; transform:translate(-50%,-50%); }
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal-title { font-size: 18px; font-family: 'Playfair Display',serif; color: var(--text); }
+.modal-close {
+  background: none; border: none; font-size: 18px;
+  color: var(--hint); cursor: pointer; padding: 0; line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+
+/* ── GOLD CALCULATOR ── */
+.calc-card {
+  background: linear-gradient(135deg, #FFFBF0, #FFF4D0);
+  border: 1.5px solid var(--gold-border);
+  border-radius: var(--r);
+  padding: 14px;
+  margin-bottom: 11px;
+}
+.calc-title { font-size: 15px; font-family: 'Playfair Display',serif; color: var(--gold-dark); margin-bottom: 2px; }
+.calc-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+
+/* Weight input row: gram + mg */
+.weight-row { display: flex; align-items: center; gap: 8px; }
+.weight-input-wrap { display: flex; align-items: center; flex: 1; border: 1.5px solid var(--border); border-radius: var(--rs); background: var(--card); overflow: hidden; }
+.weight-input { border: none !important; border-radius: 0 !important; box-shadow: none !important; flex: 1; padding: 9px 8px; min-width: 0; font-size: 15px; font-weight: 500; background: transparent; }
+.weight-input:focus { outline: none; }
+.weight-input-wrap:focus-within { border-color: var(--gold-mid); }
+.weight-unit { padding: 0 10px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--surface); border-left: 1px solid var(--border); white-space: nowrap; align-self: stretch; display: flex; align-items: center; }
+.weight-sep { font-size: 18px; color: var(--muted); font-weight: 300; flex-shrink: 0; }
+.weight-hint { font-size: 12px; color: var(--hint); margin-top: 5px; font-style: italic; }
+
+/* Purity presets */
+.purity-row { display: flex; flex-direction: column; gap: 8px; }
+.purity-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.purity-btn {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: var(--rs); padding: 6px 10px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  color: var(--muted); font-family: 'DM Sans',sans-serif;
+  transition: all 0.15s; position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+}
+.purity-btn:active,.purity-btn.active { background: var(--gold-bg); border-color: var(--gold-mid); color: var(--gold-dark); }
+.purity-note { font-size: 10px; font-weight: 400; color: var(--hint); }
+.purity-btn.active .purity-note { color: var(--gold); }
+.purity-custom-wrap { display: flex; align-items: center; border: 1.5px solid var(--border); border-radius: var(--rs); background: var(--card); overflow: hidden; }
+.purity-input { border: none !important; border-radius: 0 !important; box-shadow: none !important; flex: 1; padding: 9px 10px; font-size: 15px; font-weight: 500; background: transparent; min-width: 0; }
+.purity-input:focus { outline: none; }
+.purity-custom-wrap:focus-within { border-color: var(--gold-mid); }
+
+/* Decimal selector */
+.decimal-selector { display:flex; gap:6px; }
+.dec-btn { flex:1; background:var(--card); border:1.5px solid var(--border); border-radius:var(--rs); padding:7px; font-size:13px; font-weight:600; cursor:pointer; color:var(--muted); font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+.dec-btn.active { background:var(--gold-bg); border-color:var(--gold-mid); color:var(--gold-dark); }
+
+/* Result box */
+.calc-result {
+  background: var(--card);
+  border: 1.5px solid var(--gold-border);
+  border-radius: var(--rs);
+  padding: 12px 14px;
+  margin-top: 12px;
+  text-align: center;
+}
+.calc-result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
+.calc-result-formula { font-size: 12px; color: var(--hint); margin-bottom: 4px; font-family: monospace; }
+.calc-result-value { font-size: 28px; font-family: 'Playfair Display',serif; font-weight: 500; color: var(--gold-dark); line-height: 1.1; margin-bottom: 4px; }
+.calc-result-breakdown { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+/* Manual grams field */
+.manual-tag { font-size: 10px; font-weight: 600; background: var(--green-bg); color: var(--green); border-radius: 10px; padding: 1px 7px; vertical-align: middle; margin-left: 4px; }
+.manual-hint { font-size: 12px; color: var(--hint); margin-top: 4px; font-style: italic; }
+
+/* ── BIG STAT CARDS ── */
+.big-stat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.big-stat-card {
+  border-radius: 18px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.12);
+  flex: 1;
+}
+.big-stat-card::before {
+  content: '';
+  position: absolute;
+  right: -30px; bottom: -30px;
+  width: 130px; height: 130px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.big-stat-card::after {
+  content: '';
+  position: absolute;
+  right: 20px; top: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.big-stat-get  { background: linear-gradient(145deg, #1B5E30, #2D8A42); color: #fff; }
+.big-stat-give { background: linear-gradient(145deg, #7A1A1A, #B83232); color: #fff; }
+.big-stat-net  { background: linear-gradient(145deg, #5A3E00, #C49010); color: #fff; }
+.big-stat-icon { font-size: 26px; margin-bottom: 4px; opacity: 0.85; z-index:1; }
+.big-stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.75; z-index:1; }
+.big-stat-val { font-size: 38px; font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.05; letter-spacing: -1px; z-index:1; }
+.big-stat-sub { font-size: 14px; opacity: 0.7; font-weight: 400; margin-top: 2px; z-index:1; }
+
+/* On desktop — 3 columns side by side, taller */
+@media (min-width: 768px) {
+  .big-stat-grid { flex-direction: row; gap: 16px; height: 200px; margin-bottom: 0; }
+  .big-stat-card { padding: 30px 24px; }
+  .big-stat-val { font-size: 34px; }
+}
+
+/* On wide mobile (landscape) — row */
+@media (min-width: 500px) and (max-width: 767px) {
+  .big-stat-grid { flex-direction: row; }
+  .big-stat-card { padding: 20px 16px; }
+  .big-stat-val { font-size: 22px; }
+  .big-stat-sub { font-size: 11px; }
+}
+
+/* ── HISTORY PAGE ── */
+.hist-header { margin-bottom: 12px; }
+.hist-filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.hist-select {
+  flex: 1;
+  min-width: 100px;
+  padding: 9px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--rs);
+  background: var(--card);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%236B5B2E' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+.hist-select:focus { border-color: var(--gold-mid); outline: none; }
+
+.hist-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.hist-sum-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 8px;
+  text-align: center;
+}
+.hist-sum-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 3px; }
+.hist-sum-val { font-size: 16px; font-family: 'Playfair Display',serif; font-weight: 500; }
+.hist-sum-sub { font-size: 10px; color: var(--hint); margin-top: 2px; }
+.hist-sum-val.get { color: var(--green); }
+.hist-sum-val.give { color: var(--red); }
+.hist-sum-val.net { color: var(--gold-dark); }
+
+.hist-month-group { margin-bottom: 16px; }
+.hist-month-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 0;
+  border-bottom: 1.5px solid var(--border);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.hist-month-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted);
+}
+.hist-txn-row {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hist-txn-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.hist-txn-dot.delivered { background: var(--blue); }
+.hist-txn-dot.received { background: var(--green); }
+.hist-txn-info { flex: 1; min-width: 0; }
+.hist-txn-title { font-size: 13px; font-weight: 500; }
+.hist-txn-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.hist-txn-amt { text-align: right; flex-shrink: 0; }
+.hist-txn-grams { font-size: 14px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.hist-txn-grams.delivered { color: var(--red); }
+.hist-txn-grams.received { color: var(--green); }
+.hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- SIDEBAR — shown only on desktop via JS -->
+  <aside id="sidebar" class="sidebar" style="display:none">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">⚖️</div>
+      <div>
+        <div class="sidebar-title">Gold Ledger</div>
+        <div class="sidebar-sub">Sone Ka Hisaab</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="side-btn active" id="snav-dashboard" onclick="showPage('dashboard')"><span class="sb-icon">🏠</span> Dashboard</button>
+      <button class="side-btn" id="snav-clients" onclick="showPage('clients')"><span class="sb-icon">👥</span> Clients</button>
+      <button class="side-btn" id="snav-add" onclick="showPage('add')"><span class="sb-icon">➕</span> Add Transaction</button>
+      <button class="side-btn" id="snav-history" onclick="showPage('history')"><span class="sb-icon">🗂️</span> History</button>
+    </nav>
+    <div class="sidebar-stats" id="sidebar-stats"></div>
+  </aside>
+
+  <!-- MAIN COLUMN -->
+  <div class="main-col" id="main-col">
+
+    <!-- Top bar (mobile only) -->
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div class="topbar-logo">⚖️</div>
+        <div>
+          <div class="topbar-title">Gold Ledger</div>
+          <div class="topbar-sub">Sone Ka Hisaab</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable pages -->
+    <div class="scroll-area" id="scroll-area">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div id="install-wrap"></div>
+        <!-- Big beautiful stat cards -->
+        <div class="big-stat-grid">
+          <div class="big-stat-card big-stat-get">
+            <div class="big-stat-icon">📈</div>
+            <div class="big-stat-label">Balance</div>
+            <div class="big-stat-val" id="s-get">0.000g</div>
+            <div class="big-stat-sub" id="s-get-mg">0 gram</div>
+          </div>
+          <div class="big-stat-card big-stat-give">
+            <div class="big-stat-icon">📉</div>
+            <div class="big-stat-label">Advance</div>
+            <div class="big-stat-val" id="s-give">0.000g</div>
+            <div class="big-stat-sub" id="s-give-mg">0 gram</div>
+          </div>
+          <div class="big-stat-card big-stat-net">
+            <div class="big-stat-icon">⚖️</div>
+            <div class="big-stat-label">Net Balance</div>
+            <div class="big-stat-val" id="s-net">0.000g</div>
+            <div class="big-stat-sub" id="s-net-mg">0 gram</div>
+          </div>
+        </div>
+        <!-- Quick tip at bottom of dashboard -->
+        <div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">
+          Go to <strong>Clients</strong> to view all balances
+        </div>
+      </div>
+
+      <!-- CLIENTS -->
+      <div id="page-clients" class="page">
+        <div id="view-client-list">
+          <div class="section-header" style="margin-bottom:12px">
+            <div class="section-title" style="font-size:17px">Clients</div>
+            <button class="btn-add-client" onclick="openAddClientModal()">＋ Add Client</button>
+          </div>
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="cl-search" placeholder="Search client…" oninput="renderClients()">
+          </div>
+          <div class="client-list" id="cl-list"></div>
+          <div id="cl-empty" class="empty-state" style="display:none">
+            <span class="empty-icon">👥</span>
+            <p>No clients yet.<br>Tap <strong>+ Add Client</strong> to get started.</p>
+          </div>
+        </div>
+        <div id="view-client-detail" style="display:none">
+          <div class="back-row">
+            <button class="back-btn" onclick="closeDetail()">← Back</button>
+            <button class="btn-sm-danger" onclick="deleteClient()">🗑 Delete</button>
+          </div>
+          <div class="detail-header">
+            <div class="detail-avatar" id="det-avatar"></div>
+            <div><div class="detail-name" id="det-name"></div><div class="detail-phone" id="det-phone"></div></div>
+          </div>
+          <div id="det-banner" class="bal-banner get">
+            <div><div class="ban-label" id="det-label">Balance</div><div class="ban-amount" id="det-amount">0g</div></div>
+            <span class="ban-icon">⚖️</span>
+          </div>
+          <div class="section-sub">Transaction History</div>
+          <div id="det-txns"></div>
+          <div id="det-empty" class="empty-state" style="display:none;padding:1.5rem 0">
+            <span class="empty-icon" style="font-size:32px">🧾</span><p>No transactions yet.</p>
+          </div>
+          <div class="action-row">
+            <button class="action-btn" onclick="exportClient()">⬇ Export</button>
+            <button class="action-btn" onclick="addTxnForClient()">➕ Add Transaction</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADD TRANSACTION -->
+      <div id="page-add" class="page">
+        <div class="form-section">
+          <h3>New Transaction</h3>
+
+          <!-- Type -->
+          <div class="field">
+            <label>Transaction Type *</label>
+            <div class="type-selector">
+              <div class="type-opt sel-delivered" id="topt-delivered" onclick="selectType('delivered')"><span class="type-opt-icon">📦</span><div class="type-opt-label">Delivered</div></div>
+              <div class="type-opt" id="topt-received" onclick="selectType('received')"><span class="type-opt-icon">📥</span><div class="type-opt-label">Received</div></div>
+            </div>
+          </div>
+
+          <!-- Client + Date -->
+          <div class="field-row">
+            <div class="field"><label>Client Name *</label><input type="text" id="f-client" placeholder="e.g. Ramesh Ji" list="cl-suggestions" autocomplete="off" oninput="updatePreview()"><datalist id="cl-suggestions"></datalist></div>
+            <div class="field"><label>Date *</label><input type="date" id="f-date"></div>
+          </div>
+
+          <!-- Gold Calculation Card -->
+          <div class="calc-card" id="calc-card">
+            <div class="calc-title">⚖️ Gold Weight Calculator</div>
+            <div class="calc-subtitle">Enter gross gold &amp; purity to auto-calculate pure gold</div>
+
+            <!-- Gross Gold: single decimal input -->
+            <div class="field">
+              <label>Gross Gold (total weight in grams) *</label>
+              <div class="weight-input-wrap">
+                <input type="number" id="f-gross" placeholder="e.g. 12.350" min="0" step="0.001" oninput="calcPureGold()" class="weight-input">
+                <span class="weight-unit">gram</span>
+              </div>
+              <div class="weight-hint" id="gross-display">e.g. 12.350 = 12 gram 350 mg</div>
+            </div>
+
+            <!-- Purity -->
+            <div class="field">
+              <label>Purity Percentage *</label>
+              <div class="purity-row">
+                <div class="purity-presets">
+                  <button class="purity-btn" data-purity="99.9" onclick="setPurity(99.9)">99.9%</button>
+                  <button class="purity-btn" data-purity="91.6" onclick="setPurity(91.6)">91.6%<span class="purity-note">22K</span></button>
+                  <button class="purity-btn" data-purity="75" onclick="setPurity(75)">75%<span class="purity-note">18K</span></button>
+                  <button class="purity-btn" data-purity="58.3" onclick="setPurity(58.3)">58.3%<span class="purity-note">14K</span></button>
+                </div>
+                <div class="purity-custom-wrap">
+                  <input type="number" id="f-purity" placeholder="e.g. 91.6" min="0.1" max="100" step="0.01" oninput="calcPureGold()" class="purity-input">
+                  <span class="weight-unit">%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Decimal precision -->
+            <div class="field" style="margin-bottom:8px">
+              <label>Result Decimal Places</label>
+              <div class="decimal-selector">
+                <button class="dec-btn" data-dec="2" onclick="setDecimal(2)">2</button>
+                <button class="dec-btn active" data-dec="3" onclick="setDecimal(3)">3</button>
+                <button class="dec-btn" data-dec="4" onclick="setDecimal(4)">4</button>
+              </div>
+            </div>
+
+            <!-- Result -->
+            <div class="calc-result" id="calc-result">
+              <div class="calc-result-label">Pure Gold</div>
+              <div class="calc-result-formula" id="calc-formula">—</div>
+              <div class="calc-result-value" id="calc-value">—</div>
+              <div class="calc-result-breakdown" id="calc-breakdown">—</div>
+            </div>
+          </div>
+
+          <!-- Manual override (hidden until calc done, or for settlement) -->
+          <div class="field" id="manual-field">
+            <label id="manual-label">Pure Gold (grams) *  <span class="manual-tag" id="manual-tag"></span></label>
+            <input type="number" id="f-grams" placeholder="e.g. 60.350" min="0.001" step="0.001" oninput="onManualGrams()">
+            <div class="manual-hint" id="manual-hint">You can also type directly here</div>
+          </div>
+
+          <!-- Phone + Note -->
+          <div class="field-row">
+            <div class="field"><label>Phone (optional)</label><input type="tel" id="f-phone" placeholder="9876543210"></div>
+            <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
+          </div>
+
+          <div class="preview-box" id="preview-box"></div>
+          <div class="btn-row">
+            <button class="btn btn-outline" onclick="clearForm()" style="flex:0.4">Clear</button>
+            <button class="btn btn-gold" onclick="saveTransaction()">✓ Save Transaction</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div id="page-history" class="page">
+        <div class="hist-header">
+          <div class="section-title" style="font-size:17px">Transaction History</div>
+        </div>
+
+        <!-- Filter bar row 1: year + month + type -->
+        <div class="hist-filter-bar">
+          <select id="hist-year" onchange="renderHistory()" class="hist-select">
+            <option value="">All Years</option>
+          </select>
+          <select id="hist-month" onchange="renderHistory()" class="hist-select">
+            <option value="">All Months</option>
+            <option value="01">January</option><option value="02">February</option>
+            <option value="03">March</option><option value="04">April</option>
+            <option value="05">May</option><option value="06">June</option>
+            <option value="07">July</option><option value="08">August</option>
+            <option value="09">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+          <select id="hist-type" onchange="renderHistory()" class="hist-select">
+            <option value="">All Types</option>
+            <option value="delivered">Delivered</option>
+            <option value="received">Received</option>
+          </select>
+        </div>
+        <!-- Filter bar row 2: client -->
+        <div class="hist-filter-bar" style="margin-top:-4px">
+          <select id="hist-client" onchange="renderHistory()" class="hist-select">
+            <option value="">All Clients</option>
+          </select>
+        </div>
+
+        <!-- Summary for filtered period -->
+        <div class="hist-summary" id="hist-summary"></div>
+
+        <!-- Transaction entries grouped by month -->
+        <div id="hist-list"></div>
+        <div id="hist-empty" class="empty-state" style="display:none">
+          <span class="empty-icon">🗂️</span>
+          <p>No transactions found<br>for the selected filter.</p>
+        </div>
+
+        <div style="margin-top:14px">
+          <button class="btn btn-gold" onclick="exportAll()">⬇ Export All as CSV</button>
+        </div>
+      </div>
+
+    </div><!-- /scroll-area -->
+
+    <!-- Bottom nav (mobile only) -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</button>
+      <button class="nav-btn" id="nav-clients" onclick="showPage('clients')"><span class="nav-icon">👥</span>Clients</button>
+      <button class="nav-btn" id="nav-add" onclick="showPage('add')"><span class="nav-icon" style="font-size:26px">➕</span>Add</button>
+      <button class="nav-btn" id="nav-history" onclick="showPage('history')"><span class="nav-icon">🗂️</span>History</button>
+    </nav>
+
+  </div><!-- /main-col -->
+</div><!-- /app -->
+
+<!-- ADD CLIENT MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeAddClientModal()" style="display:none"></div>
+<div id="modal-add-client" class="modal-box" style="display:none">
+  <div class="modal-header">
+    <div class="modal-title">Add New Client</div>
+    <button class="modal-close" onclick="closeAddClientModal()">✕</button>
+  </div>
+  <div class="field">
+    <label>Client Name *</label>
+    <input type="text" id="mc-name" placeholder="e.g. Ramesh Ji" autocomplete="off">
+  </div>
+  <div class="field">
+    <label>Phone Number (optional)</label>
+    <input type="tel" id="mc-phone" placeholder="e.g. 9876543210">
+  </div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn btn-outline" onclick="closeAddClientModal()" style="flex:0.4">Cancel</button>
+    <button class="btn btn-gold" onclick="saveNewClient()">✓ Save Client</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY='gold_ledger_v2';
+let db={clients:{}};
+let activeClient=null;
+let selectedType='delivered';
+let deferredInstall=null;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function load(){try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s)}catch(e){}}
+
+/* ── LAYOUT ─────────────────────────────── */
+function applyLayout(){
+  const isDesktop = window.innerWidth >= 768;
+  const sidebar = document.getElementById('sidebar');
+  const mainCol = document.getElementById('main-col');
+  if(isDesktop){
+    sidebar.style.display = 'flex';
+    sidebar.style.flexDirection = 'column';
+    mainCol.style.flex = '1';
+    mainCol.style.minWidth = '0';
+    mainCol.style.display = 'flex';
+    mainCol.style.flexDirection = 'column';
+    mainCol.style.height = '100vh';
+    mainCol.style.overflow = 'hidden';
+  } else {
+    sidebar.style.display = 'none';
+    // Mobile: main-col is just a flex column filling #app
+    mainCol.style.flex = '1';
+    mainCol.style.minWidth = '';
+    mainCol.style.height = '';
+    mainCol.style.overflow = '';
+  }
+  updateSidebarStats();
+}
+window.addEventListener('resize', applyLayout);
+
+/* ── HELPERS ────────────────────────────── */
+function balance(name){
+  const c=db.clients[name]; if(!c||!c.transactions)return 0;
+  let b=0; c.transactions.forEach(t=>t.type==='delivered'?b+=t.grams:b-=t.grams);
+  return Math.round(b*1000)/1000;
+}
+function balInfo(b){
+  if(b>0)return{cls:'get',label:'Balance',sign:'+'};
+  if(b<0)return{cls:'give',label:'Advance',sign:'-'};
+  return{cls:'settled',label:'Settled',sign:''};
+}
+function initials(n){return n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?'}
+function fmtG(g){return Math.abs(g).toFixed(3)+'g'}
+function fmtGramMg(g){
+  if(isNaN(g)||g<=0)return '—';
+  const totalMg=Math.round(Math.abs(g)*1000);
+  const grams=Math.floor(totalMg/1000);
+  const mg=totalMg%1000;
+  if(mg===0)return grams+' gram';
+  const mgStr=mg<10?'00'+mg:mg<100?'0'+mg:''+mg;
+  return grams+' gram '+mgStr+' mg';
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ── NAVIGATION ─────────────────────────── */
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn,.side-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const nb=document.getElementById('nav-'+p); if(nb)nb.classList.add('active');
+  const sb=document.getElementById('snav-'+p); if(sb)sb.classList.add('active');
+  document.getElementById('scroll-area').scrollTop=0;
+  if(p==='dashboard')renderDashboard();
+  if(p==='clients'){renderClients(); if(!activeClient)showClientList();}
+  if(p==='add'){updateSuggestions();updatePreview();}
+  if(p==='history'){populateHistoryYears();renderHistory();}
+}
+
+/* ── DASHBOARD ──────────────────────────── */
+function renderDashboard(){
+  const names=Object.keys(db.clients);
+  let toGet=0,toGive=0;
+  names.forEach(n=>{const b=balance(n);b>0?toGet+=b:b<0&&(toGive+=Math.abs(b))});
+  const net=toGet-toGive;
+  document.getElementById('s-get').textContent=toGet.toFixed(3)+'g';
+  document.getElementById('s-get-mg').textContent=fmtGramMg(toGet);
+  document.getElementById('s-give').textContent=toGive.toFixed(3)+'g';
+  document.getElementById('s-give-mg').textContent=fmtGramMg(toGive);
+  const ne=document.getElementById('s-net');
+  ne.textContent=(net>0?'+':net<0?'-':'')+Math.abs(net).toFixed(3)+'g';
+  document.getElementById('s-net-mg').textContent=fmtGramMg(Math.abs(net));
+  updateSidebarStats();
+}
+function updateSidebarStats(){
+  const ss=document.getElementById('sidebar-stats'); if(!ss)return;
+  const names=Object.keys(db.clients); let toGet=0,toGive=0;
+  names.forEach(n=>{const b=balance(n);b>0?toGet+=b:b<0&&(toGive+=Math.abs(b))});
+  ss.innerHTML=`<div class="stat-mini-row"><span style="color:var(--muted)">Balance</span><span style="color:var(--green);font-weight:600">${toGet.toFixed(3)}g</span></div>
+    <div class="stat-mini-row"><span style="color:var(--muted)">Advance</span><span style="color:var(--red);font-weight:600">${toGive.toFixed(3)}g</span></div>
+    <div class="stat-mini-row"><span style="color:var(--muted)">Clients</span><span style="font-weight:600">${names.length}</span></div>`;
+}
+
+/* ── CLIENTS ────────────────────────────── */
+function renderClients(){
+  const search=(document.getElementById('cl-search')||{value:''}).value.toLowerCase();
+  const names=Object.keys(db.clients).filter(n=>n.toLowerCase().includes(search));
+  const list=document.getElementById('cl-list'); list.innerHTML='';
+  const empty=document.getElementById('cl-empty');
+  if(!names.length){empty.style.display='block';return;} empty.style.display='none';
+  names.sort((a,b)=>a.localeCompare(b));
+  names.forEach(name=>{
+    const b=balance(name); const{cls,sign}=balInfo(b);
+    const c=db.clients[name];
+    const card=document.createElement('div'); card.className='client-card';
+    card.innerHTML=`<div class="avatar">${initials(name)}</div>
+      <div class="client-info"><div class="client-name">${esc(name)}</div><div class="client-meta">${c.phone?'📞 '+c.phone:'No phone saved'}</div></div>
+      <div class="client-bal"><div class="bal-amt ${cls}">${sign}${fmtG(b)}</div><div class="bal-tag ${cls}">${cls==='get'?'Balance':cls==='give'?'Advance':'Settled'}</div></div>`;
+    card.onclick=()=>openDetail(name);
+    list.appendChild(card);
+  });
+}
+function showClientList(){
+  document.getElementById('view-client-list').style.display='block';
+  document.getElementById('view-client-detail').style.display='none';
+  activeClient=null;
+}
+function openDetail(name){
+  activeClient=name;
+  document.getElementById('view-client-list').style.display='none';
+  document.getElementById('view-client-detail').style.display='block';
+  document.getElementById('det-avatar').textContent=initials(name);
+  document.getElementById('det-name').textContent=name;
+  const c=db.clients[name];
+  document.getElementById('det-phone').textContent=c.phone?'📞 '+c.phone:'';
+  const b=balance(name); const{cls,label,sign}=balInfo(b);
+  document.getElementById('det-banner').className='bal-banner '+cls;
+  document.getElementById('det-label').textContent=label;
+  document.getElementById('det-amount').textContent=sign+fmtG(b);
+  renderDetailTxns(name);
+}
+function renderDetailTxns(name){
+  const c=db.clients[name];
+  const wrap=document.getElementById('det-txns'); wrap.innerHTML='';
+  const empty=document.getElementById('det-empty');
+  const txns=c.transactions||[];
+  if(!txns.length){empty.style.display='block';return;} empty.style.display='none';
+  const typeMap={delivered:{label:'Delivered to client',sign:'+',cls:'delivered'},received:{label:'Received from client',sign:'-',cls:'received'}};
+  [...txns].reverse().forEach((t,ri)=>{
+    const idx=txns.length-1-ri;
+    const tm=typeMap[t.type]||{label:t.type,sign:'',cls:'received'};
+    const gramsDisplay=t.grams.toFixed(3)+'g';
+    const gramMgDisplay=fmtGramMg(t.grams);
+    let extraInfo='';
+    if(t.grossGrams&&t.purity){
+      extraInfo=`<div class="txn-calc-info">Gross: ${fmtGramMg(t.grossGrams)} × ${t.purity}% = ${gramMgDisplay}</div>`;
+    }
+    const div=document.createElement('div'); div.className='txn-item';
+    div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+      <div style="display:flex;gap:8px;flex:1;min-width:0">
+        <div class="txn-dot ${tm.cls}" style="margin-top:4px;flex-shrink:0"></div>
+        <div style="flex:1;min-width:0">
+          <div class="txn-label">${tm.label}</div>
+          <div class="txn-meta">${t.date}${t.note?' · '+esc(t.note):''}</div>
+          ${extraInfo}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <div class="txn-grams ${tm.cls}">${tm.sign}${gramsDisplay}</div>
+        <div class="txn-gram-mg">${gramMgDisplay}</div>
+        <button class="txn-del" onclick="deleteTxn('${esc(name)}',${idx})">✕</button>
+      </div>
+    </div>`;
+    wrap.appendChild(div);
+  });
+}
+function closeDetail(){activeClient=null;showClientList();renderClients();}
+function deleteClient(){
+  if(!activeClient)return;
+  if(!confirm('Delete ALL data for '+activeClient+'?\nThis cannot be undone.'))return;
+  delete db.clients[activeClient]; save(); showToast('Client deleted'); closeDetail(); renderDashboard();
+}
+function deleteTxn(name,idx){
+  if(!confirm('Delete this transaction?'))return;
+  db.clients[name].transactions.splice(idx,1);
+  if(!db.clients[name].transactions.length){delete db.clients[name];save();showToast('Deleted');closeDetail();renderDashboard();return;}
+  save();openDetail(name);renderDashboard();
+}
+function addTxnForClient(){
+  if(!activeClient)return;
+  document.getElementById('f-client').value=activeClient;
+  showPage('add');updatePreview();
+}
+function exportClient(){
+  if(!activeClient)return;
+  const c=db.clients[activeClient];
+  const rows=[['Date','Type','Grams','Note']];
+  (c.transactions||[]).forEach(t=>rows.push([t.date,t.type,t.grams.toFixed(3),t.note||'']));
+  downloadCSV(rows,activeClient.replace(/\s+/g,'_')+'_gold.csv');
+}
+
+/* ── ADD TRANSACTION ────────────────────── */
+function selectType(type){
+  selectedType=type;
+  ['delivered','received'].forEach(t=>{document.getElementById('topt-'+t).className='type-opt'+(t===type?' sel-'+t:'');});
+  const calcCard=document.getElementById('calc-card');
+  calcCard.style.opacity='1'; calcCard.style.pointerEvents='auto';
+  updatePreview();
+}
+
+/* Single decimal gross input */
+let decimalPlaces=3;
+function setDecimal(d){
+  decimalPlaces=d;
+  document.querySelectorAll('.dec-btn').forEach(b=>b.classList.toggle('active',parseInt(b.getAttribute('data-dec'))===d));
+  calcPureGold();
+}
+function getGrossGrams(){
+  return parseFloat(document.getElementById('f-gross').value)||0;
+}
+
+function calcPureGold(){
+  const gross=getGrossGrams();
+  const purityVal=parseFloat(document.getElementById('f-purity').value)||0;
+
+  // Update gross display
+  const gd=document.getElementById('gross-display');
+  gd.textContent=gross>0?fmtGramMg(gross):'e.g. 12.350 = 12 gram 350 mg';
+
+  // Highlight active purity preset
+  document.querySelectorAll('.purity-btn').forEach(btn=>{
+    const v=parseFloat(btn.getAttribute('data-purity'));
+    btn.classList.toggle('active',Math.abs(v-purityVal)<0.01);
+  });
+
+  if(!gross||!purityVal){
+    document.getElementById('calc-formula').textContent='—';
+    document.getElementById('calc-value').textContent='—';
+    document.getElementById('calc-breakdown').textContent='—';
+    document.getElementById('f-grams').value='';
+    document.getElementById('manual-tag').textContent='';
+    updatePreview();
+    return;
+  }
+
+  const pure=(gross*purityVal)/100;
+  const factor=Math.pow(10,decimalPlaces);
+  const pureRounded=Math.round(pure*factor)/factor;
+
+  document.getElementById('calc-formula').textContent=gross.toFixed(3)+' g × '+purityVal+'% = ';
+  document.getElementById('calc-value').textContent=pureRounded.toFixed(decimalPlaces)+' g';
+  document.getElementById('calc-breakdown').textContent=fmtGramMg(pureRounded);
+
+  // Auto-fill the grams field
+  document.getElementById('f-grams').value=pureRounded.toFixed(decimalPlaces);
+  document.getElementById('manual-tag').textContent='auto-calculated';
+  updatePreview();
+}
+
+function setPurity(val){
+  document.getElementById('f-purity').value=val;
+  calcPureGold();
+}
+
+function onManualGrams(){
+  // If user types manually, clear the auto tag
+  document.getElementById('manual-tag').textContent='manual';
+  updatePreview();
+}
+
+function updatePreview(){
+  const client=(document.getElementById('f-client')||{value:''}).value.trim()||'the client';
+  const grams=parseFloat((document.getElementById('f-grams')||{value:''}).value)||0;
+  const box=document.getElementById('preview-box'); if(!box)return;
+  if(!grams){box.className='preview-box';return;}
+  const display=grams.toFixed(3)+'g ('+fmtGramMg(grams)+')';
+  const msgs={
+    delivered:`📦 You delivered goods worth <strong>${display}</strong> of pure gold to <strong>${esc(client)}</strong>. They now owe you this gold.`,
+    received:`📥 You received <strong>${display}</strong> of pure gold from <strong>${esc(client)}</strong>. Their balance reduces.`
+  };
+  box.innerHTML=msgs[selectedType]||''; box.className='preview-box show';
+}
+
+function updateSuggestions(){
+  const dl=document.getElementById('cl-suggestions'); if(!dl)return; dl.innerHTML='';
+  // Include ALL saved clients (even those with zero balance)
+  Object.keys(db.clients).sort((a,b)=>a.localeCompare(b)).forEach(n=>{
+    const o=document.createElement('option');o.value=n;dl.appendChild(o);
+  });
+}
+
+/* ── ADD CLIENT MODAL ── */
+function openAddClientModal(){
+  document.getElementById('mc-name').value='';
+  document.getElementById('mc-phone').value='';
+  document.getElementById('modal-overlay').style.display='block';
+  document.getElementById('modal-add-client').style.display='block';
+  setTimeout(()=>document.getElementById('mc-name').focus(),100);
+}
+function closeAddClientModal(){
+  document.getElementById('modal-overlay').style.display='none';
+  document.getElementById('modal-add-client').style.display='none';
+}
+function saveNewClient(){
+  const name=(document.getElementById('mc-name').value||'').trim();
+  const phone=(document.getElementById('mc-phone').value||'').trim();
+  if(!name){alert('Please enter a client name.');return;}
+  if(db.clients[name]){
+    closeAddClientModal();
+    showPage('clients');
+    openDetail(name);
+    showToast('Client already exists');
+    return;
+  }
+  db.clients[name]={phone,transactions:[]};
+  save();
+  closeAddClientModal();
+  updateSuggestions();
+  renderClients();
+  renderDashboard();
+  showToast('Client "'+name+'" added ✓');
+}
+
+function clearForm(){
+  ['f-client','f-phone','f-grams','f-note','f-gross','f-purity'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('gross-display').textContent='—';
+  document.getElementById('calc-formula').textContent='—';
+  document.getElementById('calc-value').textContent='—';
+  document.getElementById('calc-breakdown').textContent='—';
+  document.getElementById('manual-tag').textContent='';
+  document.querySelectorAll('.purity-btn').forEach(b=>b.classList.remove('active'));
+  selectType('delivered'); setTodayDate();
+  const box=document.getElementById('preview-box'); if(box)box.className='preview-box';
+}
+
+function setTodayDate(){
+  const d=new Date();
+  document.getElementById('f-date').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function saveTransaction(){
+  const name=(document.getElementById('f-client').value||'').trim();
+  const grams=parseFloat(document.getElementById('f-grams').value);
+  const date=document.getElementById('f-date').value;
+  const note=(document.getElementById('f-note').value||'').trim();
+  const phone=(document.getElementById('f-phone').value||'').trim();
+  // Extra: save gross+purity for record
+  const grossVal=parseFloat(document.getElementById('f-gross').value)||0;
+  const purity=parseFloat(document.getElementById('f-purity').value)||0;
+
+  if(!name){alert('Please enter the client name.');return;}
+  if(!grams||grams<=0){alert('Please enter or calculate the pure gold amount.');return;}
+  if(!date){alert('Please select a date.');return;}
+  if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
+  if(phone)db.clients[name].phone=phone;
+
+  const txn={type:selectedType,grams,date,note};
+  if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
+  db.clients[name].transactions.push(txn);
+  save(); showToast('Transaction saved ✓'); clearForm(); updateSuggestions(); renderDashboard();
+}
+
+/* ── HISTORY ────────────────────────────── */
+const MONTH_NAMES=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function populateHistoryYears(){
+  const yearSel=document.getElementById('hist-year');
+  const currentYear=yearSel.value;
+  const years=new Set();
+  Object.values(db.clients).forEach(c=>(c.transactions||[]).forEach(t=>{
+    if(t.date)years.add(t.date.slice(0,4));
+  }));
+  yearSel.innerHTML='<option value="">All Years</option>';
+  [...years].sort((a,b)=>b-a).forEach(y=>{
+    const o=document.createElement('option');
+    o.value=y; o.textContent=y;
+    if(y===currentYear)o.selected=true;
+    yearSel.appendChild(o);
+  });
+  // Populate client filter
+  const clientSel=document.getElementById('hist-client');
+  const currentClient=clientSel.value;
+  clientSel.innerHTML='<option value="">All Clients</option>';
+  Object.keys(db.clients).sort((a,b)=>a.localeCompare(b)).forEach(name=>{
+    const o=document.createElement('option');
+    o.value=name; o.textContent=name;
+    if(name===currentClient)o.selected=true;
+    clientSel.appendChild(o);
+  });
+}
+
+function renderHistory(){
+  const yearFilter=document.getElementById('hist-year').value;
+  const monthFilter=document.getElementById('hist-month').value;
+  const typeFilter=document.getElementById('hist-type').value;
+  const clientFilter=document.getElementById('hist-client').value;
+
+  // Gather all transactions matching filter
+  const all=[];
+  Object.entries(db.clients).forEach(([clientName,c])=>{
+    if(clientFilter&&clientName!==clientFilter)return;
+    (c.transactions||[]).forEach(t=>{
+      if(!t.date)return;
+      const [ty,tm]=t.date.split('-');
+      if(yearFilter&&ty!==yearFilter)return;
+      if(monthFilter&&tm!==monthFilter)return;
+      if(typeFilter&&t.type!==typeFilter)return;
+      all.push({...t,clientName});
+    });
+  });
+
+  // Sort newest first (most recent date at top)
+  all.sort((a,b)=>b.date.localeCompare(a.date));
+
+  // Summary stats for filtered period
+  let sumDelivered=0,sumReceived=0;
+  all.forEach(t=>{ t.type==='delivered'?sumDelivered+=t.grams:sumReceived+=t.grams; });
+  const sumNet=sumReceived-sumDelivered;
+  document.getElementById('hist-summary').innerHTML=`
+    <div class="hist-sum-card"><div class="hist-sum-label">Delivered</div><div class="hist-sum-val give">+${sumDelivered.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumDelivered)}</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-label">Received</div><div class="hist-sum-val get">+${sumReceived.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumReceived)}</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-label">Net</div><div class="hist-sum-val net">${sumNet>=0?'+':''}${sumNet.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(Math.abs(sumNet))}</div></div>`;
+
+  const list=document.getElementById('hist-list'); list.innerHTML='';
+  const empty=document.getElementById('hist-empty');
+  if(!all.length){empty.style.display='block';return;} empty.style.display='none';
+
+  // Group by year-month
+  const groups={};
+  all.forEach(t=>{
+    const key=t.date.slice(0,7); // YYYY-MM
+    if(!groups[key])groups[key]=[];
+    groups[key].push(t);
+  });
+
+  Object.keys(groups).sort((a,b)=>b.localeCompare(a)).forEach(key=>{
+    const [yr,mo]=key.split('-');
+    const monthLabel=MONTH_NAMES[parseInt(mo)-1]+' '+yr;
+    const txns=groups[key];
+    let gDel=0,gRec=0;
+    txns.forEach(t=>t.type==='delivered'?gDel+=t.grams:gRec+=t.grams);
+
+    const group=document.createElement('div'); group.className='hist-month-group';
+    const badgeParts=[];
+    if(gDel>0)badgeParts.push('↑'+gDel.toFixed(3)+'g');
+    if(gRec>0)badgeParts.push('↓'+gRec.toFixed(3)+'g');
+    group.innerHTML=`<div class="hist-month-label">
+      <span>${monthLabel}</span>
+      <span class="hist-month-badge">${badgeParts.join(' | ')}</span>
+    </div>`;
+
+    txns.forEach(t=>{
+      const isDelivered=t.type==='delivered';
+      const row=document.createElement('div'); row.className='hist-txn-row';
+      let calcInfo='';
+      if(t.grossGrams&&t.purity)calcInfo=` · Gross: ${fmtGramMg(t.grossGrams)} × ${t.purity}%`;
+      row.innerHTML=`
+        <div class="hist-txn-dot ${t.type}"></div>
+        <div class="hist-txn-info">
+          <div class="hist-txn-title">${esc(t.clientName)}</div>
+          <div class="hist-txn-meta">${t.date}${t.note?' · '+esc(t.note):''}${calcInfo}</div>
+        </div>
+        <div class="hist-txn-amt">
+          <div class="hist-txn-grams ${t.type}">${isDelivered?'+':'-'}${t.grams.toFixed(3)}g</div>
+          <div class="hist-txn-mg">${fmtGramMg(t.grams)}</div>
+        </div>`;
+      group.appendChild(row);
+    });
+    list.appendChild(group);
+  });
+}
+
+function exportAll(){
+  const rows=[['Client','Phone','Date','Type','Pure Gold (g)','Gross Gold (g)','Purity (%)','Note']];
+  Object.entries(db.clients).forEach(([name,c])=>{
+    (c.transactions||[]).forEach(t=>rows.push([
+      name,c.phone||'',t.date,t.type,t.grams.toFixed(3),
+      t.grossGrams?t.grossGrams.toFixed(3):'',
+      t.purity||'',t.note||''
+    ]));
+  });
+  if(rows.length===1){showToast('No data to export yet');return;}
+  downloadCSV(rows,'gold_ledger_export.csv');
+}
+function downloadCSV(rows,filename){
+  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
+  a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ── TOAST ──────────────────────────────── */
+let toastTimer;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* ── PWA INSTALL ────────────────────────── */
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredInstall=e;
+  const wrap=document.getElementById('install-wrap');
+  if(wrap)wrap.innerHTML=`<div class="install-banner"><div class="install-text"><strong>Install as App</strong>Add to home screen — works offline!</div><button class="install-btn-banner" onclick="installApp()">Install</button></div>`;
+});
+function installApp(){
+  if(!deferredInstall)return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(()=>{deferredInstall=null;const w=document.getElementById('install-wrap');if(w)w.innerHTML='';});
+}
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+
+/* ── INIT ───────────────────────────────── */
+load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+</script>
+</body>
+</html>
