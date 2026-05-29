@@ -1347,118 +1347,114 @@ function exportAll(){
   let totDel=0,totRec=0;
   txns.forEach(({t})=>{t.type==='delivered'?totDel+=t.grams:totRec+=t.grams;});
 
-  // Build Excel XML Spreadsheet — real formulas in Pure Gold column
-  // Columns: A=Sr, B=Client, C=Phone, D=Date, E=Type, F=Gross Gold, G=Purity%, H=Pure Gold(formula), I=Note
-  const ROW_OFFSET = 9; // data starts at row 9 (after title/summary rows)
-
-  // Header style IDs defined in Styles
-  let xmlRows = '';
+  // DATA_ROW_START = row index where data begins (1-based, after header row)
+  // In our table: row 1 = header, rows 2..N = data
+  let tableRows = '';
   txns.forEach(({name,phone,t},i)=>{
-    const rowNum = ROW_OFFSET + i;
-    const grossVal = t.grossGrams ? t.grossGrams : '';
-    const purityVal = t.purity ? t.purity : '';
-    // Real Excel formula: =F{row}*G{row}/100
-    const pureFormula = (t.grossGrams && t.purity)
-      ? `=F${rowNum}*G${rowNum}/100`
-      : t.grams.toFixed(3);
-    const typeStr = t.type === 'delivered' ? 'Delivered' : 'Received';
+    const dataRow = i + 2; // Excel row number (1=header, 2=first data)
+    const gross = t.grossGrams!=null && t.grossGrams!=='' ? Number(t.grossGrams) : '';
+    const purity = t.purity!=null && t.purity!=='' ? Number(t.purity) : '';
+    const typeLabel = t.type==='delivered' ? 'Delivered' : 'Received';
+    const typeColor = t.type==='delivered' ? '#B83232' : '#2D8A42';
+    const rowBg = i%2===0 ? '#FFFFFF' : '#FFFBF2';
 
-    xmlRows += `  <Row ss:Index="${rowNum}">
-   <Cell ss:StyleID="s_idx"><Data ss:Type="Number">${i+1}</Data></Cell>
-   <Cell ss:StyleID="s_bold"><Data ss:Type="String">${name.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</Data></Cell>
-   <Cell ss:StyleID="s_cell"><Data ss:Type="String">${phone}</Data></Cell>
-   <Cell ss:StyleID="s_cell"><Data ss:Type="String">${t.date}</Data></Cell>
-   <Cell ss:StyleID="${t.type==='delivered'?'s_del':'s_rec'}"><Data ss:Type="String">${typeStr}</Data></Cell>
-   <Cell ss:StyleID="s_num">${grossVal!==''?`<Data ss:Type="Number">${grossVal}</Data>`:''}</Cell>
-   <Cell ss:StyleID="s_num">${purityVal!==''?`<Data ss:Type="Number">${purityVal}</Data>`:''}</Cell>
-   <Cell ss:StyleID="s_formula"${t.grossGrams&&t.purity?' ss:Formula="'+pureFormula+'"':''}>${(!t.grossGrams||!t.purity)?`<Data ss:Type="Number">${t.grams}</Data>`:''}</Cell>
-   <Cell ss:StyleID="s_cell"><Data ss:Type="String">${(t.note||'').replace(/&/g,'&amp;')}</Data></Cell>
-  </Row>
-`;
+    // Pure gold cell: use x:fmla for Excel formula, display value as fallback
+    let pureCell;
+    if(gross!=='' && purity!==''){
+      // Column F = Gross Gold (col index 6), Column G = Purity (col index 7)
+      // Formula: =F{dataRow}*G{dataRow}/100
+      const formulaResult = (gross * purity / 100).toFixed(3);
+      pureCell = `<td style="text-align:right;font-weight:600;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A" x:fmla="=F${dataRow}*G${dataRow}/100">${formulaResult}</td>`;
+    } else {
+      pureCell = `<td style="text-align:right;font-weight:600;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A">${t.grams.toFixed(3)}</td>`;
+    }
+
+    tableRows += `<tr style="background:${rowBg}">
+      <td style="text-align:center;color:#999;border:1px solid #E0D5B0">${i+1}</td>
+      <td style="font-weight:600;border:1px solid #E0D5B0">${name}</td>
+      <td style="border:1px solid #E0D5B0">${phone}</td>
+      <td style="border:1px solid #E0D5B0">${t.date}</td>
+      <td style="font-weight:600;color:${typeColor};border:1px solid #E0D5B0">${typeLabel}</td>
+      <td style="text-align:right;border:1px solid #E0D5B0">${gross!==''?gross.toFixed(3):''}</td>
+      <td style="text-align:right;border:1px solid #E0D5B0">${purity!==''?purity+'%':''}</td>
+      ${pureCell}
+      <td style="color:#666;border:1px solid #E0D5B0">${t.note||''}</td>
+    </tr>\n`;
   });
 
-  const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
-  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
-  xmlns:x="urn:schemas-microsoft-com:office:excel">
- <Styles>
-  <Style ss:ID="s_title"><Font ss:Bold="1" ss:Size="16" ss:Color="#5A3E00"/><Alignment ss:Horizontal="Left"/></Style>
-  <Style ss:ID="s_sub"><Font ss:Size="10" ss:Color="#888888"/></Style>
-  <Style ss:ID="s_sum_lbl"><Font ss:Bold="1" ss:Size="9" ss:Color="#888888"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E8C96A"/></Borders><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="s_sum_val"><Font ss:Bold="1" ss:Size="13" ss:Color="#B8860B"/><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="s_sum_del"><Font ss:Bold="1" ss:Size="13" ss:Color="#B83232"/><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="s_sum_rec"><Font ss:Bold="1" ss:Size="13" ss:Color="#2D8A42"/><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
-  <Style ss:ID="s_hdr"><Font ss:Bold="1" ss:Size="11" ss:Color="#FFFFFF"/><Interior ss:Color="#B8860B" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#9A6F00"/></Borders></Style>
-  <Style ss:ID="s_hdr_r"><Font ss:Bold="1" ss:Size="11" ss:Color="#FFFFFF"/><Interior ss:Color="#B8860B" ss:Pattern="Solid"/><Alignment ss:Horizontal="Right"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#9A6F00"/></Borders></Style>
-  <Style ss:ID="s_idx"><Font ss:Size="10" ss:Color="#888888"/><Alignment ss:Horizontal="Center"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
-  <Style ss:ID="s_bold"><Font ss:Bold="1" ss:Size="10.5"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
-  <Style ss:ID="s_cell"><Font ss:Size="10.5"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
-  <Style ss:ID="s_num"><Font ss:Size="10.5"/><Alignment ss:Horizontal="Right"/><NumberFormat ss:Format="0.000"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
-  <Style ss:ID="s_formula"><Font ss:Bold="1" ss:Size="10.5" ss:Color="#5A3E00"/><Alignment ss:Horizontal="Right"/><NumberFormat ss:Format="0.000"/><Interior ss:Color="#FFFBF0" ss:Pattern="Solid"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E8C96A"/></Borders></Style>
-  <Style ss:ID="s_del"><Font ss:Bold="1" ss:Size="10.5" ss:Color="#B83232"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
-  <Style ss:ID="s_rec"><Font ss:Bold="1" ss:Size="10.5" ss:Color="#2D8A42"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
-  <Style ss:ID="s_foot"><Font ss:Italic="1" ss:Size="9" ss:Color="#AAAAAA"/></Style>
- </Styles>
- <Worksheet ss:Name="Gold Ledger">
-  <Table ss:ExpandedColumnCount="9" ss:DefaultRowHeight="18">
-   <Column ss:Width="30"/>
-   <Column ss:Width="110"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="90"/>
-   <Column ss:Width="80"/>
-   <Column ss:Width="90"/>
-   <Column ss:Width="60"/>
-   <Column ss:Width="100"/>
-   <Column ss:Width="120"/>
-   <Row ss:Index="1" ss:Height="24">
-    <Cell ss:StyleID="s_title" ss:MergeAcross="8"><Data ss:Type="String">Gold Ledger — Transaction Report</Data></Cell>
-   </Row>
-   <Row ss:Index="2" ss:Height="16">
-    <Cell ss:StyleID="s_sub" ss:MergeAcross="8"><Data ss:Type="String">Sone Ka Hisaab  |  Generated: ${reportDate}</Data></Cell>
-   </Row>
-   <Row ss:Index="3"/>
-   <Row ss:Index="4" ss:Height="16">
-    <Cell ss:StyleID="s_sum_lbl" ss:MergeAcross="2"><Data ss:Type="String">TOTAL TRANSACTIONS</Data></Cell>
-    <Cell/>
-    <Cell ss:StyleID="s_sum_lbl" ss:MergeAcross="1"><Data ss:Type="String">TOTAL DELIVERED</Data></Cell>
-    <Cell/>
-    <Cell ss:StyleID="s_sum_lbl" ss:MergeAcross="2"><Data ss:Type="String">TOTAL RECEIVED</Data></Cell>
-   </Row>
-   <Row ss:Index="5" ss:Height="22">
-    <Cell ss:StyleID="s_sum_val" ss:MergeAcross="2"><Data ss:Type="Number">${txns.length}</Data></Cell>
-    <Cell/>
-    <Cell ss:StyleID="s_sum_del" ss:MergeAcross="1"><Data ss:Type="Number">${totDel.toFixed(3)}</Data></Cell>
-    <Cell/>
-    <Cell ss:StyleID="s_sum_rec" ss:MergeAcross="2"><Data ss:Type="Number">${totRec.toFixed(3)}</Data></Cell>
-   </Row>
-   <Row ss:Index="6"/>
-   <Row ss:Index="7"/>
-   <Row ss:Index="8" ss:Height="20">
-    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">#</Data></Cell>
-    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Client Name</Data></Cell>
-    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Phone</Data></Cell>
-    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Date</Data></Cell>
-    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Type</Data></Cell>
-    <Cell ss:StyleID="s_hdr_r"><Data ss:Type="String">Gross Gold (g)</Data></Cell>
-    <Cell ss:StyleID="s_hdr_r"><Data ss:Type="String">Purity (%)</Data></Cell>
-    <Cell ss:StyleID="s_hdr_r"><Data ss:Type="String">Pure Gold (g)</Data></Cell>
-    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Note</Data></Cell>
-   </Row>
-${xmlRows}   <Row ss:Index="${ROW_OFFSET+txns.length+1}">
-    <Cell ss:StyleID="s_foot" ss:MergeAcross="8"><Data ss:Type="String">* Pure Gold column uses formula =GrossGold × Purity% — edit Gross Gold or Purity values and Pure Gold updates automatically. Generated by Gold Ledger App.</Data></Cell>
-   </Row>
-  </Table>
- </Worksheet>
-</Workbook>`;
+  const xls = `<html xmlns:o="urn:schemas-microsoft-com:office:office"
+  xmlns:x="urn:schemas-microsoft-com:office:excel"
+  xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--[if gte mso 9]>
+<xml>
+  <x:ExcelWorkbook>
+    <x:ExcelWorksheets>
+      <x:ExcelWorksheet>
+        <x:Name>Gold Ledger</x:Name>
+        <x:WorksheetOptions>
+          <x:DisplayGridlines/>
+        </x:WorksheetOptions>
+      </x:ExcelWorksheet>
+    </x:ExcelWorksheets>
+  </x:ExcelWorkbook>
+</xml>
+<![endif]-->
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+  table { border-collapse: collapse; width: 100%; }
+  .title { font-size: 16pt; font-weight: bold; color: #5A3E00; }
+  .subtitle { font-size: 10pt; color: #888888; margin-bottom: 12px; }
+  .sum-box { display: inline-block; background: #FFF8E7; border: 1px solid #E8C96A; padding: 8px 14px; margin-right: 10px; margin-bottom: 12px; }
+  .sum-lbl { font-size: 8pt; color: #888; text-transform: uppercase; }
+  .sum-val { font-size: 13pt; font-weight: bold; }
+  th { background: #B8860B; color: #fff; padding: 9px 10px; font-size: 10.5pt; border: 1px solid #9A6F00; }
+  td { padding: 7px 10px; font-size: 10pt; vertical-align: middle; }
+  .footer { font-size: 8pt; color: #AAAAAA; margin-top: 10px; }
+</style>
+</head>
+<body>
+<p class="title">&#9878; Gold Ledger &mdash; Transaction Report</p>
+<p class="subtitle">Sone Ka Hisaab &nbsp;|&nbsp; Generated: ${reportDate}</p>
+<div>
+  <div class="sum-box"><div class="sum-lbl">Total Transactions</div><div class="sum-val" style="color:#B8860B">${txns.length}</div></div>
+  <div class="sum-box"><div class="sum-lbl">Total Delivered</div><div class="sum-val" style="color:#B83232">${totDel.toFixed(3)} g</div></div>
+  <div class="sum-box"><div class="sum-lbl">Total Received</div><div class="sum-val" style="color:#2D8A42">${totRec.toFixed(3)} g</div></div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:30px">#</th>
+      <th>Client Name</th>
+      <th>Phone</th>
+      <th>Date</th>
+      <th>Type</th>
+      <th style="text-align:right">Gross Gold (g)</th>
+      <th style="text-align:right">Purity (%)</th>
+      <th style="text-align:right;background:#9A6F00">Pure Gold (g)</th>
+      <th>Note</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${tableRows}
+  </tbody>
+</table>
+<p class="footer">* Pure Gold column contains live formulas: =Gross Gold &times; Purity% &divide; 100. Edit F or G column values in Excel and Pure Gold updates automatically.</p>
+<p class="footer">Generated by Gold Ledger App &mdash; parthodas27806.github.io/Gold-Ledger</p>
+</body>
+</html>`;
 
-  const blob = new Blob([xmlContent], {type:'application/vnd.ms-excel;charset=utf-8'});
+  const blob = new Blob([xls], {type: 'application/vnd.ms-excel;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = 'Gold_Ledger_Report.xls';
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a); URL.revokeObjectURL(url);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
   showToast('Report downloaded ✓');
 }
 
