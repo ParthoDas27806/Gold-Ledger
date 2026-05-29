@@ -64,7 +64,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   margin-bottom: 64px; /* above fixed bottom nav */
   background: var(--bg);
 }
-.page { display: none; padding: 14px 14px 20px; }
+.page { display: none; padding: 14px 14px 90px; }
 .page.active { display: block; }
 
 /* ── BOTTOM NAV — fixed to bottom of viewport ── */
@@ -591,7 +591,7 @@ select {
   <!-- SIDEBAR — shown only on desktop via JS -->
   <aside id="sidebar" class="sidebar" style="display:none">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"><img src="icons/logo.png" alt="Gold Ledger" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;"></div>
+      <div class="sidebar-logo-icon"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;"></div>
       <div>
         <div class="sidebar-title">Gold Ledger</div>
         <div class="sidebar-sub">Sone Ka Hisaab</div>
@@ -612,7 +612,7 @@ select {
     <!-- Top bar (mobile only) -->
     <div class="topbar">
       <div class="topbar-inner">
-        <div class="topbar-logo"><img src="icons/logo.png" alt="Gold Ledger" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"></div>
+        <div class="topbar-logo"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"></div>
         <div>
           <div class="topbar-title">Gold Ledger</div>
           <div class="topbar-sub">Sone Ka Hisaab</div>
@@ -641,7 +641,7 @@ select {
             <div class="big-stat-sub" id="s-give-mg">0 gram</div>
           </div>
           <div class="big-stat-card big-stat-net">
-            <div class="big-stat-icon"><img src="icons/logo.png" style="width:32px;height:32px;object-fit:contain;filter:brightness(2);display:block;"></div>
+            <div class="big-stat-icon"><img src="icons/logo.png?v=2" style="width:32px;height:32px;object-fit:contain;filter:brightness(2);display:block;"></div>
             <div class="big-stat-label">Net Balance</div>
             <div class="big-stat-val" id="s-net">0.000g</div>
             <div class="big-stat-sub" id="s-net-mg">0 gram</div>
@@ -1335,7 +1335,6 @@ function renderHistory(){
 }
 
 function exportAll(){
-  // Collect all transactions
   const txns=[];
   Object.entries(db.clients).forEach(([name,c])=>{
     (c.transactions||[]).forEach(t=>txns.push({name,phone:c.phone||'',t}));
@@ -1343,94 +1342,126 @@ function exportAll(){
   if(!txns.length){showToast('No data to export yet');return;}
   txns.sort((a,b)=>b.t.date.localeCompare(a.t.date));
 
-  // Build HTML table styled as professional Excel report
   const now=new Date();
   const reportDate=now.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
-  
-  // Count stats
   let totDel=0,totRec=0;
   txns.forEach(({t})=>{t.type==='delivered'?totDel+=t.grams:totRec+=t.grams;});
 
-  let rows='';
+  // Build Excel XML Spreadsheet — real formulas in Pure Gold column
+  // Columns: A=Sr, B=Client, C=Phone, D=Date, E=Type, F=Gross Gold, G=Purity%, H=Pure Gold(formula), I=Note
+  const ROW_OFFSET = 9; // data starts at row 9 (after title/summary rows)
+
+  // Header style IDs defined in Styles
+  let xmlRows = '';
   txns.forEach(({name,phone,t},i)=>{
-    const grossCol=t.grossGrams?t.grossGrams.toFixed(3):'';
-    const purityCol=t.purity?t.purity+'%':'';
-    // Formula: if gross & purity exist, show formula text; else show value
-    const pureFormula=t.grossGrams&&t.purity
-      ? t.grossGrams.toFixed(3)+' × '+t.purity+'% = '+t.grams.toFixed(3)+'g'
-      : t.grams.toFixed(3)+'g';
-    const typeLabel=t.type==='delivered'
-      ? '<span style="color:#B83232;font-weight:600">▲ Delivered</span>'
-      : '<span style="color:#2D8A42;font-weight:600">▼ Received</span>';
-    const rowBg=i%2===0?'#FFFFFF':'#FAFAF7';
-    rows+=`<tr style="background:${rowBg}">
-      <td>${i+1}</td>
-      <td><b>${name}</b></td>
-      <td>${phone}</td>
-      <td>${t.date}</td>
-      <td>${typeLabel}</td>
-      <td style="text-align:right">${grossCol}</td>
-      <td style="text-align:center">${purityCol}</td>
-      <td style="text-align:right;font-weight:600;color:#5A3E00">${pureFormula}</td>
-      <td>${t.note||''}</td>
-    </tr>`;
+    const rowNum = ROW_OFFSET + i;
+    const grossVal = t.grossGrams ? t.grossGrams : '';
+    const purityVal = t.purity ? t.purity : '';
+    // Real Excel formula: =F{row}*G{row}/100
+    const pureFormula = (t.grossGrams && t.purity)
+      ? `=F${rowNum}*G${rowNum}/100`
+      : t.grams.toFixed(3);
+    const typeStr = t.type === 'delivered' ? 'Delivered' : 'Received';
+
+    xmlRows += `  <Row ss:Index="${rowNum}">
+   <Cell ss:StyleID="s_idx"><Data ss:Type="Number">${i+1}</Data></Cell>
+   <Cell ss:StyleID="s_bold"><Data ss:Type="String">${name.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</Data></Cell>
+   <Cell ss:StyleID="s_cell"><Data ss:Type="String">${phone}</Data></Cell>
+   <Cell ss:StyleID="s_cell"><Data ss:Type="String">${t.date}</Data></Cell>
+   <Cell ss:StyleID="${t.type==='delivered'?'s_del':'s_rec'}"><Data ss:Type="String">${typeStr}</Data></Cell>
+   <Cell ss:StyleID="s_num">${grossVal!==''?`<Data ss:Type="Number">${grossVal}</Data>`:''}</Cell>
+   <Cell ss:StyleID="s_num">${purityVal!==''?`<Data ss:Type="Number">${purityVal}</Data>`:''}</Cell>
+   <Cell ss:StyleID="s_formula"${t.grossGrams&&t.purity?' ss:Formula="'+pureFormula+'"':''}>${(!t.grossGrams||!t.purity)?`<Data ss:Type="Number">${t.grams}</Data>`:''}</Cell>
+   <Cell ss:StyleID="s_cell"><Data ss:Type="String">${(t.note||'').replace(/&/g,'&amp;')}</Data></Cell>
+  </Row>
+`;
   });
 
-  const html2=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="UTF-8">
-<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
-<x:Name>Gold Ledger</x:Name>
-<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
-</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
-<style>
-  body{font-family:Calibri,sans-serif;font-size:11pt}
-  table{border-collapse:collapse;width:100%}
-  th{background:#B8860B;color:#fff;padding:10px 12px;text-align:left;font-size:11pt;font-weight:700;border:1px solid #9A6F00}
-  td{padding:8px 12px;border:1px solid #E0D5B0;font-size:10.5pt;vertical-align:middle}
-  .report-title{font-size:18pt;font-weight:700;color:#5A3E00;margin-bottom:4px}
-  .report-sub{font-size:10pt;color:#888;margin-bottom:16px}
-  .summary-box{background:#FFF8E7;border:1px solid #E8C96A;border-radius:4px;padding:10px 16px;margin-bottom:16px;display:inline-block;min-width:180px;margin-right:12px}
-  .sum-label{font-size:9pt;color:#888;text-transform:uppercase;letter-spacing:0.5px}
-  .sum-val{font-size:14pt;font-weight:700;color:#B8860B}
-</style>
-</head><body>
-<div class="report-title">⚖ Gold Ledger — Transaction Report</div>
-<div class="report-sub">Sone Ka Hisaab &nbsp;|&nbsp; Generated on: ${reportDate}</div>
-<div>
-  <div class="summary-box"><div class="sum-label">Total Transactions</div><div class="sum-val">${txns.length}</div></div>
-  <div class="summary-box"><div class="sum-label">Total Delivered</div><div class="sum-val" style="color:#B83232">${totDel.toFixed(3)} g</div></div>
-  <div class="summary-box"><div class="sum-label">Total Received</div><div class="sum-val" style="color:#2D8A42">${totRec.toFixed(3)} g</div></div>
-</div>
-<br>
-<table>
-  <thead><tr>
-    <th style="width:30px">#</th>
-    <th>Client Name</th>
-    <th>Phone</th>
-    <th>Date</th>
-    <th>Type</th>
-    <th style="text-align:right">Gross Gold (g)</th>
-    <th style="text-align:center">Purity</th>
-    <th style="text-align:right">Pure Gold (g)</th>
-    <th>Note</th>
-  </tr></thead>
-  <tbody>${rows}</tbody>
-</table>
-<br>
-<div style="font-size:9pt;color:#aaa">* Pure Gold = Gross Gold × Purity % &nbsp;|&nbsp; Generated by Gold Ledger App</div>
-</body></html>`;
+  const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+  xmlns:x="urn:schemas-microsoft-com:office:excel">
+ <Styles>
+  <Style ss:ID="s_title"><Font ss:Bold="1" ss:Size="16" ss:Color="#5A3E00"/><Alignment ss:Horizontal="Left"/></Style>
+  <Style ss:ID="s_sub"><Font ss:Size="10" ss:Color="#888888"/></Style>
+  <Style ss:ID="s_sum_lbl"><Font ss:Bold="1" ss:Size="9" ss:Color="#888888"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E8C96A"/></Borders><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="s_sum_val"><Font ss:Bold="1" ss:Size="13" ss:Color="#B8860B"/><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="s_sum_del"><Font ss:Bold="1" ss:Size="13" ss:Color="#B83232"/><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="s_sum_rec"><Font ss:Bold="1" ss:Size="13" ss:Color="#2D8A42"/><Interior ss:Color="#FFF8E7" ss:Pattern="Solid"/></Style>
+  <Style ss:ID="s_hdr"><Font ss:Bold="1" ss:Size="11" ss:Color="#FFFFFF"/><Interior ss:Color="#B8860B" ss:Pattern="Solid"/><Alignment ss:Horizontal="Center"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#9A6F00"/></Borders></Style>
+  <Style ss:ID="s_hdr_r"><Font ss:Bold="1" ss:Size="11" ss:Color="#FFFFFF"/><Interior ss:Color="#B8860B" ss:Pattern="Solid"/><Alignment ss:Horizontal="Right"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#9A6F00"/></Borders></Style>
+  <Style ss:ID="s_idx"><Font ss:Size="10" ss:Color="#888888"/><Alignment ss:Horizontal="Center"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
+  <Style ss:ID="s_bold"><Font ss:Bold="1" ss:Size="10.5"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
+  <Style ss:ID="s_cell"><Font ss:Size="10.5"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
+  <Style ss:ID="s_num"><Font ss:Size="10.5"/><Alignment ss:Horizontal="Right"/><NumberFormat ss:Format="0.000"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
+  <Style ss:ID="s_formula"><Font ss:Bold="1" ss:Size="10.5" ss:Color="#5A3E00"/><Alignment ss:Horizontal="Right"/><NumberFormat ss:Format="0.000"/><Interior ss:Color="#FFFBF0" ss:Pattern="Solid"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E8C96A"/></Borders></Style>
+  <Style ss:ID="s_del"><Font ss:Bold="1" ss:Size="10.5" ss:Color="#B83232"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
+  <Style ss:ID="s_rec"><Font ss:Bold="1" ss:Size="10.5" ss:Color="#2D8A42"/><Borders><Border ss:Position="All" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E0D5B0"/></Borders></Style>
+  <Style ss:ID="s_foot"><Font ss:Italic="1" ss:Size="9" ss:Color="#AAAAAA"/></Style>
+ </Styles>
+ <Worksheet ss:Name="Gold Ledger">
+  <Table ss:ExpandedColumnCount="9" ss:DefaultRowHeight="18">
+   <Column ss:Width="30"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="60"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="120"/>
+   <Row ss:Index="1" ss:Height="24">
+    <Cell ss:StyleID="s_title" ss:MergeAcross="8"><Data ss:Type="String">Gold Ledger — Transaction Report</Data></Cell>
+   </Row>
+   <Row ss:Index="2" ss:Height="16">
+    <Cell ss:StyleID="s_sub" ss:MergeAcross="8"><Data ss:Type="String">Sone Ka Hisaab  |  Generated: ${reportDate}</Data></Cell>
+   </Row>
+   <Row ss:Index="3"/>
+   <Row ss:Index="4" ss:Height="16">
+    <Cell ss:StyleID="s_sum_lbl" ss:MergeAcross="2"><Data ss:Type="String">TOTAL TRANSACTIONS</Data></Cell>
+    <Cell/>
+    <Cell ss:StyleID="s_sum_lbl" ss:MergeAcross="1"><Data ss:Type="String">TOTAL DELIVERED</Data></Cell>
+    <Cell/>
+    <Cell ss:StyleID="s_sum_lbl" ss:MergeAcross="2"><Data ss:Type="String">TOTAL RECEIVED</Data></Cell>
+   </Row>
+   <Row ss:Index="5" ss:Height="22">
+    <Cell ss:StyleID="s_sum_val" ss:MergeAcross="2"><Data ss:Type="Number">${txns.length}</Data></Cell>
+    <Cell/>
+    <Cell ss:StyleID="s_sum_del" ss:MergeAcross="1"><Data ss:Type="Number">${totDel.toFixed(3)}</Data></Cell>
+    <Cell/>
+    <Cell ss:StyleID="s_sum_rec" ss:MergeAcross="2"><Data ss:Type="Number">${totRec.toFixed(3)}</Data></Cell>
+   </Row>
+   <Row ss:Index="6"/>
+   <Row ss:Index="7"/>
+   <Row ss:Index="8" ss:Height="20">
+    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">#</Data></Cell>
+    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Client Name</Data></Cell>
+    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Phone</Data></Cell>
+    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Date</Data></Cell>
+    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Type</Data></Cell>
+    <Cell ss:StyleID="s_hdr_r"><Data ss:Type="String">Gross Gold (g)</Data></Cell>
+    <Cell ss:StyleID="s_hdr_r"><Data ss:Type="String">Purity (%)</Data></Cell>
+    <Cell ss:StyleID="s_hdr_r"><Data ss:Type="String">Pure Gold (g)</Data></Cell>
+    <Cell ss:StyleID="s_hdr"><Data ss:Type="String">Note</Data></Cell>
+   </Row>
+${xmlRows}   <Row ss:Index="${ROW_OFFSET+txns.length+1}">
+    <Cell ss:StyleID="s_foot" ss:MergeAcross="8"><Data ss:Type="String">* Pure Gold column uses formula =GrossGold × Purity% — edit Gross Gold or Purity values and Pure Gold updates automatically. Generated by Gold Ledger App.</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>`;
 
-  const blob=new Blob([html2],{type:'application/vnd.ms-excel;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download='Gold_Ledger_Report.xls';
+  const blob = new Blob([xmlContent], {type:'application/vnd.ms-excel;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Gold_Ledger_Report.xls';
   document.body.appendChild(a); a.click();
   document.body.removeChild(a); URL.revokeObjectURL(url);
   showToast('Report downloaded ✓');
 }
 
-/* ── TOAST ──────────────────────────────── */
-let toastTimer;
 function showToast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
