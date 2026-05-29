@@ -29,7 +29,12 @@
 }
 
 /* ── FULL SCREEN FOUNDATION ── */
-html, body {
+html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
@@ -38,6 +43,7 @@ html, body {
   font-family: 'DM Sans', sans-serif;
   font-size: 15px;
   line-height: 1.5;
+  /* Critical Android fix: don't use position:fixed */
 }
 
 /* Mobile layout: header + content + nav all stacked, filling screen */
@@ -73,9 +79,11 @@ html, body {
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   background: var(--bg);
-  /* Critical: min-height 0 allows flex child to shrink */
   min-height: 0;
+  /* Android Chrome fix */
+  will-change: scroll-position;
 }
 .page { display: none; padding: 14px 14px 80px; }
 .page.active { display: block; }
@@ -602,7 +610,7 @@ select {
   <!-- SIDEBAR — shown only on desktop via JS -->
   <aside id="sidebar" class="sidebar" style="display:none">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">⚖️</div>
+      <div class="sidebar-logo-icon"><img src="icons/logo.png" alt="Gold Ledger" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;"></div>
       <div>
         <div class="sidebar-title">Gold Ledger</div>
         <div class="sidebar-sub">Sone Ka Hisaab</div>
@@ -623,7 +631,7 @@ select {
     <!-- Top bar (mobile only) -->
     <div class="topbar">
       <div class="topbar-inner">
-        <div class="topbar-logo">⚖️</div>
+        <div class="topbar-logo"><img src="icons/logo.png" alt="Gold Ledger" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"></div>
         <div>
           <div class="topbar-title">Gold Ledger</div>
           <div class="topbar-sub">Sone Ka Hisaab</div>
@@ -652,7 +660,7 @@ select {
             <div class="big-stat-sub" id="s-give-mg">0 gram</div>
           </div>
           <div class="big-stat-card big-stat-net">
-            <div class="big-stat-icon">⚖️</div>
+            <div class="big-stat-icon"><img src="icons/logo.png" style="width:32px;height:32px;object-fit:contain;filter:brightness(2);display:block;"></div>
             <div class="big-stat-label">Net Balance</div>
             <div class="big-stat-val" id="s-net">0.000g</div>
             <div class="big-stat-sub" id="s-net-mg">0 gram</div>
@@ -1350,22 +1358,98 @@ function renderHistory(){
 }
 
 function exportAll(){
-  const rows=[['Client','Phone','Date','Type','Pure Gold (g)','Gross Gold (g)','Purity (%)','Note']];
+  // Collect all transactions
+  const txns=[];
   Object.entries(db.clients).forEach(([name,c])=>{
-    (c.transactions||[]).forEach(t=>rows.push([
-      name,c.phone||'',t.date,t.type,t.grams.toFixed(3),
-      t.grossGrams?t.grossGrams.toFixed(3):'',
-      t.purity||'',t.note||''
-    ]));
+    (c.transactions||[]).forEach(t=>txns.push({name,phone:c.phone||'',t}));
   });
-  if(rows.length===1){showToast('No data to export yet');return;}
-  downloadCSV(rows,'gold_ledger_export.csv');
-}
-function downloadCSV(rows,filename){
-  const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  if(!txns.length){showToast('No data to export yet');return;}
+  txns.sort((a,b)=>b.t.date.localeCompare(a.t.date));
+
+  // Build HTML table styled as professional Excel report
+  const now=new Date();
+  const reportDate=now.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  
+  // Count stats
+  let totDel=0,totRec=0;
+  txns.forEach(({t})=>{t.type==='delivered'?totDel+=t.grams:totRec+=t.grams;});
+
+  let rows='';
+  txns.forEach(({name,phone,t},i)=>{
+    const grossCol=t.grossGrams?t.grossGrams.toFixed(3):'';
+    const purityCol=t.purity?t.purity+'%':'';
+    // Formula: if gross & purity exist, show formula text; else show value
+    const pureFormula=t.grossGrams&&t.purity
+      ? t.grossGrams.toFixed(3)+' × '+t.purity+'% = '+t.grams.toFixed(3)+'g'
+      : t.grams.toFixed(3)+'g';
+    const typeLabel=t.type==='delivered'
+      ? '<span style="color:#B83232;font-weight:600">▲ Delivered</span>'
+      : '<span style="color:#2D8A42;font-weight:600">▼ Received</span>';
+    const rowBg=i%2===0?'#FFFFFF':'#FAFAF7';
+    rows+=`<tr style="background:${rowBg}">
+      <td>${i+1}</td>
+      <td><b>${name}</b></td>
+      <td>${phone}</td>
+      <td>${t.date}</td>
+      <td>${typeLabel}</td>
+      <td style="text-align:right">${grossCol}</td>
+      <td style="text-align:center">${purityCol}</td>
+      <td style="text-align:right;font-weight:600;color:#5A3E00">${pureFormula}</td>
+      <td>${t.note||''}</td>
+    </tr>`;
+  });
+
+  const html2=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8">
+<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+<x:Name>Gold Ledger</x:Name>
+<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+</x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+<style>
+  body{font-family:Calibri,sans-serif;font-size:11pt}
+  table{border-collapse:collapse;width:100%}
+  th{background:#B8860B;color:#fff;padding:10px 12px;text-align:left;font-size:11pt;font-weight:700;border:1px solid #9A6F00}
+  td{padding:8px 12px;border:1px solid #E0D5B0;font-size:10.5pt;vertical-align:middle}
+  .report-title{font-size:18pt;font-weight:700;color:#5A3E00;margin-bottom:4px}
+  .report-sub{font-size:10pt;color:#888;margin-bottom:16px}
+  .summary-box{background:#FFF8E7;border:1px solid #E8C96A;border-radius:4px;padding:10px 16px;margin-bottom:16px;display:inline-block;min-width:180px;margin-right:12px}
+  .sum-label{font-size:9pt;color:#888;text-transform:uppercase;letter-spacing:0.5px}
+  .sum-val{font-size:14pt;font-weight:700;color:#B8860B}
+</style>
+</head><body>
+<div class="report-title">⚖ Gold Ledger — Transaction Report</div>
+<div class="report-sub">Sone Ka Hisaab &nbsp;|&nbsp; Generated on: ${reportDate}</div>
+<div>
+  <div class="summary-box"><div class="sum-label">Total Transactions</div><div class="sum-val">${txns.length}</div></div>
+  <div class="summary-box"><div class="sum-label">Total Delivered</div><div class="sum-val" style="color:#B83232">${totDel.toFixed(3)} g</div></div>
+  <div class="summary-box"><div class="sum-label">Total Received</div><div class="sum-val" style="color:#2D8A42">${totRec.toFixed(3)} g</div></div>
+</div>
+<br>
+<table>
+  <thead><tr>
+    <th style="width:30px">#</th>
+    <th>Client Name</th>
+    <th>Phone</th>
+    <th>Date</th>
+    <th>Type</th>
+    <th style="text-align:right">Gross Gold (g)</th>
+    <th style="text-align:center">Purity</th>
+    <th style="text-align:right">Pure Gold (g)</th>
+    <th>Note</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<br>
+<div style="font-size:9pt;color:#aaa">* Pure Gold = Gross Gold × Purity % &nbsp;|&nbsp; Generated by Gold Ledger App</div>
+</body></html>`;
+
+  const blob=new Blob([html2],{type:'application/vnd.ms-excel;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);
-  a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  a.href=url; a.download='Gold_Ledger_Report.xls';
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(url);
+  showToast('Report downloaded ✓');
 }
 
 /* ── TOAST ──────────────────────────────── */
