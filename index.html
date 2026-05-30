@@ -1361,24 +1361,23 @@ function exportAll(){
     // Pure gold cell: use x:fmla for Excel formula, display value as fallback
     let pureCell;
     if(gross!=='' && purity!==''){
-      // Column F = Gross Gold (col index 6), Column G = Purity (col index 7)
-      // Formula: =F{dataRow}*G{dataRow}/100
       const formulaResult = (gross * purity / 100).toFixed(3);
-      pureCell = `<td style="text-align:right;font-weight:600;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A" x:fmla="=F${dataRow}*G${dataRow}/100">${formulaResult}</td>`;
+      // x:fmla uses column letters: F=GrossGold, G=Purity → pure = F*G/100
+      pureCell = `<td style="text-align:right;font-weight:700;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A;font-size:11pt" x:fmla="=F${dataRow}*G${dataRow}/100">${formulaResult} g</td>`;
     } else {
-      pureCell = `<td style="text-align:right;font-weight:600;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A">${t.grams.toFixed(3)}</td>`;
+      pureCell = `<td style="text-align:right;font-weight:700;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A;font-size:11pt">${t.grams.toFixed(3)} g</td>`;
     }
 
     tableRows += `<tr style="background:${rowBg}">
-      <td style="text-align:center;color:#999;border:1px solid #E0D5B0">${i+1}</td>
-      <td style="font-weight:600;border:1px solid #E0D5B0">${name}</td>
-      <td style="border:1px solid #E0D5B0">${phone}</td>
-      <td style="border:1px solid #E0D5B0">${t.date}</td>
-      <td style="font-weight:600;color:${typeColor};border:1px solid #E0D5B0">${typeLabel}</td>
-      <td style="text-align:right;border:1px solid #E0D5B0">${gross!==''?gross.toFixed(3):''}</td>
-      <td style="text-align:right;border:1px solid #E0D5B0">${purity!==''?purity+'%':''}</td>
+      <td style="text-align:center;color:#999;border:1px solid #E0D5B0;font-size:10pt">${i+1}</td>
+      <td style="font-weight:600;border:1px solid #E0D5B0;font-size:10.5pt">${name}</td>
+      <td style="border:1px solid #E0D5B0;font-size:10pt">${phone}</td>
+      <td style="border:1px solid #E0D5B0;font-size:10pt">${t.date}</td>
+      <td style="font-weight:600;color:${typeColor};border:1px solid #E0D5B0;font-size:10.5pt">${typeLabel}</td>
+      <td style="text-align:right;border:1px solid #E0D5B0;font-size:10.5pt">${gross!==''?gross.toFixed(3)+' g':''}</td>
+      <td style="text-align:right;border:1px solid #E0D5B0;font-size:10.5pt">${purity!==''?purity+'%':''}</td>
       ${pureCell}
-      <td style="color:#666;border:1px solid #E0D5B0">${t.note||''}</td>
+      <td style="color:#666;border:1px solid #E0D5B0;font-size:10pt">${t.note||''}</td>
     </tr>\n`;
   });
 
