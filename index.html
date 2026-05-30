@@ -640,7 +640,7 @@ select {
             <div class="big-stat-val" id="s-give">0.000g</div>
             <div class="big-stat-sub" id="s-give-mg">0 gram</div>
           </div>
-          <div class="big-stat-card big-stat-net">
+          <div class="big-stat-card big-stat-net" id="net-card">
             <div class="big-stat-icon"><img src="icons/logo.png?v=2" style="width:32px;height:32px;object-fit:contain;filter:brightness(2);display:block;"></div>
             <div class="big-stat-label">Net Balance</div>
             <div class="big-stat-val" id="s-net">0.000g</div>
@@ -704,8 +704,8 @@ select {
           <div class="field">
             <label>Transaction Type *</label>
             <div class="type-selector">
-              <div class="type-opt sel-delivered" id="topt-delivered" onclick="selectType('delivered')"><span class="type-opt-icon">📦</span><div class="type-opt-label">Delivered</div></div>
-              <div class="type-opt" id="topt-received" onclick="selectType('received')"><span class="type-opt-icon">📥</span><div class="type-opt-label">Received</div></div>
+              <div class="type-opt sel-delivered" id="topt-delivered" onclick="selectType('delivered')"><span class="type-opt-icon">📦</span><div class="type-opt-label">Kaaj</div></div>
+              <div class="type-opt" id="topt-received" onclick="selectType('received')"><span class="type-opt-icon">📥</span><div class="type-opt-label">Metal</div></div>
             </div>
           </div>
 
@@ -734,26 +734,10 @@ select {
             <div class="field">
               <label>Purity Percentage *</label>
               <div class="purity-row">
-                <div class="purity-presets">
-                  <button class="purity-btn" data-purity="99.9" onclick="setPurity(99.9)">99.9%</button>
-                  <button class="purity-btn" data-purity="91.6" onclick="setPurity(91.6)">91.6%<span class="purity-note">22K</span></button>
-                  <button class="purity-btn" data-purity="75" onclick="setPurity(75)">75%<span class="purity-note">18K</span></button>
-                  <button class="purity-btn" data-purity="58.3" onclick="setPurity(58.3)">58.3%<span class="purity-note">14K</span></button>
-                </div>
                 <div class="purity-custom-wrap">
                   <input type="number" id="f-purity" placeholder="e.g. 91.6" min="0.1" max="100" step="0.01" oninput="calcPureGold()" class="purity-input">
                   <span class="weight-unit">%</span>
                 </div>
-              </div>
-            </div>
-
-            <!-- Decimal precision -->
-            <div class="field" style="margin-bottom:8px">
-              <label>Result Decimal Places</label>
-              <div class="decimal-selector">
-                <button class="dec-btn" data-dec="2" onclick="setDecimal(2)">2</button>
-                <button class="dec-btn active" data-dec="3" onclick="setDecimal(3)">3</button>
-                <button class="dec-btn" data-dec="4" onclick="setDecimal(4)">4</button>
               </div>
             </div>
 
@@ -809,8 +793,8 @@ select {
           </select>
           <select id="hist-type" onchange="renderHistory()" class="hist-select">
             <option value="">All Types</option>
-            <option value="delivered">Delivered</option>
-            <option value="received">Received</option>
+            <option value="delivered">Kaaj</option>
+            <option value="received">Metal</option>
           </select>
         </div>
         <!-- Filter bar row 2: client -->
@@ -954,6 +938,9 @@ function renderDashboard(){
   const ne=document.getElementById('s-net');
   ne.textContent=(net>0?'+':net<0?'-':'')+Math.abs(net).toFixed(3)+'g';
   document.getElementById('s-net-mg').textContent=fmtGramMg(Math.abs(net));
+  // Change net card color based on value
+  const netCard=document.getElementById('net-card');
+  netCard.className='big-stat-card '+(net>0?'big-stat-get':net<0?'big-stat-give':'big-stat-net');
   updateSidebarStats();
 }
 function updateSidebarStats(){
@@ -1009,7 +996,7 @@ function renderDetailTxns(name){
   const empty=document.getElementById('det-empty');
   const txns=c.transactions||[];
   if(!txns.length){empty.style.display='block';return;} empty.style.display='none';
-  const typeMap={delivered:{label:'Delivered to client',sign:'+',cls:'delivered'},received:{label:'Received from client',sign:'-',cls:'received'}};
+  const typeMap={delivered:{label:'Kaaj (delivered to client)',sign:'+',cls:'delivered'},received:{label:'Metal (received from client)',sign:'-',cls:'received'}};
   [...txns].reverse().forEach((t,ri)=>{
     const idx=txns.length-1-ri;
     const tm=typeMap[t.type]||{label:t.type,sign:'',cls:'received'};
@@ -1139,8 +1126,8 @@ function updatePreview(){
   if(!grams){box.className='preview-box';return;}
   const display=grams.toFixed(3)+'g ('+fmtGramMg(grams)+')';
   const msgs={
-    delivered:`📦 You delivered goods worth <strong>${display}</strong> of pure gold to <strong>${esc(client)}</strong>. They now owe you this gold.`,
-    received:`📥 You received <strong>${display}</strong> of pure gold from <strong>${esc(client)}</strong>. Their balance reduces.`
+    delivered:`📦 Kaaj: delivered goods worth <strong>${display}</strong> of pure gold to <strong>${esc(client)}</strong>.`,
+    received:`📥 Metal: received <strong>${display}</strong> of pure gold from <strong>${esc(client)}</strong>.`
   };
   box.innerHTML=msgs[selectedType]||''; box.className='preview-box show';
 }
@@ -1354,7 +1341,7 @@ function exportAll(){
     const dataRow = i + 2; // Excel row number (1=header, 2=first data)
     const gross = t.grossGrams!=null && t.grossGrams!=='' ? Number(t.grossGrams) : '';
     const purity = t.purity!=null && t.purity!=='' ? Number(t.purity) : '';
-    const typeLabel = t.type==='delivered' ? 'Delivered' : 'Received';
+    const typeLabel = t.type==='delivered' ? 'Kaaj' : 'Metal';
     const typeColor = t.type==='delivered' ? '#B83232' : '#2D8A42';
     const rowBg = i%2===0 ? '#FFFFFF' : '#FFFBF2';
 
@@ -1362,10 +1349,10 @@ function exportAll(){
     let pureCell;
     if(gross!=='' && purity!==''){
       const formulaResult = (gross * purity / 100).toFixed(3);
-      // x:fmla uses column letters: F=GrossGold, G=Purity → pure = F*G/100
-      pureCell = `<td style="text-align:right;font-weight:700;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A;font-size:11pt" x:fmla="=F${dataRow}*G${dataRow}/100">${formulaResult} g</td>`;
+      // x:fmla: Purity stored as decimal (e.g. 0.583), formula =F*G gives pure gold
+      pureCell = `<td style="text-align:right;font-weight:400;color:#000000;background:#FFFFFF;border:1px solid #E0D5B0;font-size:10.5pt" x:fmla="=F${dataRow}*G${dataRow}">${formulaResult} g</td>`;
     } else {
-      pureCell = `<td style="text-align:right;font-weight:700;color:#5A3E00;background:#FFFBF0;border:1px solid #E8C96A;font-size:11pt">${t.grams.toFixed(3)} g</td>`;
+      pureCell = `<td style="text-align:right;font-weight:400;color:#000000;background:#FFFFFF;border:1px solid #E0D5B0;font-size:10.5pt">${t.grams.toFixed(3)} g</td>`;
     }
 
     tableRows += `<tr style="background:${rowBg}">
@@ -1374,8 +1361,8 @@ function exportAll(){
       <td style="border:1px solid #E0D5B0;font-size:10pt">${phone}</td>
       <td style="border:1px solid #E0D5B0;font-size:10pt">${t.date}</td>
       <td style="font-weight:600;color:${typeColor};border:1px solid #E0D5B0;font-size:10.5pt">${typeLabel}</td>
-      <td style="text-align:right;border:1px solid #E0D5B0;font-size:10.5pt">${gross!==''?gross.toFixed(3)+' g':''}</td>
-      <td style="text-align:right;border:1px solid #E0D5B0;font-size:10.5pt">${purity!==''?purity+'%':''}</td>
+      <td style="text-align:right;border:1px solid #E0D5B0;font-size:10.5pt">${gross!==''?gross.toFixed(2):''}  </td>
+      <td style="text-align:right;border:1px solid #E0D5B0;font-size:10.5pt" x:num="${purity!==''?(purity/100).toFixed(5):''}" style="mso-number-format:'0.00%'">${purity!==''?purity.toFixed(2)+'%':''}</td>
       ${pureCell}
       <td style="color:#666;border:1px solid #E0D5B0;font-size:10pt">${t.note||''}</td>
     </tr>\n`;
