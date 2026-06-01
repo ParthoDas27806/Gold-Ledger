@@ -265,9 +265,9 @@ select {
 .type-opt:active { transform: scale(0.97); }
 .type-opt-icon { font-size: 30px; display: block; margin-bottom: 8px; }
 .type-opt-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-.type-opt.sel-delivered { border-color:#153E7A; background:#BFD4F5; box-shadow: 0 0 0 3px rgba(24,95,165,0.12); }
+.type-opt.sel-delivered { border-color:#1F4E9E; background:#DCEAFF; box-shadow: 0 0 0 3px rgba(24,95,165,0.12); }
 .type-opt.sel-delivered .type-opt-label { color: var(--blue); }
-.type-opt.sel-received { border-color:#1F5F24; background:#BFE0BF; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
+.type-opt.sel-received { border-color:#2E7D32; background:#DFF4DF; box-shadow: 0 0 0 3px rgba(45,122,58,0.12); }
 .type-opt.sel-received .type-opt-label { color: var(--green); }
 
 .preview-box { background: var(--gold-bg); border: 1.5px solid var(--gold-border); border-radius: var(--rs); padding: 10px 14px; font-size: 13px; color: var(--gold-dark); margin-bottom: 12px; display: none; line-height: 1.6; }
@@ -1128,11 +1128,11 @@ function selectType(type){
   calcCard.style.opacity='1'; calcCard.style.pointerEvents='auto';
 
   if(type==='delivered'){
-    calcCard.style.background='linear-gradient(135deg,#C8D8F5,#9DB8E8)';
-    calcCard.style.borderColor='#153E7A';
+    calcCard.style.background='linear-gradient(135deg,#E8F1FF,#C7DCFF)';
+    calcCard.style.borderColor='#1F4E9E';
   }else{
-    calcCard.style.background='linear-gradient(135deg,#CFE8CF,#A8D5A8)';
-    calcCard.style.borderColor='#1F5F24';
+    calcCard.style.background='linear-gradient(135deg,#EAF8EA,#D2F0D2)';
+    calcCard.style.borderColor='#2E7D32';
   }
 
   updatePreview();
