@@ -1079,6 +1079,7 @@ function deleteTxn(name,idx){
   if(!db.clients[name].transactions.length){delete db.clients[name];save();showToast('Deleted');closeDetail();renderDashboard();return;}
   save();openDetail(name);renderDashboard();
 }
+
 function addTxnForClient(){
   if(!activeClient)return;
   
@@ -1086,10 +1087,10 @@ function addTxnForClient(){
   const clientName = activeClient;
   const clientPhone = db.clients[activeClient].phone || '';
   
-  // Navigate to 'add' which resets the form
+  // Navigate to 'add' FIRST (which clears the form completely)
   showPage('add');
   
-  // Now populate the fields
+  // THEN populate the fields with the saved data
   document.getElementById('f-client').value = clientName;
   document.getElementById('f-phone').value = clientPhone;
   updatePreview();
