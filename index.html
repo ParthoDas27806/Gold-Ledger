@@ -610,7 +610,6 @@ select {
 
 <div id="app">
 
-  <!-- SIDEBAR — shown only on desktop via JS -->
   <aside id="sidebar" class="sidebar" style="display:none">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;"></div>
@@ -629,10 +628,8 @@ select {
     <div class="sidebar-stats" id="sidebar-stats"></div>
   </aside>
 
-  <!-- MAIN COLUMN -->
   <div class="main-col" id="main-col">
 
-    <!-- Top bar (mobile only) -->
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-logo"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"></div>
@@ -643,13 +640,10 @@ select {
       </div>
     </div>
 
-    <!-- Scrollable pages -->
     <div class="scroll-area" id="scroll-area">
 
-      <!-- DASHBOARD -->
       <div id="page-dashboard" class="page active">
         <div id="install-wrap"></div>
-        <!-- Big beautiful stat cards -->
         <div class="big-stat-grid">
           <div class="big-stat-card big-stat-get">
             <div class="big-stat-icon">📈</div>
@@ -670,13 +664,11 @@ select {
             <div class="big-stat-sub" id="s-net-mg">0 gram</div>
           </div>
         </div>
-        <!-- Quick tip at bottom of dashboard -->
         <div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">
           Go to <strong>Clients</strong> to view all balances
         </div>
       </div>
 
-      <!-- CLIENTS -->
       <div id="page-clients" class="page">
         <div id="view-client-list">
           <div class="section-header" style="margin-bottom:12px">
@@ -712,18 +704,16 @@ select {
             <span class="empty-icon" style="font-size:32px">🧾</span><p>No transactions yet.</p>
           </div>
           <div class="action-row">
-            <button class="action-btn" onclick="exportClient()">⬇ Export</button>
+            <button class="action-btn" onclick="exportClient()">⬇ Export as Excel</button>
             <button class="action-btn" onclick="addTxnForClient()">➕ Add Transaction</button>
           </div>
         </div>
       </div>
 
-      <!-- ADD TRANSACTION -->
       <div id="page-add" class="page">
         <div class="form-section">
           <h3>New Transaction</h3>
 
-          <!-- Type -->
           <div class="field">
             <label>Transaction Type *</label>
             <div class="type-selector">
@@ -732,18 +722,15 @@ select {
             </div>
           </div>
 
-          <!-- Client + Date -->
           <div class="field-row">
             <div class="field"><label>Client Name *</label><input type="text" id="f-client" placeholder="e.g. Ramesh Ji" list="cl-suggestions" autocomplete="off" oninput="updatePreview()"><datalist id="cl-suggestions"></datalist></div>
             <div class="field"><label>Date *</label><input type="date" id="f-date"></div>
           </div>
 
-          <!-- Gold Calculation Card -->
           <div class="calc-card" id="calc-card">
             <div class="calc-title">⚖️ Gold Weight Calculator</div>
             <div class="calc-subtitle">Enter gross gold &amp; purity to auto-calculate pure gold</div>
 
-            <!-- Gross Gold: single decimal input -->
             <div class="field">
               <label>Gross Gold (total weight in grams) *</label>
               <div class="weight-input-wrap">
@@ -753,7 +740,6 @@ select {
               <div class="weight-hint" id="gross-display">e.g. 12.350 = 12 gram 350 mg</div>
             </div>
 
-            <!-- Purity -->
             <div class="field">
               <label>Purity Percentage *</label>
               <div class="purity-row">
@@ -764,7 +750,6 @@ select {
               </div>
             </div>
 
-            <!-- Result -->
             <div class="calc-result" id="calc-result">
               <div class="calc-result-label">Pure Gold</div>
               <div class="calc-result-formula" id="calc-formula">—</div>
@@ -773,16 +758,11 @@ select {
             </div>
           </div>
 
-          <!-- Manual override (hidden until calc done, or for settlement) -->
-          <div class="field" id="manual-field">
-            <label id="manual-label">Pure Gold (grams) *  <span class="manual-tag" id="manual-tag"></span></label>
-            <input type="number" id="f-grams" placeholder="e.g. 60.350" min="0.001" step="0.001" oninput="onManualGrams()">
-            <div class="manual-hint" id="manual-hint">You can also type directly here</div>
-          </div>
+          <input type="hidden" id="f-grams">
+          <span id="manual-tag" style="display:none;"></span>
 
-          <!-- Phone + Note -->
           <div class="field-row">
-            <div class="field"><label>Phone (optional)</label><input type="tel" id="f-phone" placeholder="9876543210"></div>
+            <div class="field"><label>Phone *</label><input type="tel" id="f-phone" placeholder="9876543210"></div>
             <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
           </div>
 
@@ -794,13 +774,11 @@ select {
         </div>
       </div>
 
-      <!-- HISTORY -->
       <div id="page-history" class="page">
         <div class="hist-header">
           <div class="section-title" style="font-size:17px">Transaction History</div>
         </div>
 
-        <!-- Filter bar row 1: year + month + type -->
         <div class="hist-filter-bar">
           <select id="hist-year" onchange="renderHistory()" class="hist-select">
             <option value="">All Years</option>
@@ -820,17 +798,14 @@ select {
             <option value="received">Metal</option>
           </select>
         </div>
-        <!-- Filter bar row 2: client -->
         <div class="hist-filter-bar" style="margin-top:-4px">
           <select id="hist-client" onchange="renderHistory()" class="hist-select">
             <option value="">All Clients</option>
           </select>
         </div>
 
-        <!-- Summary for filtered period -->
         <div class="hist-summary" id="hist-summary"></div>
 
-        <!-- Transaction entries grouped by month -->
         <div id="hist-list"></div>
         <div id="hist-empty" class="empty-state" style="display:none">
           <span class="empty-icon">🗂️</span>
@@ -838,18 +813,16 @@ select {
         </div>
 
         <div style="margin-top:14px">
-          <button class="btn btn-gold" onclick="exportAll()">⬇ Export All as CSV</button>
+          <button class="btn btn-gold" onclick="exportAll()">⬇ Export All as Excel</button>
         </div>
       </div>
 
-      <!-- DAYBOOK -->
       <div id="page-daybook" class="page">
         <div class="section-header" style="margin-bottom:12px">
           <div class="section-title" style="font-size:17px">📒 Daybook</div>
         </div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Daily summary — how much Kaaj delivered and Metal received each day.</p>
 
-        <!-- Date filter -->
         <div class="hist-filter-bar" style="margin-bottom:12px">
           <select id="db-month" onchange="renderDaybook()" class="hist-select">
             <option value="">All Months</option>
@@ -865,10 +838,8 @@ select {
           </select>
         </div>
 
-        <!-- Month totals banner -->
         <div id="db-totals"></div>
 
-        <!-- Day-by-day list -->
         <div id="db-list"></div>
         <div id="db-empty" class="empty-state" style="display:none">
           <span class="empty-icon">📒</span>
@@ -876,10 +847,7 @@ select {
         </div>
       </div>
 
-    </div><!-- /scroll-area -->
-
-    <!-- Bottom nav (mobile only) -->
-    <nav class="bottom-nav">
+    </div><nav class="bottom-nav">
       <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</button>
       <button class="nav-btn" id="nav-clients" onclick="showPage('clients')"><span class="nav-icon">👥</span>Clients</button>
       <button class="nav-btn" id="nav-add" onclick="showPage('add')"><span class="nav-icon" style="font-size:26px">➕</span>Add</button>
@@ -887,11 +855,7 @@ select {
       <button class="nav-btn" id="nav-daybook" onclick="showPage('daybook')"><span class="nav-icon">📒</span>Daybook</button>
     </nav>
 
-  </div><!-- /main-col -->
-</div><!-- /app -->
-
-<!-- ADD CLIENT MODAL -->
-<div id="modal-overlay" class="modal-overlay" onclick="closeAddClientModal()" style="display:none"></div>
+  </div></div><div id="modal-overlay" class="modal-overlay" onclick="closeAddClientModal()" style="display:none"></div>
 <div id="modal-add-client" class="modal-box" style="display:none">
   <div class="modal-header">
     <div class="modal-title">Add New Client</div>
@@ -902,7 +866,7 @@ select {
     <input type="text" id="mc-name" placeholder="e.g. Ramesh Ji" autocomplete="off">
   </div>
   <div class="field">
-    <label>Phone Number (optional)</label>
+    <label>Phone Number *</label>
     <input type="tel" id="mc-phone" placeholder="e.g. 9876543210">
   </div>
   <div class="btn-row" style="margin-top:16px">
@@ -988,8 +952,15 @@ function showPage(p){
   const nb=document.getElementById('nav-'+p); if(nb)nb.classList.add('active');
   const sb=document.getElementById('snav-'+p); if(sb)sb.classList.add('active');
   window.scrollTo(0,0);
+  
   if(p==='dashboard')renderDashboard();
-  if(p==='clients'){renderClients(); if(!activeClient)showClientList();}
+  
+  // FIX: Always show the main client list and reset activeClient when clicking the Clients tab
+  if(p==='clients'){ 
+    showClientList(); 
+    renderClients(); 
+  }
+  
   if(p==='add'){updateSuggestions();updatePreview();}
   if(p==='history'){populateHistoryYears();renderHistory();}
   if(p==='daybook'){populateDaybookYears();renderDaybook();}
@@ -1112,12 +1083,255 @@ function addTxnForClient(){
   document.getElementById('f-client').value=activeClient;
   showPage('add');updatePreview();
 }
+
 function exportClient(){
   if(!activeClient)return;
   const c=db.clients[activeClient];
-  const rows=[['Date','Type','Grams','Note']];
-  (c.transactions||[]).forEach(t=>rows.push([t.date,t.type,t.grams.toFixed(3),t.note||'']));
-  downloadCSV(rows,activeClient.replace(/\s+/g,'_')+'_gold.csv');
+  const txns = (c.transactions||[]).map(t => ({name: activeClient, phone: c.phone||'', t}));
+  if(!txns.length){showToast('No data to export yet');return;}
+  txns.sort((a,b)=>b.t.date.localeCompare(a.t.date));
+  const safeName = activeClient.replace(/\s+/g,'_');
+  downloadExcel(txns, safeName + '_Gold_Report.xlsx', '⚖ Gold Ledger — ' + activeClient + ' Report');
+}
+
+function exportAll(){
+  const txns=[];
+  Object.entries(db.clients).forEach(([name,c])=>{
+    (c.transactions||[]).forEach(t=>txns.push({name,phone:c.phone||'',t}));
+  });
+  if(!txns.length){showToast('No data to export yet');return;}
+  txns.sort((a,b)=>b.t.date.localeCompare(a.t.date));
+  downloadExcel(txns, 'Gold_Ledger_All_Report.xlsx', '⚖ Gold Ledger — All Transactions Report');
+}
+
+/* ── Shared Excel Download Logic ── */
+function downloadExcel(txns, filename, titleStr) {
+  const now=new Date();
+  const reportDate=now.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+  let totDel=0,totRec=0;
+  txns.forEach(({t})=>{t.type==='delivered'?totDel+=t.grams:totRec+=t.grams;});
+
+  /* ── Styles (XSSF style indices) ── */
+  const stylesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="10">
+  <font><sz val="11"/><name val="Calibri"/></font>
+  <font><sz val="18"/><b/><color rgb="FF5A3E00"/><name val="Calibri"/></font>
+  <font><sz val="10"/><color rgb="FF888888"/><name val="Calibri"/></font>
+  <font><sz val="9"/><color rgb="FF888888"/><name val="Calibri"/><i/></font>
+  <font><sz val="13"/><b/><color rgb="FFB8860B"/><name val="Calibri"/></font>
+  <font><sz val="13"/><b/><color rgb="FFB83232"/><name val="Calibri"/></font>
+  <font><sz val="13"/><b/><color rgb="FF2D8A42"/><name val="Calibri"/></font>
+  <font><sz val="11"/><b/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
+  <font><sz val="10.5"/><b/><name val="Calibri"/></font>
+  <font><sz val="10.5"/><b/><color rgb="FFB83232"/><name val="Calibri"/></font>
+  <font><sz val="10.5"/><b/><color rgb="FF2D8A42"/><name val="Calibri"/></font>
+</fonts>
+<fills count="9">
+  <fill><patternFill patternType="none"/></fill>
+  <fill><patternFill patternType="gray125"/></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFB8860B"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFDF8F0"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFFF8E7"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFFEAEA"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFEAFAEE"/></patternFill></fill>
+  <fill><patternFill patternType="solid"><fgColor rgb="FFFFFBF2"/></patternFill></fill>
+</fills>
+<borders count="3">
+  <border><left/><right/><top/><bottom/><diagonal/></border>
+  <border><left style="thin"><color rgb="FFE0D5B0"/></left><right style="thin"><color rgb="FFE0D5B0"/></right><top style="thin"><color rgb="FFE0D5B0"/></top><bottom style="thin"><color rgb="FFE0D5B0"/></bottom><diagonal/></border>
+  <border><left style="thin"><color rgb="FF9A6F00"/></left><right style="thin"><color rgb="FF9A6F00"/></right><top style="thin"><color rgb="FF9A6F00"/></top><bottom style="thin"><color rgb="FF9A6F00"/></bottom><diagonal/></border>
+</borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="23">
+  <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="6" fillId="0" borderId="0" xfId="0"/>
+  <xf numFmtId="0" fontId="7" fillId="2" borderId="2" xfId="0"><alignment horizontal="center"/></xf>
+  <xf numFmtId="0" fontId="7" fillId="2" borderId="2" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0"/>
+  <xf numFmtId="0" fontId="8" fillId="3" borderId="1" xfId="0"/>
+  <xf numFmtId="2" fontId="0" fillId="3" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="10" fontId="0" fillId="3" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="2" fontId="8" fillId="3" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="0" fontId="0" fillId="8" borderId="1" xfId="0"/>
+  <xf numFmtId="0" fontId="8" fillId="8" borderId="1" xfId="0"/>
+  <xf numFmtId="2" fontId="0" fillId="8" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="10" fontId="0" fillId="8" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="2" fontId="8" fillId="8" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
+  <xf numFmtId="0" fontId="9" fillId="3" borderId="1" xfId="0"/>
+  <xf numFmtId="0" fontId="10" fillId="3" borderId="1" xfId="0"/>
+  <xf numFmtId="0" fontId="9" fillId="8" borderId="1" xfId="0"/>
+  <xf numFmtId="0" fontId="10" fillId="8" borderId="1" xfId="0"/>
+</cellXfs>
+</styleSheet>`;
+
+  const sst=[], sstMap={};
+  function si(v){
+    const s=String(v==null?'':v);
+    if(sstMap[s]===undefined){sstMap[s]=sst.length;sst.push(s);}
+    return sstMap[s];
+  }
+  function cr(c,r){return String.fromCharCode(65+c)+r;}
+
+  const rowsXml=[];
+  function addRow(r,cells){
+    let rx=`<row r="${r}">`;
+    cells.forEach(([col,type,val,style,fmla])=>{
+      if(val===null||val===undefined) return;
+      const ref=cr(col,r);
+      const s=style?` s="${style}"`:'';
+      if(type==='s') rx+=`<c r="${ref}" t="s"${s}><v>${si(val)}</v></c>`;
+      else if(type==='n') rx+=`<c r="${ref}"${s}><v>${val}</v></c>`;
+      else if(type==='f') rx+=`<c r="${ref}"${s}><f>${fmla}</f><v>${val}</v></c>`;
+    });
+    rx+=`</row>`;
+    rowsXml.push(rx);
+  }
+
+  // Row 1: Title
+  addRow(1,[[0,'s',titleStr,1]]);
+  // Row 3: subtitle
+  addRow(3,[[0,'s','Sone Ka Hisaab  |  Generated: '+reportDate,2]]);
+  // Row 5: summary labels
+  addRow(5,[[0,'s','Total Transactions',3],[2,'s','Total Kaaj (Delivered)',3],[4,'s','Total Metal (Received)',3]]);
+  // Row 6: summary values
+  addRow(6,[[0,'n',txns.length,4],[2,'s',totDel.toFixed(3)+' g',5],[4,'s',totRec.toFixed(3)+' g',6]]);
+  // Row 10: header row
+  addRow(10,[
+    [0,'s','#',7],[1,'s','Client Name',7],[2,'s','Phone',7],[3,'s','Date',7],[4,'s','Type',7],
+    [5,'s','Gross Gold (g)',8],[6,'s','Purity (%)',8],[7,'s','Pure Gold (g)',8],[8,'s','Note',7]
+  ]);
+
+  txns.forEach(({name,phone,t},i)=>{
+    const r=11+i;
+    const isAlt=i%2===1;
+    const gross=t.grossGrams!=null&&t.grossGrams!==''?Number(t.grossGrams):null;
+    const purity=t.purity!=null&&t.purity!==''?Number(t.purity):null;
+    const isKaaj=t.type==='delivered';
+    const typeLabel=isKaaj?'Kaaj':'Metal';
+    const sStr=isAlt?14:9, sBold=isAlt?15:10, sNum=isAlt?16:11, sPct=isAlt?17:12, sFml=isAlt?18:13;
+    const sType=isKaaj?(isAlt?21:19):(isAlt?22:20);
+
+    let pureCell;
+    if(gross!=null&&purity!=null){
+      const val=Math.round(gross*(purity/100)*1000)/1000;
+      pureCell=[7,'f',val,sFml,`F${r}*G${r}/100`];
+    } else {
+      pureCell=[7,'n',t.grams,sFml];
+    }
+
+    addRow(r,[
+      [0,'n',i+1,sStr],
+      [1,'s',name,sBold],
+      [2,'s',phone,sStr],
+      [3,'s',t.date,sStr],
+      [4,'s',typeLabel,sType],
+      gross!=null?[5,'n',gross,sNum]:null,
+      purity!=null?[6,'n',purity/100,sPct]:null,
+      pureCell,
+      [8,'s',t.note||'',sStr]
+    ].filter(Boolean));
+  });
+
+  const footerRow=11+txns.length+1;
+  addRow(footerRow,[[0,'s','* Pure Gold column contains live formulas. Edit Gross Gold or Purity in Excel and Pure Gold updates automatically.',3]]);
+  addRow(footerRow+1,[[0,'s','Generated by Gold Ledger App — parthodas27806.github.io/Gold-Ledger',3]]);
+
+  const merges=`<mergeCells count="1"><mergeCell ref="A1:I1"/></mergeCells>`;
+  const cols=`<cols>
+    <col min="1" max="1" width="5" customWidth="1"/>
+    <col min="2" max="2" width="20" customWidth="1"/>
+    <col min="3" max="3" width="14" customWidth="1"/>
+    <col min="4" max="4" width="13" customWidth="1"/>
+    <col min="5" max="5" width="10" customWidth="1"/>
+    <col min="6" max="6" width="14" customWidth="1"/>
+    <col min="7" max="7" width="11" customWidth="1"/>
+    <col min="8" max="8" width="14" customWidth="1"/>
+    <col min="9" max="9" width="22" customWidth="1"/>
+  </cols>`;
+
+  const sheetXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+${cols}
+<sheetData>${rowsXml.join('')}</sheetData>
+${merges}
+</worksheet>`;
+
+  const sstXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">
+${sst.map(v=>`<si><t xml:space="preserve">${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</t></si>`).join('')}
+</sst>`;
+
+  const wbXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="Gold Ledger" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`;
+
+  const wbRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
+<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`;
+
+  const rootRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`;
+
+  const contentTypes=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+</Types>`;
+
+  /* ── ZIP builder ── */
+  const enc=new TextEncoder();
+  function makeZip(files){
+    const crcTable=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}return t;})();
+    function crc32(d){let c=0xFFFFFFFF;for(let i=0;i<d.length;i++)c=crcTable[(c^d[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+    function u32(v){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,v,true);return b;}
+    function u16(v){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,v,true);return b;}
+    const parts=[],cd=[];let off=0;
+    files.forEach(({name,data})=>{
+      const nb=enc.encode(name),crc=crc32(data),sz=data.length;
+      const lfh=new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),0x00,0x00]);
+      parts.push(lfh,nb,data);
+      const cde=new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32(off)]);
+      cd.push(cde,nb);off+=lfh.length+nb.length+sz;
+    });
+    let cdSz=0;cd.forEach(p=>cdSz+=p.length);
+    const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,...u16(files.length),...u16(files.length),...u32(cdSz),...u32(off),0x00,0x00]);
+    const all=[...parts,...cd,eocd],tot=all.reduce((s,p)=>s+p.length,0),res=new Uint8Array(tot);let pos=0;
+    all.forEach(p=>{res.set(p,pos);pos+=p.length;});return res;
+  }
+
+  const zipData=makeZip([
+    {name:'[Content_Types].xml',data:enc(contentTypes)},
+    {name:'_rels/.rels',data:enc(rootRels)},
+    {name:'xl/workbook.xml',data:enc(wbXml)},
+    {name:'xl/_rels/workbook.xml.rels',data:enc(wbRels)},
+    {name:'xl/worksheets/sheet1.xml',data:enc(sheetXml)},
+    {name:'xl/sharedStrings.xml',data:enc(sstXml)},
+    {name:'xl/styles.xml',data:enc(stylesXml)},
+  ]);
+
+  const blob=new Blob([zipData],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  showToast('Report downloaded ✓');
 }
 
 /* ── ADD TRANSACTION ────────────────────── */
@@ -1181,7 +1395,7 @@ function calcPureGold(){
   document.getElementById('calc-value').textContent=pureRounded.toFixed(decimalPlaces)+' g';
   document.getElementById('calc-breakdown').textContent=fmtGramMg(pureRounded);
 
-  // Auto-fill the grams field
+  // Auto-fill the hidden grams field
   document.getElementById('f-grams').value=pureRounded.toFixed(decimalPlaces);
   document.getElementById('manual-tag').textContent='auto-calculated';
   updatePreview();
@@ -1235,6 +1449,7 @@ function saveNewClient(){
   const name=(document.getElementById('mc-name').value||'').trim();
   const phone=(document.getElementById('mc-phone').value||'').trim();
   if(!name){alert('Please enter a client name.');return;}
+  if(!phone){alert('Please enter a phone number.');return;}
   if(db.clients[name]){
     closeAddClientModal();
     showPage('clients');
@@ -1279,6 +1494,7 @@ function saveTransaction(){
   const purity=parseFloat(document.getElementById('f-purity').value)||0;
 
   if(!name){alert('Please enter the client name.');return;}
+  if(!phone){alert('Please enter the phone number.');return;}
   if(!grams||grams<=0){alert('Please enter or calculate the pure gold amount.');return;}
   if(!date){alert('Please select a date.');return;}
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
@@ -1398,262 +1614,6 @@ function renderHistory(){
     });
     list.appendChild(group);
   });
-}
-
-function exportAll(){
-  const txns=[];
-  Object.entries(db.clients).forEach(([name,c])=>{
-    (c.transactions||[]).forEach(t=>txns.push({name,phone:c.phone||'',t}));
-  });
-  if(!txns.length){showToast('No data to export yet');return;}
-  txns.sort((a,b)=>b.t.date.localeCompare(a.t.date));
-
-  const now=new Date();
-  const reportDate=now.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
-  let totDel=0,totRec=0;
-  txns.forEach(({t})=>{t.type==='delivered'?totDel+=t.grams:totRec+=t.grams;});
-
-  /* ── Styles (XSSF style indices) ── */
-  // We embed styles via xl/styles.xml
-  // Style IDs (0-based index in cellXfs):
-  // 0=default, 1=title, 2=subtitle, 3=sumLabel, 4=sumValGold,
-  // 5=sumValRed, 6=sumValGreen, 7=hdr, 8=hdrRight,
-  // 9=cellStr, 10=cellBold, 11=cellNum, 12=cellPct, 13=cellFormula,
-  // 14=cellStrAlt, 15=cellBoldAlt, 16=cellNumAlt, 17=cellPctAlt, 18=cellFormulaAlt,
-  // 19=cellRed, 20=cellGreen, 21=cellRedAlt, 22=cellGreenAlt, 23=footer
-
-  const stylesXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-<fonts count="10">
-  <font><sz val="11"/><name val="Calibri"/></font>
-  <font><sz val="18"/><b/><color rgb="FF5A3E00"/><name val="Calibri"/></font>
-  <font><sz val="10"/><color rgb="FF888888"/><name val="Calibri"/></font>
-  <font><sz val="9"/><color rgb="FF888888"/><name val="Calibri"/><i/></font>
-  <font><sz val="13"/><b/><color rgb="FFB8860B"/><name val="Calibri"/></font>
-  <font><sz val="13"/><b/><color rgb="FFB83232"/><name val="Calibri"/></font>
-  <font><sz val="13"/><b/><color rgb="FF2D8A42"/><name val="Calibri"/></font>
-  <font><sz val="11"/><b/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>
-  <font><sz val="10.5"/><b/><name val="Calibri"/></font>
-  <font><sz val="10.5"/><b/><color rgb="FFB83232"/><name val="Calibri"/></font>
-  <font><sz val="10.5"/><b/><color rgb="FF2D8A42"/><name val="Calibri"/></font>
-</fonts>
-<fills count="9">
-  <fill><patternFill patternType="none"/></fill>
-  <fill><patternFill patternType="gray125"/></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFB8860B"/></patternFill></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFFFFFFF"/></patternFill></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFFDF8F0"/></patternFill></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFFFF8E7"/></patternFill></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFFFEAEA"/></patternFill></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFEAFAEE"/></patternFill></fill>
-  <fill><patternFill patternType="solid"><fgColor rgb="FFFFFBF2"/></patternFill></fill>
-</fills>
-<borders count="3">
-  <border><left/><right/><top/><bottom/><diagonal/></border>
-  <border><left style="thin"><color rgb="FFE0D5B0"/></left><right style="thin"><color rgb="FFE0D5B0"/></right><top style="thin"><color rgb="FFE0D5B0"/></top><bottom style="thin"><color rgb="FFE0D5B0"/></bottom><diagonal/></border>
-  <border><left style="thin"><color rgb="FF9A6F00"/></left><right style="thin"><color rgb="FF9A6F00"/></right><top style="thin"><color rgb="FF9A6F00"/></top><bottom style="thin"><color rgb="FF9A6F00"/></bottom><diagonal/></border>
-</borders>
-<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
-<cellXfs count="23">
-  <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="6" fillId="0" borderId="0" xfId="0"/>
-  <xf numFmtId="0" fontId="7" fillId="2" borderId="2" xfId="0"><alignment horizontal="center"/></xf>
-  <xf numFmtId="0" fontId="7" fillId="2" borderId="2" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0"/>
-  <xf numFmtId="0" fontId="8" fillId="3" borderId="1" xfId="0"/>
-  <xf numFmtId="2" fontId="0" fillId="3" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="10" fontId="0" fillId="3" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="2" fontId="8" fillId="3" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="0" fontId="0" fillId="8" borderId="1" xfId="0"/>
-  <xf numFmtId="0" fontId="8" fillId="8" borderId="1" xfId="0"/>
-  <xf numFmtId="2" fontId="0" fillId="8" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="10" fontId="0" fillId="8" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="2" fontId="8" fillId="8" borderId="1" xfId="0"><alignment horizontal="right"/></xf>
-  <xf numFmtId="0" fontId="9" fillId="3" borderId="1" xfId="0"/>
-  <xf numFmtId="0" fontId="10" fillId="3" borderId="1" xfId="0"/>
-  <xf numFmtId="0" fontId="9" fillId="8" borderId="1" xfId="0"/>
-  <xf numFmtId="0" fontId="10" fillId="8" borderId="1" xfId="0"/>
-</cellXfs>
-</styleSheet>`;
-
-  /* ── Shared strings ── */
-  const sst=[], sstMap={};
-  function si(v){
-    const s=String(v==null?'':v);
-    if(sstMap[s]===undefined){sstMap[s]=sst.length;sst.push(s);}
-    return sstMap[s];
-  }
-  function cr(c,r){return String.fromCharCode(65+c)+r;}
-
-  /* ── Build rows ── */
-  const rowsXml=[];
-  function addRow(r,cells){
-    let rx=`<row r="${r}">`;
-    cells.forEach(([col,type,val,style,fmla])=>{
-      if(val===null||val===undefined) return;
-      const ref=cr(col,r);
-      const s=style?` s="${style}"`:'';
-      if(type==='s') rx+=`<c r="${ref}" t="s"${s}><v>${si(val)}</v></c>`;
-      else if(type==='n') rx+=`<c r="${ref}"${s}><v>${val}</v></c>`;
-      else if(type==='f') rx+=`<c r="${ref}"${s}><f>${fmla}</f><v>${val}</v></c>`;
-    });
-    rx+=`</row>`;
-    rowsXml.push(rx);
-  }
-
-  // Row 1: Title (col A, style 1=title font)
-  addRow(1,[[0,'s','⚖ Gold Ledger — Transaction Report',1]]);
-  // Row 2: blank
-  // Row 3: subtitle
-  addRow(3,[[0,'s','Sone Ka Hisaab  |  Generated: '+reportDate,2]]);
-  // Row 4: blank
-  // Row 5: summary labels
-  addRow(5,[[0,'s','Total Transactions',3],[2,'s','Total Kaaj (Delivered)',3],[4,'s','Total Metal (Received)',3]]);
-  // Row 6: summary values
-  addRow(6,[[0,'n',txns.length,4],[2,'s',totDel.toFixed(3)+' g',5],[4,'s',totRec.toFixed(3)+' g',6]]);
-  // Row 7: blank
-  // Row 8: blank
-  // Row 9: blank
-  // Row 10: header row
-  addRow(10,[
-    [0,'s','#',7],[1,'s','Client Name',7],[2,'s','Phone',7],[3,'s','Date',7],[4,'s','Type',7],
-    [5,'s','Gross Gold (g)',8],[6,'s','Purity (%)',8],[7,'s','Pure Gold (g)',8],[8,'s','Note',7]
-  ]);
-
-  // Data rows from row 11
-  txns.forEach(({name,phone,t},i)=>{
-    const r=11+i;
-    const isAlt=i%2===1;
-    const gross=t.grossGrams!=null&&t.grossGrams!==''?Number(t.grossGrams):null;
-    const purity=t.purity!=null&&t.purity!==''?Number(t.purity):null;
-    const isKaaj=t.type==='delivered';
-    const typeLabel=isKaaj?'Kaaj':'Metal';
-    // Style IDs: even rows 9-13, odd rows 14-18
-    const sStr=isAlt?14:9, sBold=isAlt?15:10, sNum=isAlt?16:11, sPct=isAlt?17:12, sFml=isAlt?18:13;
-    const sType=isKaaj?(isAlt?21:19):(isAlt?22:20);
-
-    let pureCell;
-    if(gross!=null&&purity!=null){
-      const val=Math.round(gross*(purity/100)*1000)/1000;
-      pureCell=[7,'f',val,sFml,`F${r}*G${r}/100`];
-    } else {
-      pureCell=[7,'n',t.grams,sFml];
-    }
-
-    addRow(r,[
-      [0,'n',i+1,sStr],
-      [1,'s',name,sBold],
-      [2,'s',phone,sStr],
-      [3,'s',t.date,sStr],
-      [4,'s',typeLabel,sType],
-      gross!=null?[5,'n',gross,sNum]:null,
-      purity!=null?[6,'n',purity/100,sPct]:null,
-      pureCell,
-      [8,'s',t.note||'',sStr]
-    ].filter(Boolean));
-  });
-
-  const footerRow=11+txns.length+1;
-  addRow(footerRow,[[0,'s','* Pure Gold column contains live formulas. Edit Gross Gold or Purity in Excel and Pure Gold updates automatically.',3]]);
-  addRow(footerRow+1,[[0,'s','Generated by Gold Ledger App — parthodas27806.github.io/Gold-Ledger',3]]);
-
-  /* ── Merge cells for title ── */
-  const merges=`<mergeCells count="1"><mergeCell ref="A1:I1"/></mergeCells>`;
-
-  /* ── Column widths ── */
-  const cols=`<cols>
-    <col min="1" max="1" width="5" customWidth="1"/>
-    <col min="2" max="2" width="20" customWidth="1"/>
-    <col min="3" max="3" width="14" customWidth="1"/>
-    <col min="4" max="4" width="13" customWidth="1"/>
-    <col min="5" max="5" width="10" customWidth="1"/>
-    <col min="6" max="6" width="14" customWidth="1"/>
-    <col min="7" max="7" width="11" customWidth="1"/>
-    <col min="8" max="8" width="14" customWidth="1"/>
-    <col min="9" max="9" width="22" customWidth="1"/>
-  </cols>`;
-
-  const sheetXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-${cols}
-<sheetData>${rowsXml.join('')}</sheetData>
-${merges}
-</worksheet>`;
-
-  const sstXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">
-${sst.map(v=>`<si><t xml:space="preserve">${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</t></si>`).join('')}
-</sst>`;
-
-  const wbXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
-<sheets><sheet name="Gold Ledger" sheetId="1" r:id="rId1"/></sheets>
-</workbook>`;
-
-  const wbRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
-<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>
-<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-</Relationships>`;
-
-  const rootRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
-</Relationships>`;
-
-  const contentTypes=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-<Default Extension="xml" ContentType="application/xml"/>
-<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
-<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
-<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
-<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
-</Types>`;
-
-  /* ── ZIP builder ── */
-  const enc=new TextEncoder();
-  function makeZip(files){
-    const crcTable=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let j=0;j<8;j++)c=c&1?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}return t;})();
-    function crc32(d){let c=0xFFFFFFFF;for(let i=0;i<d.length;i++)c=crcTable[(c^d[i])&0xFF]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
-    function u32(v){const b=new Uint8Array(4);new DataView(b.buffer).setUint32(0,v,true);return b;}
-    function u16(v){const b=new Uint8Array(2);new DataView(b.buffer).setUint16(0,v,true);return b;}
-    const parts=[],cd=[];let off=0;
-    files.forEach(({name,data})=>{
-      const nb=enc.encode(name),crc=crc32(data),sz=data.length;
-      const lfh=new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),0x00,0x00]);
-      parts.push(lfh,nb,data);
-      const cde=new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32(crc),...u32(sz),...u32(sz),...u16(nb.length),0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,...u32(off)]);
-      cd.push(cde,nb);off+=lfh.length+nb.length+sz;
-    });
-    let cdSz=0;cd.forEach(p=>cdSz+=p.length);
-    const eocd=new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00,...u16(files.length),...u16(files.length),...u32(cdSz),...u32(off),0x00,0x00]);
-    const all=[...parts,...cd,eocd],tot=all.reduce((s,p)=>s+p.length,0),res=new Uint8Array(tot);let pos=0;
-    all.forEach(p=>{res.set(p,pos);pos+=p.length;});return res;
-  }
-
-  const zipData=makeZip([
-    {name:'[Content_Types].xml',data:enc(contentTypes)},
-    {name:'_rels/.rels',data:enc(rootRels)},
-    {name:'xl/workbook.xml',data:enc(wbXml)},
-    {name:'xl/_rels/workbook.xml.rels',data:enc(wbRels)},
-    {name:'xl/worksheets/sheet1.xml',data:enc(sheetXml)},
-    {name:'xl/sharedStrings.xml',data:enc(sstXml)},
-    {name:'xl/styles.xml',data:enc(stylesXml)},
-  ]);
-
-  const blob=new Blob([zipData],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download='Gold_Ledger_Report.xlsx';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-  showToast('Report downloaded ✓');
 }
 
 function showToast(msg){
