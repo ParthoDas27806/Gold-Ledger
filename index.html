@@ -610,6 +610,7 @@ select {
 
 <div id="app">
 
+  <!-- SIDEBAR — shown only on desktop via JS -->
   <aside id="sidebar" class="sidebar" style="display:none">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:40px;height:40px;border-radius:50%;object-fit:cover;display:block;"></div>
@@ -628,8 +629,10 @@ select {
     <div class="sidebar-stats" id="sidebar-stats"></div>
   </aside>
 
+  <!-- MAIN COLUMN -->
   <div class="main-col" id="main-col">
 
+    <!-- Top bar (mobile only) -->
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-logo"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"></div>
@@ -640,10 +643,13 @@ select {
       </div>
     </div>
 
+    <!-- Scrollable pages -->
     <div class="scroll-area" id="scroll-area">
 
+      <!-- DASHBOARD -->
       <div id="page-dashboard" class="page active">
         <div id="install-wrap"></div>
+        <!-- Big beautiful stat cards -->
         <div class="big-stat-grid">
           <div class="big-stat-card big-stat-get">
             <div class="big-stat-icon">📈</div>
@@ -664,11 +670,13 @@ select {
             <div class="big-stat-sub" id="s-net-mg">0 gram</div>
           </div>
         </div>
+        <!-- Quick tip at bottom of dashboard -->
         <div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">
           Go to <strong>Clients</strong> to view all balances
         </div>
       </div>
 
+      <!-- CLIENTS -->
       <div id="page-clients" class="page">
         <div id="view-client-list">
           <div class="section-header" style="margin-bottom:12px">
@@ -710,10 +718,12 @@ select {
         </div>
       </div>
 
+      <!-- ADD TRANSACTION -->
       <div id="page-add" class="page">
         <div class="form-section">
           <h3>New Transaction</h3>
 
+          <!-- Type -->
           <div class="field">
             <label>Transaction Type *</label>
             <div class="type-selector">
@@ -722,15 +732,18 @@ select {
             </div>
           </div>
 
+          <!-- Client + Date -->
           <div class="field-row">
-            <div class="field"><label>Client Name *</label><input type="text" id="f-client" placeholder="e.g. Ramesh Ji" list="cl-suggestions" autocomplete="off" oninput="updatePreview()"><datalist id="cl-suggestions"></datalist></div>
+            <div class="field"><label>Client Name *</label><input type="text" id="f-client" placeholder="e.g. Ramesh Ji" list="cl-suggestions" autocomplete="off" oninput="updatePreview(); autoFillClientPhone()"><datalist id="cl-suggestions"></datalist></div>
             <div class="field"><label>Date *</label><input type="date" id="f-date"></div>
           </div>
 
+          <!-- Gold Calculation Card -->
           <div class="calc-card" id="calc-card">
             <div class="calc-title">⚖️ Gold Weight Calculator</div>
             <div class="calc-subtitle">Enter gross gold &amp; purity to auto-calculate pure gold</div>
 
+            <!-- Gross Gold: single decimal input -->
             <div class="field">
               <label>Gross Gold (total weight in grams) *</label>
               <div class="weight-input-wrap">
@@ -740,6 +753,7 @@ select {
               <div class="weight-hint" id="gross-display">e.g. 12.350 = 12 gram 350 mg</div>
             </div>
 
+            <!-- Purity -->
             <div class="field">
               <label>Purity Percentage *</label>
               <div class="purity-row">
@@ -750,6 +764,7 @@ select {
               </div>
             </div>
 
+            <!-- Result -->
             <div class="calc-result" id="calc-result">
               <div class="calc-result-label">Pure Gold</div>
               <div class="calc-result-formula" id="calc-formula">—</div>
@@ -758,9 +773,11 @@ select {
             </div>
           </div>
 
+          <!-- Manual override (removed from UI, kept for JS logic) -->
           <input type="hidden" id="f-grams">
           <span id="manual-tag" style="display:none;"></span>
 
+          <!-- Phone + Note -->
           <div class="field-row">
             <div class="field"><label>Phone *</label><input type="tel" id="f-phone" placeholder="9876543210"></div>
             <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
@@ -774,11 +791,13 @@ select {
         </div>
       </div>
 
+      <!-- HISTORY -->
       <div id="page-history" class="page">
         <div class="hist-header">
           <div class="section-title" style="font-size:17px">Transaction History</div>
         </div>
 
+        <!-- Filter bar row 1: year + month + type -->
         <div class="hist-filter-bar">
           <select id="hist-year" onchange="renderHistory()" class="hist-select">
             <option value="">All Years</option>
@@ -798,14 +817,17 @@ select {
             <option value="received">Metal</option>
           </select>
         </div>
+        <!-- Filter bar row 2: client -->
         <div class="hist-filter-bar" style="margin-top:-4px">
           <select id="hist-client" onchange="renderHistory()" class="hist-select">
             <option value="">All Clients</option>
           </select>
         </div>
 
+        <!-- Summary for filtered period -->
         <div class="hist-summary" id="hist-summary"></div>
 
+        <!-- Transaction entries grouped by month -->
         <div id="hist-list"></div>
         <div id="hist-empty" class="empty-state" style="display:none">
           <span class="empty-icon">🗂️</span>
@@ -817,12 +839,14 @@ select {
         </div>
       </div>
 
+      <!-- DAYBOOK -->
       <div id="page-daybook" class="page">
         <div class="section-header" style="margin-bottom:12px">
           <div class="section-title" style="font-size:17px">📒 Daybook</div>
         </div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Daily summary — how much Kaaj delivered and Metal received each day.</p>
 
+        <!-- Date filter -->
         <div class="hist-filter-bar" style="margin-bottom:12px">
           <select id="db-month" onchange="renderDaybook()" class="hist-select">
             <option value="">All Months</option>
@@ -838,8 +862,10 @@ select {
           </select>
         </div>
 
+        <!-- Month totals banner -->
         <div id="db-totals"></div>
 
+        <!-- Day-by-day list -->
         <div id="db-list"></div>
         <div id="db-empty" class="empty-state" style="display:none">
           <span class="empty-icon">📒</span>
@@ -847,7 +873,10 @@ select {
         </div>
       </div>
 
-    </div><nav class="bottom-nav">
+    </div><!-- /scroll-area -->
+
+    <!-- Bottom nav (mobile only) -->
+    <nav class="bottom-nav">
       <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</button>
       <button class="nav-btn" id="nav-clients" onclick="showPage('clients')"><span class="nav-icon">👥</span>Clients</button>
       <button class="nav-btn" id="nav-add" onclick="showPage('add')"><span class="nav-icon" style="font-size:26px">➕</span>Add</button>
@@ -855,7 +884,11 @@ select {
       <button class="nav-btn" id="nav-daybook" onclick="showPage('daybook')"><span class="nav-icon">📒</span>Daybook</button>
     </nav>
 
-  </div></div><div id="modal-overlay" class="modal-overlay" onclick="closeAddClientModal()" style="display:none"></div>
+  </div><!-- /main-col -->
+</div><!-- /app -->
+
+<!-- ADD CLIENT MODAL -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeAddClientModal()" style="display:none"></div>
 <div id="modal-add-client" class="modal-box" style="display:none">
   <div class="modal-header">
     <div class="modal-title">Add New Client</div>
@@ -883,6 +916,7 @@ let db={clients:{}};
 let activeClient=null;
 let selectedType='delivered';
 let deferredInstall=null;
+let toastTimer=null;
 
 function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
 function load(){try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s)}catch(e){}}
@@ -1081,7 +1115,9 @@ function deleteTxn(name,idx){
 function addTxnForClient(){
   if(!activeClient)return;
   document.getElementById('f-client').value=activeClient;
-  showPage('add');updatePreview();
+  document.getElementById('f-phone').value=db.clients[activeClient].phone || '';
+  showPage('add');
+  updatePreview();
 }
 
 function exportClient(){
@@ -1317,13 +1353,13 @@ ${sst.map(v=>`<si><t xml:space="preserve">${String(v).replace(/&/g,'&amp;').repl
   }
 
   const zipData=makeZip([
-    {name:'[Content_Types].xml',data:enc(contentTypes)},
-    {name:'_rels/.rels',data:enc(rootRels)},
-    {name:'xl/workbook.xml',data:enc(wbXml)},
-    {name:'xl/_rels/workbook.xml.rels',data:enc(wbRels)},
-    {name:'xl/worksheets/sheet1.xml',data:enc(sheetXml)},
-    {name:'xl/sharedStrings.xml',data:enc(sstXml)},
-    {name:'xl/styles.xml',data:enc(stylesXml)},
+    {name:'[Content_Types].xml',data:enc.encode(contentTypes)},
+    {name:'_rels/.rels',data:enc.encode(rootRels)},
+    {name:'xl/workbook.xml',data:enc.encode(wbXml)},
+    {name:'xl/_rels/workbook.xml.rels',data:enc.encode(wbRels)},
+    {name:'xl/worksheets/sheet1.xml',data:enc.encode(sheetXml)},
+    {name:'xl/sharedStrings.xml',data:enc.encode(sstXml)},
+    {name:'xl/styles.xml',data:enc.encode(stylesXml)},
   ]);
 
   const blob=new Blob([zipData],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -1431,6 +1467,14 @@ function updateSuggestions(){
   Object.keys(db.clients).sort((a,b)=>a.localeCompare(b)).forEach(n=>{
     const o=document.createElement('option');o.value=n;dl.appendChild(o);
   });
+}
+
+function autoFillClientPhone() {
+  const name = (document.getElementById('f-client').value || '').trim();
+  const phoneInput = document.getElementById('f-phone');
+  if (db.clients[name] && db.clients[name].phone) {
+    phoneInput.value = db.clients[name].phone;
+  }
 }
 
 /* ── ADD CLIENT MODAL ── */
@@ -1619,7 +1663,7 @@ function renderHistory(){
 function showToast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),5000);
 }
 
 /* ── PWA INSTALL ────────────────────────── */
