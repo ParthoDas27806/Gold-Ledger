@@ -762,7 +762,7 @@ select {
           <span id="manual-tag" style="display:none;"></span>
 
           <div class="field-row">
-            <div class="field"><label>Phone *</label><input type="tel" id="f-phone" placeholder="9876543210"></div>
+            <div class="field"><label>Phone *</label><input type="tel" id="f-phone" placeholder="9876543210" maxlength="10" pattern="[0-9]{10}" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"></div>
             <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
           </div>
 
@@ -867,7 +867,7 @@ select {
   </div>
   <div class="field">
     <label>Phone Number *</label>
-    <input type="tel" id="mc-phone" placeholder="e.g. 9876543210">
+    <input type="tel" id="mc-phone" placeholder="e.g. 9876543210" maxlength="10" pattern="[0-9]{10}" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
   </div>
   <div class="btn-row" style="margin-top:16px">
     <button class="btn btn-outline" onclick="closeAddClientModal()" style="flex:0.4">Cancel</button>
@@ -1470,6 +1470,7 @@ function saveNewClient(){
   const phone=(document.getElementById('mc-phone').value||'').trim();
   if(!name){alert('Please enter a client name.');return;}
   if(!phone){alert('Please enter a phone number.');return;}
+  if(!/^[0-9]{10}$/.test(phone)){alert('Phone number must be exactly 10 digits.');return;}
   if(db.clients[name]){
     closeAddClientModal();
     showPage('clients');
@@ -1515,6 +1516,7 @@ function saveTransaction(){
 
   if(!name){alert('Please enter the client name.');return;}
   if(!phone){alert('Please enter the phone number.');return;}
+  if(!/^[0-9]{10}$/.test(phone)){alert('Phone number must be exactly 10 digits.');return;}
   if(!grams||grams<=0){alert('Please enter or calculate the pure gold amount.');return;}
   if(!date){alert('Please select a date.');return;}
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
@@ -1639,7 +1641,7 @@ function renderHistory(){
 function showToast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),5000);
 }
 
 /* ── PWA INSTALL ────────────────────────── */
