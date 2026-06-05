@@ -1639,7 +1639,7 @@ function renderHistory(){
 function showToast(msg){
   const el=document.getElementById('toast');
   el.textContent=msg; el.classList.add('show');
-  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),5000);
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
 }
 
 /* ── PWA INSTALL ────────────────────────── */
