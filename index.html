@@ -1067,7 +1067,7 @@ function renderDetailTxns(name){
   const empty=document.getElementById('det-empty');
   const txns=c.transactions||[];
   if(!txns.length){empty.style.display='block';return;} empty.style.display='none';
-  const typeMap={delivered:{label:'Kaaj (delivered to client)',sign:'+',cls:'delivered'},received:{label:'Metal (received from client)',sign:'-',cls:'received'}};
+  const typeMap={delivered:{label:'Kaaj',sign:'+',cls:'delivered'},received:{label:'Metal',sign:'-',cls:'received'}};
   [...txns].reverse().forEach((t,ri)=>{
     const idx=txns.length-1-ri;
     const tm=typeMap[t.type]||{label:t.type,sign:'',cls:'received'};
