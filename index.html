@@ -216,6 +216,11 @@ select {
   background: linear-gradient(135deg,#D4A017,#B8860B);
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 14px; font-weight: 700; flex-shrink: 0;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20width%3D%27100%25%27%20height%3D%27100%25%27%3E%0A%20%20%3Ccircle%20cx%3D%2750%27%20cy%3D%2736%27%20r%3D%2718%27%20fill%3D%27rgba%28255%2C255%2C255%2C0.85%29%27/%3E%0A%20%20%3Cellipse%20cx%3D%2750%27%20cy%3D%2785%27%20rx%3D%2728%27%20ry%3D%2720%27%20fill%3D%27rgba%28255%2C255%2C255%2C0.85%29%27/%3E%0A%3C/svg%3E");
+  background-size: 80%;
+  background-repeat: no-repeat;
+  background-position: center 55%;
+  background-color: #C49010;
 }
 .client-info { flex: 1; min-width: 0; }
 .client-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -284,7 +289,7 @@ select {
 .back-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .back-btn { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; font-family: 'DM Sans',sans-serif; font-weight: 500; }
 .detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.detail-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg,#D4A017,#B8860B); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; font-weight: 700; flex-shrink: 0; }
+.detail-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg,#D4A017,#B8860B); background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20width%3D%27100%25%27%20height%3D%27100%25%27%3E%0A%20%20%3Ccircle%20cx%3D%2750%27%20cy%3D%2736%27%20r%3D%2718%27%20fill%3D%27rgba%28255%2C255%2C255%2C0.85%29%27/%3E%0A%20%20%3Cellipse%20cx%3D%2750%27%20cy%3D%2785%27%20rx%3D%2728%27%20ry%3D%2720%27%20fill%3D%27rgba%28255%2C255%2C255%2C0.85%29%27/%3E%0A%3C/svg%3E"); background-size: 80%; background-repeat: no-repeat; background-position: center 55%; background-color: #C49010; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .detail-name { font-size: 20px; font-family: 'Playfair Display',serif; }
 .detail-phone { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .action-row { display: flex; gap: 8px; margin-top: 14px; }
@@ -370,6 +375,13 @@ select {
   color: var(--hint); cursor: pointer; padding: 0; line-height: 1;
 }
 .modal-close:hover { color: var(--text); }
+.edit-name-btn {
+  background: none; border: 1.5px solid var(--border);
+  border-radius: var(--rs); padding: 3px 8px;
+  cursor: pointer; font-size: 14px; line-height: 1;
+  color: var(--muted); flex-shrink: 0; transition: all 0.15s;
+}
+.edit-name-btn:hover { background: var(--gold-bg); border-color: var(--gold-border); }
 
 /* ── GOLD CALCULATOR ── */
 .calc-card {
@@ -700,7 +712,13 @@ select {
           </div>
           <div class="detail-header">
             <div class="detail-avatar" id="det-avatar"></div>
-            <div><div class="detail-name" id="det-name"></div><div class="detail-phone" id="det-phone"></div></div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <button class="edit-name-btn" onclick="openEditName()" title="Edit name">✏️</button>
+                <div class="detail-name" id="det-name"></div>
+              </div>
+              <div class="detail-phone" id="det-phone"></div>
+            </div>
           </div>
           <div id="det-banner" class="bal-banner get">
             <div><div class="ban-label" id="det-label">Balance</div><div class="ban-amount" id="det-amount">0g</div></div>
@@ -883,6 +901,23 @@ select {
   </div><!-- /main-col -->
 </div><!-- /app -->
 
+<!-- EDIT CLIENT NAME MODAL -->
+<div id="modal-edit-overlay" class="modal-overlay" onclick="closeEditName()" style="display:none"></div>
+<div id="modal-edit-name" class="modal-box" style="display:none">
+  <div class="modal-header">
+    <div class="modal-title">Edit Client Name</div>
+    <button class="modal-close" onclick="closeEditName()">✕</button>
+  </div>
+  <div class="field">
+    <label>New Client Name *</label>
+    <input type="text" id="edit-name-input" placeholder="Enter new name" autocomplete="off">
+  </div>
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn btn-outline" onclick="closeEditName()" style="flex:0.4">Cancel</button>
+    <button class="btn btn-gold" onclick="saveEditName()">✓ Save</button>
+  </div>
+</div>
+
 <!-- ADD CLIENT MODAL -->
 <div id="modal-overlay" class="modal-overlay" onclick="closeAddClientModal()" style="display:none"></div>
 <div id="modal-add-client" class="modal-box" style="display:none">
@@ -962,6 +997,13 @@ function fmtGramMg(g){
   return grams+' gram '+mgStr+' mg';
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function fmtDate(d){
+  if(!d)return '';
+  const p=d.split('-');
+  if(p.length!==3)return d;
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return p[2]+'-'+(m[parseInt(p[1],10)-1]||p[1])+'-'+p[0];
+}
 
 
 /* Temporary form reset when switching tabs */
@@ -1035,7 +1077,7 @@ function renderClients(){
     const b=balance(name); const{cls,sign}=balInfo(b);
     const c=db.clients[name];
     const card=document.createElement('div'); card.className='client-card';
-    card.innerHTML=`<div class="avatar">${initials(name)}</div>
+    card.innerHTML=`<div class="avatar"></div>
       <div class="client-info"><div class="client-name">${esc(name)}</div><div class="client-meta">${c.phone?'📞 '+c.phone:'No phone saved'}</div></div>
       <div class="client-bal"><div class="bal-amt ${cls}">${sign}${fmtG(b)}</div><div class="bal-tag ${cls}">${cls==='get'?'Balance':cls==='give'?'Advance':'Settled'}</div></div>`;
     card.onclick=()=>openDetail(name);
@@ -1051,7 +1093,7 @@ function openDetail(name){
   activeClient=name;
   document.getElementById('view-client-list').style.display='none';
   document.getElementById('view-client-detail').style.display='block';
-  document.getElementById('det-avatar').textContent=initials(name);
+  // avatar is now a CSS background icon — no text needed
   document.getElementById('det-name').textContent=name;
   const c=db.clients[name];
   document.getElementById('det-phone').textContent=c.phone?'📞 '+c.phone:'';
@@ -1083,7 +1125,7 @@ function renderDetailTxns(name){
         <div class="txn-dot ${tm.cls}" style="margin-top:4px;flex-shrink:0"></div>
         <div style="flex:1;min-width:0">
           <div class="txn-label">${tm.label}</div>
-          <div class="txn-meta">${t.date}${t.note?' · '+esc(t.note):''}</div>
+          <div class="txn-meta">${fmtDate(t.date)}${t.note?' · '+esc(t.note):''}</div>
           ${extraInfo}
         </div>
       </div>
@@ -1097,6 +1139,33 @@ function renderDetailTxns(name){
   });
 }
 function closeDetail(){activeClient=null;showClientList();renderClients();}
+
+function openEditName(){
+  if(!activeClient)return;
+  document.getElementById('edit-name-input').value=activeClient;
+  document.getElementById('modal-edit-overlay').style.display='block';
+  document.getElementById('modal-edit-name').style.display='block';
+  setTimeout(()=>document.getElementById('edit-name-input').select(),100);
+}
+function closeEditName(){
+  document.getElementById('modal-edit-overlay').style.display='none';
+  document.getElementById('modal-edit-name').style.display='none';
+}
+function saveEditName(){
+  const newName=(document.getElementById('edit-name-input').value||'').trim();
+  if(!newName){alert('Please enter a name.');return;}
+  if(newName===activeClient){closeEditName();return;}
+  if(db.clients[newName]){alert('A client with this name already exists.');return;}
+  db.clients[newName]=db.clients[activeClient];
+  delete db.clients[activeClient];
+  save();
+  activeClient=newName;
+  closeEditName();
+  openDetail(newName);
+  renderClients();
+  renderDashboard();
+  showToast('Client renamed to "'+newName+'" ✓');
+}
 function deleteClient(){
   if(!activeClient)return;
   if(!confirm('Delete ALL data for '+activeClient+'?\nThis cannot be undone.'))return;
@@ -1655,7 +1724,7 @@ function renderHistory(){
         <div class="hist-txn-dot ${t.type}"></div>
         <div class="hist-txn-info">
           <div class="hist-txn-title">${esc(t.clientName)}</div>
-          <div class="hist-txn-meta">${t.date}${t.note?' · '+esc(t.note):''}${calcInfo}</div>
+          <div class="hist-txn-meta">${fmtDate(t.date)}${t.note?' · '+esc(t.note):''}${calcInfo}</div>
         </div>
         <div class="hist-txn-amt">
           <div class="hist-txn-grams ${t.type}">${isDelivered?'+':'-'}${t.grams.toFixed(3)}g</div>
