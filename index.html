@@ -617,6 +617,58 @@ select {
 .hist-txn-grams.received { color: var(--green); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
 </style>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCn93MozTRWbCx6FfxRCD7QUSD1EcDFK2Y",
+      authDomain: "gold-ledger-5a6f3.firebaseapp.com",
+      projectId: "gold-ledger-5a6f3",
+      storageBucket: "gold-ledger-5a6f3.firebasestorage.app",
+      messagingSenderId: "528799594094",
+      appId: "1:528799594094:web:6b872f4076debca08c987f"
+    };
+
+    const fireApp = initializeApp(firebaseConfig);
+    const fireDb = getFirestore(fireApp);
+    const DATA_DOC = doc(fireDb, 'goldledger', 'data');
+
+    // Save to Firestore
+    window.firebaseSave = async function(data) {
+      try {
+        await setDoc(DATA_DOC, { db: JSON.stringify(data) });
+      } catch(e) { console.error('Firebase save error:', e); }
+    };
+
+    // Load from Firestore once
+    window.firebaseLoad = async function() {
+      try {
+        const snap = await getDoc(DATA_DOC);
+        if (snap.exists()) {
+          const raw = snap.data().db;
+          if (raw) return JSON.parse(raw);
+        }
+      } catch(e) { console.error('Firebase load error:', e); }
+      return null;
+    };
+
+    // Real-time listener — updates all open devices instantly
+    window.firebaseListen = function(callback) {
+      onSnapshot(DATA_DOC, (snap) => {
+        if (snap.exists()) {
+          try {
+            const raw = snap.data().db;
+            if (raw) callback(JSON.parse(raw));
+          } catch(e) {}
+        }
+      });
+    };
+
+    window.firebaseReady = true;
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
 </head>
 <body>
 
@@ -941,6 +993,18 @@ select {
 
 <div class="toast" id="toast"></div>
 
+<!-- WhatsApp Share Modal -->
+<div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
+<div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:2001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+  <div style="font-size:17px;font-family:'Playfair Display',serif;color:#1A1208;margin-bottom:4px">📲 Share on WhatsApp</div>
+  <div style="font-size:12px;color:#888;margin-bottom:14px">Preview the message before sending</div>
+  <textarea id="wa-msg" style="width:100%;height:160px;border:1.5px solid #E8DFC0;border-radius:8px;padding:10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;color:#1A1208;background:#FFFDF7;line-height:1.6"></textarea>
+  <div style="display:flex;gap:8px;margin-top:12px">
+    <button onclick="closeWaModal()" style="flex:1;padding:11px;border:1.5px solid #E8DFC0;border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
+    <button onclick="sendWhatsApp()" style="flex:1;padding:11px;border:none;border-radius:8px;background:#25D366;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">Send WhatsApp</button>
+  </div>
+</div>
+
 <script>
 const KEY='gold_ledger_v2';
 let db={clients:{}};
@@ -949,8 +1013,29 @@ let selectedType='delivered';
 let deferredInstall=null;
 let toastTimer=null;
 
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
-function load(){try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s)}catch(e){}}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+  if(window.firebaseSave) window.firebaseSave(db);
+}
+function load(){
+  try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s);}catch(e){}
+}
+async function loadFromFirebase(){
+  const cloudData = await window.firebaseLoad();
+  if(cloudData){
+    db = cloudData;
+    try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+    renderDashboard();
+    if(typeof renderClients==='function') renderClients();
+    showToast('Synced from cloud ✓');
+  }
+  window.firebaseListen(function(newData){
+    db = newData;
+    try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+    renderDashboard();
+    if(typeof renderClients==='function') renderClients();
+  });
+}
 
 /* ── LAYOUT ─────────────────────────────── */
 function applyLayout(){
@@ -999,10 +1084,11 @@ function fmtGramMg(g){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function fmtDate(d){
   if(!d)return '';
-  const p=d.split('-');
-  if(p.length!==3)return d;
-  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return p[2]+'-'+(m[parseInt(p[1],10)-1]||p[1])+'-'+p[0];
+  const[y,m,day]=d.split('-');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const dd=parseInt(day);
+  const suffix=dd===1||dd===21||dd===31?'st':dd===2||dd===22?'nd':dd===3||dd===23?'rd':'th';
+  return dd+suffix+' '+months[parseInt(m)-1]+', '+y;
 }
 
 
@@ -1624,6 +1710,57 @@ function saveTransaction(){
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
   db.clients[name].transactions.push(txn);
   save(); showToast('Transaction saved ✓'); clearForm(); updateSuggestions(); renderDashboard();
+
+  // Show WhatsApp share option
+  const typeLabel = selectedType === 'delivered' ? 'Kaaj (Delivered)' : 'Metal (Received)';
+  const grossInfo = grossVal ? `\nGross Gold: ${grossVal.toFixed(3)}g` + (purity ? `\nPurity: ${purity}%` : '') : '';
+  const pureGrams = window._pureGold || grams;
+  const balInfo = getClientBalance(name);
+  const msg =
+`Hello ${name},
+
+This is a transaction record from Gold Ledger:
+
+Date: ${fmtDate(date)}
+Type: ${typeLabel}
+${grossInfo ? grossInfo + '\n' : ''}Pure Gold: ${pureGrams.toFixed(3)}g
+
+Your current balance: ${balInfo}
+
+- Sone Ka Hisaab`;
+
+  showWaModal(phone, msg);
+}
+
+/* ── WHATSAPP SHARE ──────────────────────── */
+function getClientBalance(name){
+  const c=db.clients[name];
+  if(!c||!c.transactions)return 'Settled (0g)';
+  let b=0;
+  c.transactions.forEach(t=>{t.type==='delivered'?b+=t.grams:b-=t.grams;});
+  b=Math.round(b*1000)/1000;
+  if(b>0)return `Balance: ${b.toFixed(3)}g (you owe us)`;
+  if(b<0)return `Advance: ${Math.abs(b).toFixed(3)}g (we owe you)`;
+  return 'Settled (0g)';
+}
+
+let _waPhone='';
+function showWaModal(phone, msg){
+  _waPhone = phone;
+  document.getElementById('wa-msg').value = msg;
+  document.getElementById('wa-overlay').style.display='block';
+  document.getElementById('wa-modal').style.display='block';
+}
+function closeWaModal(){
+  document.getElementById('wa-overlay').style.display='none';
+  document.getElementById('wa-modal').style.display='none';
+}
+function sendWhatsApp(){
+  const msg = document.getElementById('wa-msg').value;
+  const phone = '91' + _waPhone; // +91 India code
+  const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+  closeWaModal();
 }
 
 /* ── HISTORY ────────────────────────────── */
@@ -1832,7 +1969,7 @@ function renderDaybook(){
     // Format date nicely
     const [y,m,d]=date.split('-');
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const niceDateStr=`${d} ${months[parseInt(m)-1]} ${y}`;
+    const niceDateStr=`${d}-${m}-${y}`;
 
     const card=document.createElement('div');
     card.className='db-day-card';
@@ -1867,6 +2004,11 @@ function renderDaybook(){
 
 /* ── INIT ───────────────────────────────── */
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+if(window.firebaseReady){
+  loadFromFirebase();
+} else {
+  window.addEventListener('firebase-ready', ()=>loadFromFirebase());
+}
 </script>
 </body>
 </html>
