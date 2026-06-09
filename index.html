@@ -1747,9 +1747,9 @@ function getClientBalance(name){
   let b=0;
   c.transactions.forEach(t=>{t.type==='delivered'?b+=t.grams:b-=t.grams;});
   b=Math.round(b*1000)/1000;
-  if(b>0)return `⚖️ Balance Due: ${b.toFixed(3)}g`;
+  if(b>0)return `⚖️ Balance: ${b.toFixed(3)}g`;
   if(b<0)return `💰 Advance: ${Math.abs(b).toFixed(3)}g`;
-  return '✅ Account settled — no pending gold.';
+  return '✅ Settled: 0g';
 }
 
 let _waPhone='';
