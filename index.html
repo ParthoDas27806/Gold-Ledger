@@ -1706,16 +1706,24 @@ function saveTransaction(){
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
   if(phone)db.clients[name].phone=phone;
 
-  const txn={type:selectedType,grams,date,note};
+  // Capture pure gold BEFORE clearForm resets _pureGold
+  const pureGrams = window._pureGold || 0;
+  const savedType = selectedType; // capture before clearForm resets it
+
+  const txn={type:savedType,grams:pureGrams,date,note};
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
   db.clients[name].transactions.push(txn);
-  save(); showToast('Transaction saved ✓'); clearForm(); updateSuggestions(); renderDashboard();
+  save(); updateSuggestions(); renderDashboard();
 
-  // Show WhatsApp share option
-  const typeLabel = selectedType === 'delivered' ? 'Kaaj (Delivered)' : 'Metal (Received)';
-  const grossInfo = grossVal ? `\nGross Gold: ${grossVal.toFixed(3)}g` + (purity ? `\nPurity: ${purity}%` : '') : '';
-  const pureGrams = window._pureGold || grams;
+  // Get balance AFTER save, BEFORE clearForm
   const balInfo = getClientBalance(name);
+
+  showToast('Transaction saved ✓');
+  clearForm();
+
+  // Build WhatsApp message
+  const typeLabel = savedType === 'delivered' ? 'Kaaj (Delivered)' : 'Metal (Received)';
+  const grossInfo = grossVal ? `\nGross Gold: ${grossVal.toFixed(3)}g` + (purity ? `\nPurity: ${purity}%` : '') : '';
   const msg =
 `Hello ${name},
 
