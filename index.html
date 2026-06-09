@@ -1591,8 +1591,9 @@ function calcPureGold(){
   document.getElementById('calc-value').textContent=pureRounded.toFixed(decimalPlaces)+' g';
   document.getElementById('calc-breakdown').textContent=fmtGramMg(pureRounded);
 
-  // Auto-fill the hidden grams field
+  // Auto-fill the hidden grams field and store globally
   document.getElementById('f-grams').value=pureRounded.toFixed(decimalPlaces);
+  window._pureGold = pureRounded;
   document.getElementById('manual-tag').textContent='auto-calculated';
   updatePreview();
 }
@@ -1672,7 +1673,7 @@ function saveNewClient(){
 }
 
 function clearForm(){
-  ['f-client','f-phone','f-grams','f-note','f-gross','f-purity'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-client','f-phone','f-grams','f-note','f-gross','f-purity'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); window._pureGold=0;;
   document.getElementById('gross-display').textContent='—';
   document.getElementById('calc-formula').textContent='—';
   document.getElementById('calc-value').textContent='—';
@@ -1706,8 +1707,8 @@ function saveTransaction(){
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
   if(phone)db.clients[name].phone=phone;
 
-  // Capture pure gold BEFORE clearForm resets _pureGold
-  const pureGrams = window._pureGold || 0;
+  // Capture values BEFORE clearForm resets everything
+  const pureGrams = window._pureGold || grams; // use _pureGold, fallback to f-grams value
   const savedType = selectedType; // capture before clearForm resets it
 
   const txn={type:savedType,grams:pureGrams,date,note};
