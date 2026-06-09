@@ -1733,7 +1733,8 @@ Date: ${fmtDate(date)}
 Type: ${typeLabel}
 ${grossInfo ? grossInfo + '\n' : ''}Pure Gold: ${pureGrams.toFixed(3)}g
 
-Your current balance: ${balInfo}
+--- Account Status ---
+${balInfo}
 
 - Sone Ka Hisaab`;
 
@@ -1743,13 +1744,13 @@ Your current balance: ${balInfo}
 /* ── WHATSAPP SHARE ──────────────────────── */
 function getClientBalance(name){
   const c=db.clients[name];
-  if(!c||!c.transactions)return 'Settled (0g)';
+  if(!c||!c.transactions)return '✅ Account settled — no pending gold.';
   let b=0;
   c.transactions.forEach(t=>{t.type==='delivered'?b+=t.grams:b-=t.grams;});
   b=Math.round(b*1000)/1000;
-  if(b>0)return `Balance: ${b.toFixed(3)}g (you owe us)`;
-  if(b<0)return `Advance: ${Math.abs(b).toFixed(3)}g (we owe you)`;
-  return 'Settled (0g)';
+  if(b>0)return `⚖️ Balance Due: ${b.toFixed(3)}g`;
+  if(b<0)return `💰 Advance: ${Math.abs(b).toFixed(3)}g`;
+  return '✅ Account settled — no pending gold.';
 }
 
 let _waPhone='';
