@@ -1723,19 +1723,19 @@ function saveTransaction(){
 
   // Build WhatsApp message
   const typeLabel = savedType === 'delivered' ? 'Kaaj (Delivered)' : 'Metal (Received)';
-  const grossInfo = grossVal ? `\nGross Gold: ${grossVal.toFixed(3)}g` + (purity ? `\nPurity: ${purity}%` : '') : '';
+  const grossLine = grossVal ? `\nGross Gold: ${grossVal.toFixed(3)}g` : '';
+  const purityLine = (grossVal && purity) ? `\nPurity: ${purity}%` : '';
   const msg =
 `Hello ${name},
 
 This is a transaction record from Gold Ledger:
 
 Date: ${fmtDate(date)}
-Type: ${typeLabel}
-${grossInfo ? grossInfo + '\n' : ''}Pure Gold: ${pureGrams.toFixed(3)}g
+Type: ${typeLabel}${grossLine}${purityLine}
+Pure Gold: ${pureGrams.toFixed(3)}g
 
 --- Account Status ---
-${balInfo}
-`;
+${balInfo}`;
 
   showWaModal(phone, msg);
 }
