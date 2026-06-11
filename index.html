@@ -256,56 +256,27 @@ select {
 .txn-grams.delivered { color: var(--red); }
 .txn-grams.received,.txn-grams.payment { color: var(--green); }
 .txn-del { background: none; border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); cursor: pointer; padding: 3px 8px; font-size: 12px; font-weight: 600; }
-
-/* ── Transaction Selection (WhatsApp style) ── */
-.txn-item { position: relative; transition: background 0.15s; }
-.txn-item.selected { background: #E8F4E8 !important; border-color: #4CAF50 !important; }
-.txn-checkbox-wrap { flex-shrink: 0; width: 24px; display: flex; align-items: center; justify-content: center; }
-.txn-checkbox {
-  width: 20px; height: 20px; border-radius: 50%;
-  border: 2px solid var(--border);
-  background: #fff;
-  transition: all 0.15s;
+.txn-item { transition: background 0.15s; cursor: pointer; }
+.txn-item.selected { background: #E8F4E8 !important; border-color: #25D366 !important; }
+.txn-circle {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid #C0B090; background: #fff;
+  flex-shrink: 0; transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
-.txn-item.selected .txn-checkbox {
-  background: #25D366; border-color: #25D366;
-}
-.txn-item.selected .txn-checkbox::after {
-  content: '✓'; color: #fff; font-size: 12px; font-weight: 700;
-}
-
-/* Floating WhatsApp action bar */
+.txn-item.selected .txn-circle { background: #25D366; border-color: #25D366; }
+.txn-item.selected .txn-circle::after { content:'✓'; color:#fff; font-size:13px; font-weight:700; }
 #wa-action-bar {
-  display: none;
-  position: fixed;
-  bottom: 68px; left: 50%;
-  transform: translateX(-50%);
-  background: #1A1208;
-  border-radius: 28px;
-  padding: 10px 20px;
-  gap: 16px;
-  align-items: center;
-  z-index: 500;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
-  white-space: nowrap;
+  display:none; position:fixed; bottom:68px; left:50%;
+  transform:translateX(-50%); background:#1A1208;
+  border-radius:28px; padding:10px 20px; gap:16px;
+  align-items:center; z-index:500;
+  box-shadow:0 4px 20px rgba(0,0,0,0.35); white-space:nowrap;
 }
-#wa-action-bar.show { display: flex; }
-#wa-action-bar .wa-count {
-  color: #fff; font-size: 13px; font-weight: 600;
-  font-family: 'DM Sans', sans-serif;
-}
-#wa-action-bar .wa-cancel {
-  color: #aaa; font-size: 13px; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; background: none; border: none;
-}
-#wa-action-bar .wa-send {
-  background: #25D366; color: #fff;
-  border: none; border-radius: 20px;
-  padding: 8px 16px; font-size: 13px; font-weight: 700;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-  display: flex; align-items: center; gap: 6px;
-}
+#wa-action-bar.show { display:flex; }
+#wa-action-bar .wa-count { color:#fff; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; }
+#wa-action-bar .wa-cancel { color:#aaa; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; }
+#wa-action-bar .wa-send { background:#25D366; color:#fff; border:none; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
 .txn-gram-mg { font-size: 11px; color: var(--hint); font-weight: 400; }
 .txn-calc-info { font-size: 11px; color: var(--gold-dark); background: var(--gold-bg); border-radius: 4px; padding: 2px 6px; margin-top: 3px; display: inline-block; }
 
@@ -584,30 +555,22 @@ select {
 .hist-summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 14px;
 }
 .hist-sum-card {
-  border-radius: 14px;
-  padding: 14px 10px;
-  text-align: left;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 8px;
+  text-align: center;
 }
-.hist-sum-card::after {
-  content:''; position:absolute; right:-14px; bottom:-14px;
-  width:60px; height:60px; border-radius:50%;
-  background:rgba(255,255,255,0.10);
-}
-.hist-sum-card.card-del { background: linear-gradient(145deg,#1B5E30,#2D8A42); }
-.hist-sum-card.card-rec { background: linear-gradient(145deg,#7A1A1A,#B83232); }
-.hist-sum-card.card-net-pos { background: linear-gradient(145deg,#1B5E30,#2D8A42); }
-.hist-sum-card.card-net-neg { background: linear-gradient(145deg,#7A1A1A,#B83232); }
-.hist-sum-card.card-net-zero { background: linear-gradient(145deg,#5A3E00,#C49010); }
-.hist-sum-label { font-size: 9px; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.6px; font-weight:700; margin-bottom:4px; }
-.hist-sum-val { font-size: 15px; font-family:'Playfair Display',serif; font-weight:600; color:#fff; }
-.hist-sum-sub { font-size: 9px; color:rgba(255,255,255,0.65); margin-top:2px; }
+.hist-sum-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 3px; }
+.hist-sum-val { font-size: 16px; font-family: 'Playfair Display',serif; font-weight: 500; }
+.hist-sum-sub { font-size: 10px; color: var(--hint); margin-top: 2px; }
+.hist-sum-val.get { color: var(--green); }
+.hist-sum-val.give { color: var(--red); }
+.hist-sum-val.net { color: var(--gold-dark); }
 
 .db-day-card { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r); margin-bottom:10px; overflow:hidden; }
 .db-day-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--border); }
@@ -675,43 +638,6 @@ select {
 .hist-txn-grams.received { color: var(--green); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
 </style>
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCn93MozTRWbCx6FfxRCD7QUSD1EcDFK2Y",
-      authDomain: "gold-ledger-5a6f3.firebaseapp.com",
-      projectId: "gold-ledger-5a6f3",
-      storageBucket: "gold-ledger-5a6f3.firebasestorage.app",
-      messagingSenderId: "528799594094",
-      appId: "1:528799594094:web:6b872f4076debca08c987f"
-    };
-
-    const fireApp = initializeApp(firebaseConfig);
-    const fireDb  = getFirestore(fireApp);
-    const DATA_DOC = doc(fireDb, 'goldledger', 'data');
-
-    window.firebaseSave = async function(data) {
-      try { await setDoc(DATA_DOC, { db: JSON.stringify(data) }); } catch(e) { console.error(e); }
-    };
-    window.firebaseLoad = async function() {
-      try {
-        const snap = await getDoc(DATA_DOC);
-        if(snap.exists()){ const raw=snap.data().db; if(raw) return JSON.parse(raw); }
-      } catch(e) { console.error(e); }
-      return null;
-    };
-    window.firebaseListen = function(callback) {
-      onSnapshot(DATA_DOC, (snap) => {
-        if(snap.exists()){ try{ const raw=snap.data().db; if(raw) callback(JSON.parse(raw)); }catch(e){} }
-      });
-    };
-    window.firebaseReady = true;
-    window.dispatchEvent(new Event('firebase-ready'));
-  </script>
-
 </head>
 <body>
 
@@ -760,13 +686,13 @@ select {
         <div class="big-stat-grid">
           <div class="big-stat-card big-stat-get">
             <div class="big-stat-icon">📈</div>
-            <div class="big-stat-label">Delivered</div>
+            <div class="big-stat-label">Balance</div>
             <div class="big-stat-val" id="s-get">0.000g</div>
             <div class="big-stat-sub" id="s-get-mg">0 gram</div>
           </div>
           <div class="big-stat-card big-stat-give">
             <div class="big-stat-icon">📉</div>
-            <div class="big-stat-label">Received</div>
+            <div class="big-stat-label">Advance</div>
             <div class="big-stat-val" id="s-give">0.000g</div>
             <div class="big-stat-sub" id="s-give-mg">0 gram</div>
           </div>
@@ -808,10 +734,12 @@ select {
           <div class="detail-header">
             <div class="detail-avatar" id="det-avatar"></div>
             <div style="flex:1;min-width:0">
-              <div class="detail-name" id="det-name"></div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button class="edit-name-btn" onclick="openEditName()" title="Edit name">✏️</button>
+                <div class="detail-name" id="det-name"></div>
+              </div>
               <div class="detail-phone" id="det-phone"></div>
             </div>
-            <button onclick="openEditClient()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">✏️ Edit</button>
           </div>
           <div id="det-banner" class="bal-banner get">
             <div><div class="ban-label" id="det-label">Balance</div><div class="ban-amount" id="det-amount">0g</div></div>
@@ -819,9 +747,7 @@ select {
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
             <div class="section-sub" style="margin-bottom:0">Transaction History</div>
-            <div style="display:flex;gap:6px;align-items:center">
-              <button id="btn-select-all" onclick="toggleSelectAll()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">Select All</button>
-            </div>
+            <button id="btn-select-all" onclick="toggleSelectAll()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">Select All</button>
           </div>
           <div id="det-txns"></div>
           <div id="det-empty" class="empty-state" style="display:none;padding:1.5rem 0">
@@ -1000,23 +926,19 @@ select {
 </div><!-- /app -->
 
 <!-- EDIT CLIENT NAME MODAL -->
-<div id="modal-edit-overlay" onclick="closeEditClient()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
-<div id="modal-edit-client" class="modal-box" style="display:none">
+<div id="modal-edit-overlay" class="modal-overlay" onclick="closeEditName()" style="display:none"></div>
+<div id="modal-edit-name" class="modal-box" style="display:none">
   <div class="modal-header">
-    <div class="modal-title">Edit Client</div>
-    <button class="modal-close" onclick="closeEditClient()">✕</button>
+    <div class="modal-title">Edit Client Name</div>
+    <button class="modal-close" onclick="closeEditName()">✕</button>
   </div>
   <div class="field">
-    <label>Client Name *</label>
-    <input type="text" id="edit-client-name" placeholder="Enter name" autocomplete="off">
-  </div>
-  <div class="field">
-    <label>Phone Number *</label>
-    <input type="tel" id="edit-client-phone" placeholder="10 digit number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
+    <label>New Client Name *</label>
+    <input type="text" id="edit-name-input" placeholder="Enter new name" autocomplete="off">
   </div>
   <div class="btn-row" style="margin-top:16px">
-    <button class="btn btn-outline" onclick="closeEditClient()" style="flex:0.4">Cancel</button>
-    <button class="btn btn-gold" onclick="saveEditClient()">✓ Save</button>
+    <button class="btn btn-outline" onclick="closeEditName()" style="flex:0.4">Cancel</button>
+    <button class="btn btn-gold" onclick="saveEditName()">✓ Save</button>
   </div>
 </div>
 
@@ -1041,7 +963,6 @@ select {
   </div>
 </div>
 
-<!-- WhatsApp floating action bar -->
 <div id="wa-action-bar">
   <button class="wa-cancel" onclick="clearTxnSelection()">✕ Cancel</button>
   <span class="wa-count" id="wa-selected-count">0 selected</span>
@@ -1050,20 +971,7 @@ select {
     Send
   </button>
 </div>
-
 <div class="toast" id="toast"></div>
-
-<!-- WhatsApp Share Modal -->
-<div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
-<div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:2001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
-  <div style="font-size:17px;font-family:'Playfair Display',serif;color:#1A1208;margin-bottom:4px">📲 Share on WhatsApp</div>
-  <div style="font-size:12px;color:#888;margin-bottom:14px">Preview the message before sending</div>
-  <textarea id="wa-msg" style="width:100%;height:160px;border:1.5px solid #E8DFC0;border-radius:8px;padding:10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;color:#1A1208;background:#FFFDF7;line-height:1.6"></textarea>
-  <div style="display:flex;gap:8px;margin-top:12px">
-    <button onclick="closeWaModal()" style="flex:1;padding:11px;border:1.5px solid #E8DFC0;border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
-    <button onclick="sendWhatsApp()" style="flex:1;padding:11px;border:none;border-radius:8px;background:#25D366;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">Send WhatsApp</button>
-  </div>
-</div>
 
 <script>
 const KEY='gold_ledger_v2';
@@ -1073,29 +981,8 @@ let selectedType='delivered';
 let deferredInstall=null;
 let toastTimer=null;
 
-function save(){
-  try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
-  if(window.firebaseSave) window.firebaseSave(db);
-}
-function load(){
-  try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s);}catch(e){}
-}
-async function loadFromFirebase(){
-  const cloudData = await window.firebaseLoad();
-  if(cloudData){
-    db = cloudData;
-    try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
-    renderDashboard();
-    if(typeof renderClients==='function') renderClients();
-    showToast('Synced from cloud ✓');
-  }
-  window.firebaseListen(function(newData){
-    db = newData;
-    try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
-    renderDashboard();
-    if(typeof renderClients==='function') renderClients();
-  });
-}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function load(){try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s)}catch(e){}}
 
 /* ── LAYOUT ─────────────────────────────── */
 function applyLayout(){
@@ -1144,11 +1031,10 @@ function fmtGramMg(g){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 function fmtDate(d){
   if(!d)return '';
-  const[y,m,day]=d.split('-');
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const dd=parseInt(day);
-  const suffix=dd===1||dd===21||dd===31?'st':dd===2||dd===22?'nd':dd===3||dd===23?'rd':'th';
-  return dd+suffix+' '+months[parseInt(m)-1]+', '+y;
+  const p=d.split('-');
+  if(p.length!==3)return d;
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return p[2]+'-'+(m[parseInt(p[1],10)-1]||p[1])+'-'+p[0];
 }
 
 
@@ -1171,6 +1057,7 @@ function showPage(p){
   const sb=document.getElementById('snav-'+p); if(sb)sb.classList.add('active');
   window.scrollTo(0,0);
   
+  clearTxnSelection();
   if(p==='dashboard')renderDashboard();
   
   // FIX: Always show the main client list and reset activeClient when clicking the Clients tab
@@ -1187,19 +1074,13 @@ function showPage(p){
 /* ── DASHBOARD ──────────────────────────── */
 function renderDashboard(){
   const names=Object.keys(db.clients);
-  let totDelivered=0,totReceived=0;
-  names.forEach(n=>{
-    const c=db.clients[n];
-    if(!c||!c.transactions)return;
-    c.transactions.forEach(t=>{
-      t.type==='delivered'?totDelivered+=t.grams:totReceived+=t.grams;
-    });
-  });
-  const net=totDelivered-totReceived;
-  document.getElementById('s-get').textContent=totDelivered.toFixed(3)+'g';
-  document.getElementById('s-get-mg').textContent=fmtGramMg(totDelivered);
-  document.getElementById('s-give').textContent=totReceived.toFixed(3)+'g';
-  document.getElementById('s-give-mg').textContent=fmtGramMg(totReceived);
+  let toGet=0,toGive=0;
+  names.forEach(n=>{const b=balance(n);b>0?toGet+=b:b<0&&(toGive+=Math.abs(b))});
+  const net=toGet-toGive;
+  document.getElementById('s-get').textContent=toGet.toFixed(3)+'g';
+  document.getElementById('s-get-mg').textContent=fmtGramMg(toGet);
+  document.getElementById('s-give').textContent=toGive.toFixed(3)+'g';
+  document.getElementById('s-give-mg').textContent=fmtGramMg(toGive);
   const ne=document.getElementById('s-net');
   ne.textContent=(net>0?'+':net<0?'-':'')+Math.abs(net).toFixed(3)+'g';
   document.getElementById('s-net-mg').textContent=fmtGramMg(Math.abs(net));
@@ -1272,12 +1153,16 @@ function renderDetailTxns(name){
       extraInfo=`<div class="txn-calc-info">Gross: ${fmtGramMg(t.grossGrams)} × ${t.purity}% = ${gramMgDisplay}</div>`;
     }
     const div=document.createElement('div'); div.className='txn-item';
+    div.setAttribute('data-idx', idx);
+    div.style.cursor='pointer';
+    div.onclick=function(e){
+      if(e.target.closest('.txn-del'))return;
+      this.classList.toggle('selected');
+      updateWaBar();
+    };
     div.innerHTML=`
-      <div class="txn-select-overlay" data-idx="${idx}" onclick="toggleTxnSelect(this)"></div>
       <div style="display:flex;align-items:center;gap:10px">
-        <div class="txn-checkbox-wrap" data-idx="${idx}">
-          <div class="txn-checkbox" id="cb-${idx}"></div>
-        </div>
+        <div class="txn-circle"></div>
         <div style="flex:1;min-width:0">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
             <div style="display:flex;gap:8px;flex:1;min-width:0">
@@ -1300,143 +1185,7 @@ function renderDetailTxns(name){
   });
   updateWaBar();
 }
-function shareTxnWhatsApp(name,idx){
-  const c=db.clients[name];
-  const t=c.transactions[idx];
-  if(!t)return;
-  const typeLabel=t.type==='delivered'?'Kaaj (Delivered)':'Metal (Received)';
-  const grossLine=t.grossGrams?'\nGross Gold: '+t.grossGrams.toFixed(3)+'g':'';
-  const purityLine=(t.grossGrams&&t.purity)?'\nPurity: '+t.purity+'%':'';
-  const balInfo=getClientBalance(name);
-  const phone=c.phone||'';
-  const msg=
-`Hello ${name},
-
-This is a transaction record from Gold Ledger:
-
-Date: ${fmtDate(t.date)}
-Type: ${typeLabel}${grossLine}${purityLine}
-Pure Gold: ${t.grams.toFixed(3)}g
-
---- Account Status ---
-${balInfo}`;
-  showWaModal(phone,msg);
-}
-
-function toggleTxnSelect(overlay){
-  const idx=parseInt(overlay.getAttribute('data-idx'));
-  const item=overlay.closest('.txn-item');
-  item.classList.toggle('selected');
-  updateWaBar();
-}
-
-function updateWaBar(){
-  const selected=document.querySelectorAll('.txn-item.selected');
-  const bar=document.getElementById('wa-action-bar');
-  const countEl=document.getElementById('wa-selected-count');
-  if(selected.length>0){
-    bar.classList.add('show');
-    countEl.textContent=selected.length+' selected';
-  } else {
-    bar.classList.remove('show');
-  }
-}
-
-function clearTxnSelection(){
-  document.querySelectorAll('.txn-item.selected').forEach(el=>el.classList.remove('selected'));
-  document.getElementById('wa-action-bar').classList.remove('show');
-}
-
-function getSelectedTxns(name){
-  const c=db.clients[name];
-  const txns=c.transactions||[];
-  const selected=[];
-  document.querySelectorAll('.txn-item.selected').forEach(item=>{
-    const overlay=item.querySelector('.txn-select-overlay');
-    if(overlay){
-      const idx=parseInt(overlay.getAttribute('data-idx'));
-      if(!isNaN(idx)&&txns[idx]) selected.push(txns[idx]);
-    }
-  });
-  // Sort by date ascending for message
-  selected.sort((a,b)=>a.date.localeCompare(b.date));
-  return selected;
-}
-
-function onTxnCheckboxChange(){updateWaBar();}
-
-function sendSelectedWhatsApp(){
-  if(!activeClient)return;
-  const c=db.clients[activeClient];
-  const selected=getSelectedTxns(activeClient);
-  if(!selected.length){showToast('Select at least one transaction');return;}
-
-  // Format: exactly as per the required format in the image
-  let txnLines=selected.map((t,i)=>{
-    const typeLabel=t.type==='delivered'?'Kaaj':'Metal';
-    const grossPart=t.grossGrams?t.grossGrams.toFixed(3)+'g':'—';
-    const purityPart=t.purity?t.purity+'%':'—';
-    return `Transaction ${i+1}
-Date: ${fmtDate(t.date)}
-Type: ${typeLabel}
-Pure Gold = ${grossPart} × ${purityPart} = ${t.grams.toFixed(3)}g`;
-  }).join('\n\n');
-
-  const bal=getClientBalance(activeClient);
-  const msg=`Hello, ${activeClient}
-
-${txnLines}
-
--- Account Status --
-${bal}`;
-
-  showWaModal(c.phone||'',msg);
-}
-
-function toggleSelectAll(){
-  const checkboxes=document.querySelectorAll('.txn-select');
-  const allChecked=[...checkboxes].every(cb=>cb.checked);
-  checkboxes.forEach(cb=>cb.checked=!allChecked);
-  const btn=document.getElementById('btn-select-all');
-  if(btn) btn.textContent=allChecked?'Select All':'Deselect All';
-  onTxnCheckboxChange();
-}
-
-function closeDetail(){clearTxnSelection();activeClient=null;showClientList();renderClients();}
-
-function openEditClient(){
-  if(!activeClient)return;
-  const c=db.clients[activeClient];
-  document.getElementById('edit-client-name').value=activeClient;
-  document.getElementById('edit-client-phone').value=c.phone||'';
-  document.getElementById('modal-edit-overlay').style.display='block';
-  document.getElementById('modal-edit-client').style.display='block';
-  setTimeout(()=>document.getElementById('edit-client-name').focus(),100);
-}
-function closeEditClient(){
-  document.getElementById('modal-edit-overlay').style.display='none';
-  document.getElementById('modal-edit-client').style.display='none';
-}
-function saveEditClient(){
-  const newName=(document.getElementById('edit-client-name').value||'').trim();
-  const newPhone=(document.getElementById('edit-client-phone').value||'').replace(/[^0-9]/g,'');
-  if(!newName){alert('Please enter a name.');return;}
-  if(newPhone&&newPhone.length!==10){alert('Phone must be exactly 10 digits.');return;}
-  // Rename client if name changed
-  if(newName!==activeClient){
-    if(db.clients[newName]){alert('A client with this name already exists.');return;}
-    db.clients[newName]=db.clients[activeClient];
-    delete db.clients[activeClient];
-    activeClient=newName;
-  }
-  db.clients[activeClient].phone=newPhone;
-  save();
-  closeEditClient();
-  openDetail(activeClient);
-  renderClients();
-  renderDashboard();
-  showToast('Client updated ✓');
-}
+function closeDetail(){activeClient=null;showClientList();renderClients();}
 
 function openEditName(){
   if(!activeClient)return;
@@ -1472,7 +1221,7 @@ function deleteClient(){
 function deleteTxn(name,idx){
   if(!confirm('Delete this transaction?'))return;
   db.clients[name].transactions.splice(idx,1);
-  // Keep client even if all transactions removed
+  if(!db.clients[name].transactions.length){delete db.clients[name];save();showToast('Deleted');closeDetail();renderDashboard();return;}
   save();openDetail(name);renderDashboard();
 }
 
@@ -1803,9 +1552,8 @@ function calcPureGold(){
   document.getElementById('calc-value').textContent=pureRounded.toFixed(decimalPlaces)+' g';
   document.getElementById('calc-breakdown').textContent=fmtGramMg(pureRounded);
 
-  // Auto-fill the hidden grams field and store globally
+  // Auto-fill the hidden grams field
   document.getElementById('f-grams').value=pureRounded.toFixed(decimalPlaces);
-  window._pureGold = pureRounded;
   document.getElementById('manual-tag').textContent='auto-calculated';
   updatePreview();
 }
@@ -1885,7 +1633,7 @@ function saveNewClient(){
 }
 
 function clearForm(){
-  ['f-client','f-phone','f-grams','f-note','f-gross','f-purity'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';}); window._pureGold=0;;
+  ['f-client','f-phone','f-grams','f-note','f-gross','f-purity'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('gross-display').textContent='—';
   document.getElementById('calc-formula').textContent='—';
   document.getElementById('calc-value').textContent='—';
@@ -1919,51 +1667,10 @@ function saveTransaction(){
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
   if(phone)db.clients[name].phone=phone;
 
-  // Capture values BEFORE clearForm resets everything
-  const pureGrams = window._pureGold || grams; // use _pureGold, fallback to f-grams value
-  const savedType = selectedType; // capture before clearForm resets it
-
-  const txn={type:savedType,grams:pureGrams,date,note};
+  const txn={type:selectedType,grams,date,note};
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
   db.clients[name].transactions.push(txn);
-  save(); updateSuggestions(); renderDashboard();
-
-  // Get balance AFTER save, BEFORE clearForm
-  const balInfo = getClientBalance(name);
-
-  showToast('Transaction saved ✓');
-  clearForm();
-}
-
-/* ── WHATSAPP SHARE ──────────────────────── */
-function getClientBalance(name){
-  const c=db.clients[name];
-  if(!c||!c.transactions)return '✅ Account settled — no pending gold.';
-  let b=0;
-  c.transactions.forEach(t=>{t.type==='delivered'?b+=t.grams:b-=t.grams;});
-  b=Math.round(b*1000)/1000;
-  if(b>0)return `⚖️ Balance: ${b.toFixed(3)}g`;
-  if(b<0)return `💰 Advance: ${Math.abs(b).toFixed(3)}g`;
-  return '✅ Settled: 0g';
-}
-
-let _waPhone='';
-function showWaModal(phone, msg){
-  _waPhone = phone;
-  document.getElementById('wa-msg').value = msg;
-  document.getElementById('wa-overlay').style.display='block';
-  document.getElementById('wa-modal').style.display='block';
-}
-function closeWaModal(){
-  document.getElementById('wa-overlay').style.display='none';
-  document.getElementById('wa-modal').style.display='none';
-}
-function sendWhatsApp(){
-  const msg = document.getElementById('wa-msg').value;
-  const phone = '91' + _waPhone; // +91 India code
-  const url = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
-  closeWaModal();
+  save(); showToast('Transaction saved ✓'); clearForm(); updateSuggestions(); renderDashboard();
 }
 
 /* ── HISTORY ────────────────────────────── */
@@ -2021,16 +1728,11 @@ function renderHistory(){
   // Summary stats for filtered period
   let sumDelivered=0,sumReceived=0;
   all.forEach(t=>{ t.type==='delivered'?sumDelivered+=t.grams:sumReceived+=t.grams; });
-  // Net = Delivered - Received
-  // If Delivered > Received → Net is positive (+)
-  // If Delivered < Received → Net is negative (-)
-  const sumNet=sumDelivered-sumReceived;
-  const netClass=sumNet>0?'card-net-pos':sumNet<0?'card-net-neg':'card-net-zero';
-  const netSign=sumNet>0?'+':sumNet<0?'-':'';
+  const sumNet=sumReceived-sumDelivered;
   document.getElementById('hist-summary').innerHTML=`
-    <div class="hist-sum-card card-del"><div class="hist-sum-label">Delivered</div><div class="hist-sum-val">${sumDelivered.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumDelivered)}</div></div>
-    <div class="hist-sum-card card-rec"><div class="hist-sum-label">Received</div><div class="hist-sum-val">${sumReceived.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumReceived)}</div></div>
-    <div class="hist-sum-card ${netClass}"><div class="hist-sum-label">Net</div><div class="hist-sum-val">${netSign}${Math.abs(sumNet).toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(Math.abs(sumNet))}</div></div>`;
+    <div class="hist-sum-card"><div class="hist-sum-label">Delivered</div><div class="hist-sum-val give">+${sumDelivered.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumDelivered)}</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-label">Received</div><div class="hist-sum-val get">+${sumReceived.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumReceived)}</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-label">Net</div><div class="hist-sum-val net">${sumNet>=0?'+':''}${sumNet.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(Math.abs(sumNet))}</div></div>`;
 
   const list=document.getElementById('hist-list'); list.innerHTML='';
   const empty=document.getElementById('hist-empty');
@@ -2177,7 +1879,7 @@ function renderDaybook(){
     // Format date nicely
     const [y,m,d]=date.split('-');
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const niceDateStr=`${d}-${m}-${y}`;
+    const niceDateStr=`${d} ${months[parseInt(m)-1]} ${y}`;
 
     const card=document.createElement('div');
     card.className='db-day-card';
@@ -2210,13 +1912,75 @@ function renderDaybook(){
   });
 }
 
+/* ── WHATSAPP SELECTION ──────────────────── */
+function updateWaBar(){
+  const sel=document.querySelectorAll('.txn-item.selected');
+  const bar=document.getElementById('wa-action-bar');
+  const ct=document.getElementById('wa-selected-count');
+  if(sel.length>0){bar.classList.add('show');ct.textContent=sel.length+' selected';}
+  else bar.classList.remove('show');
+}
+function clearTxnSelection(){
+  document.querySelectorAll('.txn-item.selected').forEach(el=>el.classList.remove('selected'));
+  document.getElementById('wa-action-bar').classList.remove('show');
+}
+function toggleSelectAll(){
+  const items=document.querySelectorAll('.txn-item');
+  const allSel=[...items].every(el=>el.classList.contains('selected'));
+  items.forEach(el=>allSel?el.classList.remove('selected'):el.classList.add('selected'));
+  const btn=document.getElementById('btn-select-all');
+  if(btn)btn.textContent=allSel?'Select All':'Deselect All';
+  updateWaBar();
+}
+function getClientBalance(name){
+  const c=db.clients[name];
+  if(!c||!c.transactions)return 'Settled: 0g';
+  let b=0;c.transactions.forEach(t=>{t.type==='delivered'?b+=t.grams:b-=t.grams;});
+  b=Math.round(b*1000)/1000;
+  if(b>0)return '⚖️ Balance: '+b.toFixed(3)+'g';
+  if(b<0)return '💰 Advance: '+Math.abs(b).toFixed(3)+'g';
+  return '✅ Settled: 0g';
+}
+function sendSelectedWhatsApp(){
+  if(!activeClient)return;
+  const c=db.clients[activeClient];
+  const txns=c.transactions||[];
+  const selected=[];
+  document.querySelectorAll('.txn-item.selected').forEach(item=>{
+    const idx=parseInt(item.getAttribute('data-idx'));
+    if(!isNaN(idx)&&txns[idx])selected.push(txns[idx]);
+  });
+  if(!selected.length){showToast('Select at least one transaction');return;}
+  selected.sort((a,b)=>a.date.localeCompare(b.date));
+  let txnLines=selected.map((t,i)=>{
+    const typeLabel=t.type==='delivered'?'Kaaj':'Metal';
+    const grossPart=t.grossGrams?t.grossGrams.toFixed(3)+'g':'—';
+    const purityPart=t.purity?t.purity+'%':'—';
+    return 'Transaction '+(i+1)+'\nDate: '+fmtDate(t.date)+'\nType: '+typeLabel+'\nPure Gold = '+grossPart+' × '+purityPart+' = '+t.grams.toFixed(3)+'g';
+  }).join('\n\n');
+  const bal=getClientBalance(activeClient);
+  const msg='Hello, '+activeClient+'\n\n'+txnLines+'\n\n-- Account Status --\n'+bal;
+  showWaModal(c.phone||'',msg);
+}
+function showWaModal(phone,msg){
+  window._waPhone=phone;
+  document.getElementById('wa-msg').value=msg;
+  document.getElementById('wa-overlay').style.display='block';
+  document.getElementById('wa-modal').style.display='block';
+}
+function closeWaModal(){
+  document.getElementById('wa-overlay').style.display='none';
+  document.getElementById('wa-modal').style.display='none';
+}
+function sendWhatsApp(){
+  const msg=document.getElementById('wa-msg').value;
+  const phone='91'+(window._waPhone||'');
+  window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+  closeWaModal();
+}
+
 /* ── INIT ───────────────────────────────── */
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
-if(window.firebaseReady){
-  loadFromFirebase();
-} else {
-  window.addEventListener('firebase-ready', ()=>loadFromFirebase());
-}
 </script>
 </body>
 </html>
