@@ -247,14 +247,14 @@ select {
 
 .txn-item { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--rs); padding: 11px; margin-bottom: 7px; }
 .txn-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-.txn-dot.delivered { background: var(--blue); }
-.txn-dot.received { background: var(--green); }
+.txn-dot.delivered { background: var(--green); }
+.txn-dot.received { background: var(--red); }
 .txn-dot.payment { background: var(--amber); }
 .txn-label { font-size: 13px; font-weight: 500; }
 .txn-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
 .txn-grams { font-size: 15px; font-weight: 500; font-family: 'Playfair Display',serif; }
-.txn-grams.delivered { color: var(--red); }
-.txn-grams.received,.txn-grams.payment { color: var(--green); }
+.txn-grams.delivered { color: var(--green); }
+.txn-grams.received,.txn-grams.payment { color: var(--red); }
 .txn-del { background: none; border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); cursor: pointer; padding: 3px 8px; font-size: 12px; font-weight: 600; }
 .txn-item { transition: background 0.15s; cursor: pointer; }
 .txn-item.selected { background: #E8F4E8 !important; border-color: #25D366 !important; }
@@ -669,15 +669,15 @@ select {
   gap: 10px;
 }
 .hist-txn-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-.hist-txn-dot.delivered { background: var(--blue); }
-.hist-txn-dot.received { background: var(--green); }
+.hist-txn-dot.delivered { background: var(--green); }
+.hist-txn-dot.received { background: var(--red); }
 .hist-txn-info { flex: 1; min-width: 0; }
 .hist-txn-title { font-size: 13px; font-weight: 500; }
 .hist-txn-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
 .hist-txn-amt { text-align: right; flex-shrink: 0; }
 .hist-txn-grams { font-size: 14px; font-weight: 500; font-family: 'Playfair Display',serif; }
-.hist-txn-grams.delivered { color: var(--red); }
-.hist-txn-grams.received { color: var(--green); }
+.hist-txn-grams.delivered { color: var(--green); }
+.hist-txn-grams.received { color: var(--red); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
 </style>
   <!-- Firebase SDK -->
