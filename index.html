@@ -555,22 +555,30 @@ select {
 .hist-summary {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 14px;
 }
 .hist-sum-card {
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--r);
-  padding: 10px 8px;
-  text-align: center;
+  border-radius: 14px;
+  padding: 14px 10px;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.10);
 }
-.hist-sum-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 700; margin-bottom: 3px; }
-.hist-sum-val { font-size: 16px; font-family: 'Playfair Display',serif; font-weight: 500; }
-.hist-sum-sub { font-size: 10px; color: var(--hint); margin-top: 2px; }
-.hist-sum-val.get { color: var(--green); }
-.hist-sum-val.give { color: var(--red); }
-.hist-sum-val.net { color: var(--gold-dark); }
+.hist-sum-card::after {
+  content:''; position:absolute; right:-14px; bottom:-14px;
+  width:60px; height:60px; border-radius:50%;
+  background:rgba(255,255,255,0.10);
+}
+.hist-sum-card.card-del { background: linear-gradient(145deg,#1B5E30,#2D8A42); }
+.hist-sum-card.card-rec { background: linear-gradient(145deg,#7A1A1A,#B83232); }
+.hist-sum-card.card-net-pos { background: linear-gradient(145deg,#1B5E30,#2D8A42); }
+.hist-sum-card.card-net-neg { background: linear-gradient(145deg,#7A1A1A,#B83232); }
+.hist-sum-card.card-net-zero { background: linear-gradient(145deg,#5A3E00,#C49010); }
+.hist-sum-label { font-size: 9px; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.6px; font-weight:700; margin-bottom:4px; }
+.hist-sum-val { font-size: 15px; font-family:'Playfair Display',serif; font-weight:600; color:#fff; }
+.hist-sum-sub { font-size: 9px; color:rgba(255,255,255,0.65); margin-top:2px; }
 
 .db-day-card { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r); margin-bottom:10px; overflow:hidden; }
 .db-day-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--border); }
@@ -638,6 +646,42 @@ select {
 .hist-txn-grams.received { color: var(--green); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
 </style>
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCn93MozTRWbCx6FfxRCD7QUSD1EcDFK2Y",
+      authDomain: "gold-ledger-5a6f3.firebaseapp.com",
+      projectId: "gold-ledger-5a6f3",
+      storageBucket: "gold-ledger-5a6f3.firebasestorage.app",
+      messagingSenderId: "528799594094",
+      appId: "1:528799594094:web:6b872f4076debca08c987f"
+    };
+
+    const fireApp = initializeApp(firebaseConfig);
+    const fireDb  = getFirestore(fireApp);
+    const DATA_DOC = doc(fireDb, 'goldledger', 'data');
+
+    window.firebaseSave = async function(data) {
+      try { await setDoc(DATA_DOC, { db: JSON.stringify(data) }); } catch(e) { console.error(e); }
+    };
+    window.firebaseLoad = async function() {
+      try {
+        const snap = await getDoc(DATA_DOC);
+        if(snap.exists()){ const raw=snap.data().db; if(raw) return JSON.parse(raw); }
+      } catch(e) { console.error(e); }
+      return null;
+    };
+    window.firebaseListen = function(callback) {
+      onSnapshot(DATA_DOC, (snap) => {
+        if(snap.exists()){ try{ const raw=snap.data().db; if(raw) callback(JSON.parse(raw)); }catch(e){} }
+      });
+    };
+    window.firebaseReady = true;
+    window.dispatchEvent(new Event('firebase-ready'));
+  </script>
 </head>
 <body>
 
@@ -768,7 +812,7 @@ select {
           <div class="field">
             <label>Transaction Type *</label>
             <div class="type-selector">
-              <div class="type-opt sel-delivered" id="topt-delivered" onclick="selectType('delivered')"><span class="type-opt-icon">📦</span><div class="type-opt-label">Kaaj</div></div>
+              <div class="type-opt sel-delivered" id="topt-delivered" onclick="selectType('delivered')"><span class="type-opt-icon">📦</span><div class="type-opt-label">Casting</div></div>
               <div class="type-opt" id="topt-received" onclick="selectType('received')"><span class="type-opt-icon">📥</span><div class="type-opt-label">Metal</div></div>
             </div>
           </div>
@@ -981,8 +1025,28 @@ let selectedType='delivered';
 let deferredInstall=null;
 let toastTimer=null;
 
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
-function load(){try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s)}catch(e){}}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+  if(window.firebaseSave) window.firebaseSave(db);
+}
+function load(){
+  try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s);}catch(e){}
+}
+async function loadFromFirebase(){
+  const cloudData = await window.firebaseLoad();
+  if(cloudData){
+    db = cloudData;
+    try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+    renderDashboard();
+    if(typeof renderClients==='function') renderClients();
+  }
+  window.firebaseListen(function(newData){
+    db = newData;
+    try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+    renderDashboard();
+    if(typeof renderClients==='function') renderClients();
+  });
+}
 
 /* ── LAYOUT ─────────────────────────────── */
 function applyLayout(){
@@ -1728,11 +1792,14 @@ function renderHistory(){
   // Summary stats for filtered period
   let sumDelivered=0,sumReceived=0;
   all.forEach(t=>{ t.type==='delivered'?sumDelivered+=t.grams:sumReceived+=t.grams; });
-  const sumNet=sumReceived-sumDelivered;
+  // Net = Delivered - Received
+  const sumNet=sumDelivered-sumReceived;
+  const netClass=sumNet>0?'card-net-pos':sumNet<0?'card-net-neg':'card-net-zero';
+  const netSign=sumNet>0?'+':sumNet<0?'-':'';
   document.getElementById('hist-summary').innerHTML=`
-    <div class="hist-sum-card"><div class="hist-sum-label">Delivered</div><div class="hist-sum-val give">+${sumDelivered.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumDelivered)}</div></div>
-    <div class="hist-sum-card"><div class="hist-sum-label">Received</div><div class="hist-sum-val get">+${sumReceived.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumReceived)}</div></div>
-    <div class="hist-sum-card"><div class="hist-sum-label">Net</div><div class="hist-sum-val net">${sumNet>=0?'+':''}${sumNet.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(Math.abs(sumNet))}</div></div>`;
+    <div class="hist-sum-card card-del"><div class="hist-sum-label">Delivered</div><div class="hist-sum-val">${sumDelivered.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumDelivered)}</div></div>
+    <div class="hist-sum-card card-rec"><div class="hist-sum-label">Received</div><div class="hist-sum-val">${sumReceived.toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(sumReceived)}</div></div>
+    <div class="hist-sum-card ${netClass}"><div class="hist-sum-label">Net</div><div class="hist-sum-val">${netSign}${Math.abs(sumNet).toFixed(3)}g</div><div class="hist-sum-sub">${fmtGramMg(Math.abs(sumNet))}</div></div>`;
 
   const list=document.getElementById('hist-list'); list.innerHTML='';
   const empty=document.getElementById('hist-empty');
@@ -1981,6 +2048,8 @@ function sendWhatsApp(){
 
 /* ── INIT ───────────────────────────────── */
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+if(window.firebaseReady){ loadFromFirebase(); }
+else { window.addEventListener('firebase-ready', ()=>loadFromFirebase()); }
 </script>
 </body>
 </html>
