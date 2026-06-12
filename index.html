@@ -532,6 +532,40 @@ select {
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
+.client-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: var(--card);
+  border: 1.5px solid var(--gold-mid);
+  border-radius: var(--rs);
+  margin-top: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.client-dropdown.show { display: block; }
+.client-dropdown-item {
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.client-dropdown-item:last-child { border-bottom: none; }
+.client-dropdown-item:hover,
+.client-dropdown-item.highlight {
+  background: var(--gold-mid);
+  color: #fff;
+}
+.client-dropdown-empty {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--hint);
+  text-align: center;
+}
+
 .hist-select {
   flex: 1;
   min-width: 100px;
@@ -819,7 +853,14 @@ select {
 
           <!-- Client + Date -->
           <div class="field-row">
-            <div class="field"><label>Client Name *</label><input type="text" id="f-client" placeholder="e.g. Ramesh Ji" list="cl-suggestions" autocomplete="off" oninput="updatePreview(); autoFillClientPhone()"><datalist id="cl-suggestions"></datalist></div>
+            <div class="field" style="position:relative">
+              <label>Client Name *</label>
+              <input type="text" id="f-client" placeholder="e.g. Ramesh Ji" autocomplete="off"
+                oninput="updatePreview(); autoFillClientPhone(); showClientDropdown();"
+                onfocus="showClientDropdown()"
+                onblur="setTimeout(hideClientDropdown,150)">
+              <div id="client-dropdown" class="client-dropdown"></div>
+            </div>
             <div class="field"><label>Date *</label><input type="date" id="f-date"></div>
           </div>
 
@@ -1658,11 +1699,40 @@ function updatePreview(){
 }
 
 function updateSuggestions(){
-  const dl=document.getElementById('cl-suggestions'); if(!dl)return; dl.innerHTML='';
-  // Include ALL saved clients (even those with zero balance)
-  Object.keys(db.clients).sort((a,b)=>a.localeCompare(b)).forEach(n=>{
-    const o=document.createElement('option');o.value=n;dl.appendChild(o);
-  });
+  // Kept for compatibility — dropdown is built dynamically on focus/input
+}
+
+function getClientNamesList(){
+  return Object.keys(db.clients).sort((a,b)=>a.localeCompare(b));
+}
+
+function showClientDropdown(){
+  const dd=document.getElementById('client-dropdown');
+  const input=document.getElementById('f-client');
+  const query=(input.value||'').trim().toLowerCase();
+  const names=getClientNamesList();
+  const filtered=query?names.filter(n=>n.toLowerCase().includes(query)):names;
+
+  if(!filtered.length){
+    dd.innerHTML=query?'<div class="client-dropdown-empty">No matching clients</div>':'';
+    dd.classList.toggle('show', !!query);
+    return;
+  }
+
+  dd.innerHTML=filtered.map(n=>`<div class="client-dropdown-item" onmousedown="selectClientFromDropdown('${esc(n)}')">${esc(n)}</div>`).join('');
+  dd.classList.add('show');
+}
+
+function hideClientDropdown(){
+  const dd=document.getElementById('client-dropdown');
+  if(dd) dd.classList.remove('show');
+}
+
+function selectClientFromDropdown(name){
+  document.getElementById('f-client').value=name;
+  hideClientDropdown();
+  updatePreview();
+  autoFillClientPhone();
 }
 
 function autoFillClientPhone() {
