@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
@@ -55,7 +55,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 20px; flex-shrink: 0; overflow: hidden;
 }
-.topbar-title { font-size: 17px; font-family: 'Playfair Display',serif; }
+.topbar-title { font-size: 17px; font-family: 'DM Sans',sans-serif; }
 .topbar-sub { font-size: 11px; color: var(--muted); }
 
 /* ── SCROLL CONTENT — normal block flow, Android scrolls body ── */
@@ -127,7 +127,7 @@ body { overflow-x: hidden; overflow-y: auto; }
     display: flex; align-items: center; justify-content: center;
     color: #fff; font-size: 20px; flex-shrink: 0;
   }
-  .sidebar-title { font-size: 17px; font-family: 'Playfair Display',serif; }
+  .sidebar-title { font-size: 17px; font-family: 'DM Sans',sans-serif; }
   .sidebar-sub { font-size: 11px; color: var(--muted); }
   .sidebar-nav { padding: 12px 10px; flex: 1; }
   .side-btn {
@@ -175,7 +175,7 @@ body { overflow-x: hidden; overflow-y: auto; }
 /* ══════════════════════════════
    COMPONENTS
 ══════════════════════════════ */
-h1,h2,h3 { font-family: 'Playfair Display',serif; font-weight: 500; }
+h1,h2,h3 { font-family: 'DM Sans',sans-serif; font-weight: 500; }
 button,input,select,textarea { font-family: 'DM Sans',sans-serif; font-size: 14px; outline: none; }
 input,select,textarea {
   width: 100%; padding: 10px 12px;
@@ -193,11 +193,11 @@ select {
 .summary-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
 .stat-card { background: var(--card); border: 1.5px solid var(--border); border-radius: var(--r); padding: 10px 6px; text-align: center; }
 .stat-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-.stat-val { font-size: 17px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.stat-val { font-size: 17px; font-weight: 500; font-family: 'DM Sans',sans-serif; }
 .stat-val.get { color: var(--green); } .stat-val.give { color: var(--red); } .stat-val.net { color: var(--gold-dark); }
 
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.section-title { font-size: 15px; font-family: 'Playfair Display',serif; }
+.section-title { font-size: 15px; font-family: 'DM Sans',sans-serif; }
 .section-count { font-size: 13px; color: var(--muted); }
 
 .search-wrap { position: relative; margin-bottom: 12px; }
@@ -226,7 +226,7 @@ select {
 .client-name { font-size: 15px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .client-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
 .client-bal { text-align: right; flex-shrink: 0; }
-.bal-amt { font-size: 16px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.bal-amt { font-size: 16px; font-weight: 500; font-family: 'DM Sans',sans-serif; }
 .bal-amt.get { color: var(--green); } .bal-amt.give { color: var(--red); } .bal-amt.settled { color: var(--hint); }
 .bal-tag { font-size: 10px; margin-top: 3px; padding: 2px 7px; border-radius: 20px; display: inline-block; font-weight: 600; }
 .bal-tag.get { background: var(--green-bg); color: var(--green); }
@@ -239,7 +239,7 @@ select {
 .bal-banner.give { background: linear-gradient(145deg, #7A1A1A, #B83232); border: none; box-shadow: 0 3px 12px rgba(122,26,26,0.25); }
 .bal-banner.settled { background: linear-gradient(145deg, #5A3E00, #C49010); border: none; box-shadow: 0 3px 12px rgba(90,62,0,0.2); }
 .ban-label { font-size: 11px; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.8; }
-.ban-amount { font-size: 28px; font-family: 'Playfair Display',serif; font-weight: 600; letter-spacing: -0.5px; }
+.ban-amount { font-size: 28px; font-family: 'DM Sans',sans-serif; font-weight: 600; letter-spacing: -0.5px; }
 .bal-banner.get .ban-label,.bal-banner.get .ban-amount { color: #fff; }
 .bal-banner.give .ban-label,.bal-banner.give .ban-amount { color: #fff; }
 .bal-banner.settled .ban-label,.bal-banner.settled .ban-amount { color: #fff; }
@@ -252,7 +252,7 @@ select {
 .txn-dot.payment { background: var(--amber); }
 .txn-label { font-size: 13px; font-weight: 500; }
 .txn-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.txn-grams { font-size: 15px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.txn-grams { font-size: 15px; font-weight: 500; font-family: 'DM Sans',sans-serif; }
 .txn-grams.delivered { color: var(--green); }
 .txn-grams.received,.txn-grams.payment { color: var(--red); }
 .txn-del { background: none; border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); cursor: pointer; padding: 3px 8px; font-size: 12px; font-weight: 600; }
@@ -311,7 +311,7 @@ select {
 .back-btn { background: none; border: none; color: var(--muted); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0; font-family: 'DM Sans',sans-serif; font-weight: 500; }
 .detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .detail-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg,#D4A017,#B8860B); background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%20width%3D%27100%25%27%20height%3D%27100%25%27%3E%0A%20%20%3Ccircle%20cx%3D%2750%27%20cy%3D%2736%27%20r%3D%2718%27%20fill%3D%27rgba%28255%2C255%2C255%2C0.85%29%27/%3E%0A%20%20%3Cellipse%20cx%3D%2750%27%20cy%3D%2785%27%20rx%3D%2728%27%20ry%3D%2720%27%20fill%3D%27rgba%28255%2C255%2C255%2C0.85%29%27/%3E%0A%3C/svg%3E"); background-size: 80%; background-repeat: no-repeat; background-position: center 55%; background-color: #C49010; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.detail-name { font-size: 20px; font-family: 'Playfair Display',serif; }
+.detail-name { font-size: 20px; font-family: 'DM Sans',sans-serif; }
 .detail-phone { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .action-row { display: flex; gap: 8px; margin-top: 14px; }
 .action-btn { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--rs); padding: 10px; font-size: 13px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 5px; font-family: 'DM Sans',sans-serif; font-weight: 600; }
@@ -390,7 +390,7 @@ select {
   justify-content: space-between;
   margin-bottom: 16px;
 }
-.modal-title { font-size: 18px; font-family: 'Playfair Display',serif; color: var(--text); }
+.modal-title { font-size: 18px; font-family: 'DM Sans',sans-serif; color: var(--text); }
 .modal-close {
   background: none; border: none; font-size: 18px;
   color: var(--hint); cursor: pointer; padding: 0; line-height: 1;
@@ -412,7 +412,7 @@ select {
   padding: 14px;
   margin-bottom: 11px;
 }
-.calc-title { font-size: 15px; font-family: 'Playfair Display',serif; color: var(--gold-dark); margin-bottom: 2px; }
+.calc-title { font-size: 15px; font-family: 'DM Sans',sans-serif; color: var(--gold-dark); margin-bottom: 2px; }
 .calc-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
 
 /* Weight input row: gram + mg */
@@ -460,7 +460,7 @@ select {
 }
 .calc-result-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 4px; }
 .calc-result-formula { font-size: 12px; color: var(--hint); margin-bottom: 4px; font-family: monospace; }
-.calc-result-value { font-size: 28px; font-family: 'Playfair Display',serif; font-weight: 500; color: var(--gold-dark); line-height: 1.1; margin-bottom: 4px; }
+.calc-result-value { font-size: 28px; font-family: 'DM Sans',sans-serif; font-weight: 500; color: var(--gold-dark); line-height: 1.1; margin-bottom: 4px; }
 .calc-result-breakdown { font-size: 13px; color: var(--muted); font-weight: 500; }
 
 /* Manual grams field */
@@ -506,7 +506,7 @@ select {
 .big-stat-net  { background: linear-gradient(145deg, #5A3E00, #C49010); color: #fff; }
 .big-stat-icon { font-size: 26px; margin-bottom: 4px; opacity: 0.85; z-index:1; }
 .big-stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; opacity: 0.75; z-index:1; }
-.big-stat-val { font-size: 38px; font-family: 'Playfair Display', serif; font-weight: 600; line-height: 1.05; letter-spacing: -1px; z-index:1; }
+.big-stat-val { font-size: 38px; font-family: 'DM Sans', sans-serif; font-weight: 600; line-height: 1.05; letter-spacing: -1px; z-index:1; }
 .big-stat-sub { font-size: 14px; opacity: 0.7; font-weight: 400; margin-top: 2px; z-index:1; }
 
 /* On desktop — 3 columns side by side, taller */
@@ -611,13 +611,13 @@ select {
 .hist-sum-card.card-net-neg { background: linear-gradient(145deg,#7A1A1A,#B83232); }
 .hist-sum-card.card-net-zero { background: linear-gradient(145deg,#5A3E00,#C49010); }
 .hist-sum-label { font-size: 9px; color:rgba(255,255,255,0.75); text-transform:uppercase; letter-spacing:0.6px; font-weight:700; margin-bottom:4px; }
-.hist-sum-val { font-size: 15px; font-family:'Playfair Display',serif; font-weight:600; color:#fff; }
+.hist-sum-val { font-size: 15px; font-family:'DM Sans',sans-serif; font-weight:600; color:#fff; }
 .hist-sum-sub { font-size: 9px; color:rgba(255,255,255,0.65); margin-top:2px; }
 
 .db-day-card { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r); margin-bottom:10px; overflow:hidden; }
 .db-day-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--border); }
 .db-day-date { font-size:14px; font-weight:600; color:var(--text); }
-.db-day-net { font-size:13px; font-weight:600; font-family:'Playfair Display',serif; }
+.db-day-net { font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; }
 .db-day-net.get { color:var(--green); }
 .db-day-net.give { color:var(--red); }
 .db-row { display:flex; justify-content:space-between; align-items:center; padding:9px 14px; border-bottom:1px solid var(--border); }
@@ -627,14 +627,14 @@ select {
 .db-row-type.kaaj { color:var(--red); }
 .db-row-type.metal { color:var(--green); }
 .db-row-client { font-size:13px; color:var(--muted); }
-.db-row-amt { font-size:14px; font-weight:500; font-family:'Playfair Display',serif; }
+.db-row-amt { font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; }
 .db-row-mg { font-size:11px; color:var(--hint); }
 .db-totals-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
 .db-total-card { border-radius:var(--r); padding:14px 16px; }
 .db-total-card.kaaj { background:linear-gradient(135deg,#7A1A1A,#B83232); color:#fff; }
 .db-total-card.metal { background:linear-gradient(135deg,#1B5E30,#2D8A42); color:#fff; }
 .db-total-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; opacity:0.8; margin-bottom:4px; }
-.db-total-val { font-size:24px; font-family:'Playfair Display',serif; font-weight:600; }
+.db-total-val { font-size:24px; font-family:'DM Sans',sans-serif; font-weight:600; }
 .db-total-sub { font-size:12px; opacity:0.7; margin-top:2px; }
 .hist-month-group { margin-bottom: 16px; }
 .hist-month-label {
@@ -675,7 +675,7 @@ select {
 .hist-txn-title { font-size: 13px; font-weight: 500; }
 .hist-txn-meta { font-size: 11px; color: var(--muted); margin-top: 1px; }
 .hist-txn-amt { text-align: right; flex-shrink: 0; }
-.hist-txn-grams { font-size: 14px; font-weight: 500; font-family: 'Playfair Display',serif; }
+.hist-txn-grams { font-size: 14px; font-weight: 500; font-family: 'DM Sans',sans-serif; }
 .hist-txn-grams.delivered { color: var(--green); }
 .hist-txn-grams.received { color: var(--red); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
@@ -1050,7 +1050,7 @@ select {
 
 <div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
 <div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:1001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
-  <div style="font-size:17px;font-family:'Playfair Display',serif;color:#1A1208;margin-bottom:4px">📲 Share on WhatsApp</div>
+  <div style="font-size:17px;font-family:'DM Sans',sans-serif;color:#1A1208;margin-bottom:4px">📲 Share on WhatsApp</div>
   <div style="font-size:12px;color:#888;margin-bottom:14px">Preview the message before sending</div>
   <textarea id="wa-msg" style="width:100%;height:180px;border:1.5px solid #E8DFC0;border-radius:8px;padding:10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;color:#1A1208;background:#FFFDF7;line-height:1.6"></textarea>
   <div style="display:flex;gap:8px;margin-top:12px">
