@@ -1271,7 +1271,7 @@ function fmtDate(d){
   const p=d.split('-');
   if(p.length!==3)return d;
   const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return p[2]+'-'+(m[parseInt(p[1],10)-1]||p[1])+'-'+p[0];
+  return parseInt(p[2],10)+' '+(m[parseInt(p[1],10)-1]||p[1])+' '+p[0];
 }
 
 
@@ -1939,7 +1939,7 @@ function saveTransaction(){
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
   if(phone)db.clients[name].phone=phone;
 
-  const txn={type:selectedType,grams,date,note};
+  const txn={type:selectedType,grams,date,note,_seq:getNextSeq()};
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
   db.clients[name].transactions.push(txn);
   save(); showToast('Transaction saved ✓'); clearForm(); updateSuggestions(); renderDashboard();
