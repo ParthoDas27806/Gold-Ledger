@@ -687,7 +687,8 @@ select {
     import {
       getAuth, onAuthStateChanged,
       createUserWithEmailAndPassword, signInWithEmailAndPassword,
-      signInWithPopup, GoogleAuthProvider, signOut, updateProfile
+      signInWithPopup, signInWithRedirect, getRedirectResult,
+      GoogleAuthProvider, signOut, updateProfile
     } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
     const firebaseConfig = {
@@ -709,9 +710,23 @@ select {
     function userDoc(uid){ return doc(fireDb, 'users', uid, 'data', 'ledger'); }
 
     window.authSignInGoogle = async function(){
-      try { await signInWithPopup(fireAuth, googleProvider); }
-      catch(e){ window.showAuthError && window.showAuthError(e.message); }
+      try {
+        await signInWithPopup(fireAuth, googleProvider);
+      } catch(e){
+        // If popup is blocked or unsupported (common on some mobile browsers), fall back to redirect
+        if(e.code==='auth/popup-blocked' || e.code==='auth/popup-closed-by-user' || e.code==='auth/operation-not-supported-in-this-environment' || e.code==='auth/cancelled-popup-request'){
+          try { await signInWithRedirect(fireAuth, googleProvider); }
+          catch(e2){ window.showAuthError && window.showAuthError(e2.message); }
+        } else {
+          window.showAuthError && window.showAuthError(e.message);
+        }
+      }
     };
+
+    // Handle redirect result on page load (for Google sign-in via redirect)
+    getRedirectResult(fireAuth).catch(e=>{
+      if(e && e.message) console.warn('Redirect sign-in error:', e.message);
+    });
     window.authSignInEmail = async function(email, password){
       try { await signInWithEmailAndPassword(fireAuth, email, password); }
       catch(e){ window.showAuthError && window.showAuthError(e.message); }
@@ -783,6 +798,9 @@ select {
       <button class="side-btn" id="snav-daybook" onclick="showPage('daybook')"><span class="sb-icon">📒</span> Daybook</button>
     </nav>
     <div class="sidebar-stats" id="sidebar-stats"></div>
+    <div style="padding:12px 10px">
+      <button id="auth-btn-desktop" onclick="openAuthModal()" style="width:100%;background:var(--gold-mid);color:#fff;border:none;border-radius:var(--rs);padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign In</button>
+    </div>
   </aside>
 
   <!-- MAIN COLUMN -->
@@ -858,12 +876,10 @@ select {
           <div class="detail-header">
             <div class="detail-avatar" id="det-avatar"></div>
             <div style="flex:1;min-width:0">
-              <div style="display:flex;align-items:center;gap:8px">
-                <button class="edit-name-btn" onclick="openEditName()" title="Edit name">✏️</button>
-                <div class="detail-name" id="det-name"></div>
-              </div>
+              <div class="detail-name" id="det-name"></div>
               <div class="detail-phone" id="det-phone"></div>
             </div>
+            <button onclick="openEditClient()" style="background:none;border:1.5px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">✏️ Edit</button>
           </div>
           <div id="det-banner" class="bal-banner get">
             <div><div class="ban-label" id="det-label">Balance</div><div class="ban-amount" id="det-amount">0g</div></div>
@@ -1060,18 +1076,23 @@ select {
 
 <!-- EDIT CLIENT NAME MODAL -->
 <div id="modal-edit-overlay" class="modal-overlay" onclick="closeEditName()" style="display:none"></div>
-<div id="modal-edit-name" class="modal-box" style="display:none">
+<div id="modal-edit-overlay" onclick="closeEditClient()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
+<div id="modal-edit-client" class="modal-box" style="display:none">
   <div class="modal-header">
-    <div class="modal-title">Edit Client Name</div>
-    <button class="modal-close" onclick="closeEditName()">✕</button>
+    <div class="modal-title">Edit Client</div>
+    <button class="modal-close" onclick="closeEditClient()">✕</button>
   </div>
   <div class="field">
-    <label>New Client Name *</label>
-    <input type="text" id="edit-name-input" placeholder="Enter new name" autocomplete="off">
+    <label>Client Name *</label>
+    <input type="text" id="edit-client-name" placeholder="Enter name" autocomplete="off">
+  </div>
+  <div class="field">
+    <label>Phone Number (optional)</label>
+    <input type="tel" id="edit-client-phone" placeholder="10 digit number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)">
   </div>
   <div class="btn-row" style="margin-top:16px">
-    <button class="btn btn-outline" onclick="closeEditName()" style="flex:0.4">Cancel</button>
-    <button class="btn btn-gold" onclick="saveEditName()">✓ Save</button>
+    <button class="btn btn-outline" onclick="closeEditClient()" style="flex:0.4">Cancel</button>
+    <button class="btn btn-gold" onclick="saveEditClient()">✓ Save</button>
   </div>
 </div>
 
@@ -1176,6 +1197,10 @@ let toastTimer=null;
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
   if(window.firebaseSave) window.firebaseSave(db);
+}
+function getNextSeq(){
+  db._seq=(db._seq||0)+1;
+  return db._seq;
 }
 function load(){
   try{const s=localStorage.getItem(KEY);if(s)db=JSON.parse(s);}catch(e){}
@@ -1399,31 +1424,37 @@ function renderDetailTxns(name){
 }
 function closeDetail(){activeClient=null;showClientList();renderClients();}
 
-function openEditName(){
+function openEditClient(){
   if(!activeClient)return;
-  document.getElementById('edit-name-input').value=activeClient;
+  const c=db.clients[activeClient];
+  document.getElementById('edit-client-name').value=activeClient;
+  document.getElementById('edit-client-phone').value=c.phone||'';
   document.getElementById('modal-edit-overlay').style.display='block';
-  document.getElementById('modal-edit-name').style.display='block';
-  setTimeout(()=>document.getElementById('edit-name-input').select(),100);
+  document.getElementById('modal-edit-client').style.display='block';
+  setTimeout(()=>document.getElementById('edit-client-name').focus(),100);
 }
-function closeEditName(){
+function closeEditClient(){
   document.getElementById('modal-edit-overlay').style.display='none';
-  document.getElementById('modal-edit-name').style.display='none';
+  document.getElementById('modal-edit-client').style.display='none';
 }
-function saveEditName(){
-  const newName=(document.getElementById('edit-name-input').value||'').trim();
+function saveEditClient(){
+  const newName=(document.getElementById('edit-client-name').value||'').trim();
+  const newPhone=(document.getElementById('edit-client-phone').value||'').replace(/[^0-9]/g,'');
   if(!newName){alert('Please enter a name.');return;}
-  if(newName===activeClient){closeEditName();return;}
-  if(db.clients[newName]){alert('A client with this name already exists.');return;}
-  db.clients[newName]=db.clients[activeClient];
-  delete db.clients[activeClient];
+  if(newPhone&&newPhone.length!==10){alert('Phone must be exactly 10 digits.');return;}
+  if(newName!==activeClient){
+    if(db.clients[newName]){alert('A client with this name already exists.');return;}
+    db.clients[newName]=db.clients[activeClient];
+    delete db.clients[activeClient];
+    activeClient=newName;
+  }
+  db.clients[activeClient].phone=newPhone;
   save();
-  activeClient=newName;
-  closeEditName();
-  openDetail(newName);
+  closeEditClient();
+  openDetail(activeClient);
   renderClients();
   renderDashboard();
-  showToast('Client renamed to "'+newName+'" ✓');
+  showToast('Client updated ✓');
 }
 function deleteClient(){
   if(!activeClient)return;
@@ -1583,7 +1614,7 @@ function downloadExcel(txns, filename, titleStr) {
     const gross=t.grossGrams!=null&&t.grossGrams!==''?Number(t.grossGrams):null;
     const purity=t.purity!=null&&t.purity!==''?Number(t.purity):null;
     const isKaaj=t.type==='delivered';
-    const typeLabel=isKaaj?'Kaaj':'Metal';
+    const typeLabel=isKaaj?'Casting':'Metal';
     const sStr=isAlt?14:9, sBold=isAlt?15:10, sNum=isAlt?16:11, sPct=isAlt?17:12, sFml=isAlt?18:13;
     const sType=isKaaj?(isAlt?21:19):(isAlt?22:20);
 
@@ -1950,13 +1981,14 @@ function renderHistory(){
   const clientFilter=document.getElementById('hist-client').value;
 
   // Gather all transactions matching filter
-  const clearedAt = db.histClearedAt || null;
+  const clearedSeq = db.histClearedSeq || 0;
   const all=[];
   Object.entries(db.clients).forEach(([clientName,c])=>{
     if(clientFilter&&clientName!==clientFilter)return;
     (c.transactions||[]).forEach(t=>{
       if(!t.date)return;
-      if(clearedAt && t.date <= clearedAt)return; // hidden from view, kept in client data
+      if(clearedSeq && (t._seq||0) > 0 && (t._seq||0) <= clearedSeq)return; // hidden from view, kept in client data
+      if(clearedSeq && !t._seq)return; // old transactions without seq are hidden after clear
       const [ty,tm]=t.date.split('-');
       if(yearFilter&&ty!==yearFilter)return;
       if(monthFilter&&tm!==monthFilter)return;
@@ -2070,12 +2102,13 @@ function renderDaybook(){
   const yearF=document.getElementById('db-year').value;
 
   // Gather all transactions matching filter
-  const clearedAt = db.daybookClearedAt || null;
+  const clearedSeq = db.daybookClearedSeq || 0;
   const all=[];
   Object.entries(db.clients).forEach(([clientName,c])=>{
     (c.transactions||[]).forEach(t=>{
       if(!t.date)return;
-      if(clearedAt && t.date <= clearedAt)return; // hidden from view, kept in client data
+      if(clearedSeq && (t._seq||0) > 0 && (t._seq||0) <= clearedSeq)return; // hidden from view, kept in client data
+      if(clearedSeq && !t._seq)return; // old transactions without seq are hidden after clear
       const [ty,tm]=t.date.split('-');
       if(yearF&&ty!==yearF)return;
       if(monthF&&tm!==monthF)return;
@@ -2201,7 +2234,7 @@ function sendSelectedWhatsApp(){
   if(!selected.length){showToast('Select at least one transaction');return;}
   selected.sort((a,b)=>a.date.localeCompare(b.date));
   let txnLines=selected.map((t,i)=>{
-    const typeLabel=t.type==='delivered'?'Kaaj':'Metal';
+    const typeLabel=t.type==='delivered'?'Casting':'Metal';
     const grossPart=t.grossGrams?t.grossGrams.toFixed(3)+'g':'—';
     const purityPart=t.purity?t.purity+'%':'—';
     return 'Transaction '+(i+1)+'\nDate: '+fmtDate(t.date)+'\nType: '+typeLabel+'\nPure Gold = '+grossPart+' × '+purityPart+' = '+t.grams.toFixed(3)+'g';
@@ -2254,6 +2287,9 @@ window.showAuthError=function(msg){
   if(msg.includes('email-already-in-use')) clean='This email is already registered. Please sign in instead.';
   if(msg.includes('weak-password')) clean='Password must be at least 6 characters.';
   if(msg.includes('invalid-email')) clean='Please enter a valid email address.';
+  if(msg.includes('unauthorized-domain')) clean='This domain is not authorized for Google sign-in. Add it in Firebase Console → Authentication → Settings → Authorized domains.';
+  if(msg.includes('operation-not-allowed')) clean='Email/Password or Google sign-in is not enabled. Enable it in Firebase Console → Authentication → Sign-in method.';
+  if(msg.includes('network-request-failed')) clean='Network error. Check your internet connection.';
   el.textContent=clean; el.style.display='block';
 };
 function doSignIn(){
@@ -2285,14 +2321,15 @@ function updateAuthModalView(){
 }
 function updateAuthButton(){
   const btn=document.getElementById('auth-btn');
+  const btnD=document.getElementById('auth-btn-desktop');
   if(window.currentUser){
     const name=window.currentUser.name||window.currentUser.email||'';
     const short=name.length>10?name.slice(0,9)+'…':name;
-    btn.textContent='👤 '+short;
-    btn.style.background='var(--green)';
+    if(btn){btn.textContent='👤 '+short;btn.style.background='var(--green)';}
+    if(btnD){btnD.textContent='👤 '+short;btnD.style.background='var(--green)';}
   } else {
-    btn.textContent='Sign In';
-    btn.style.background='var(--gold-mid)';
+    if(btn){btn.textContent='Sign In';btn.style.background='var(--gold-mid)';}
+    if(btnD){btnD.textContent='Sign In';btnD.style.background='var(--gold-mid)';}
   }
 }
 
@@ -2319,14 +2356,14 @@ function todayStr(){
 }
 function clearHistoryView(){
   if(!confirm('This will hide all current transactions from the History view. Client data and balances will NOT be affected. Continue?'))return;
-  db.histClearedAt=todayStr();
+  db.histClearedSeq=db._seq||0;
   save();
   renderHistory();
   showToast('History view cleared ✓');
 }
 function clearDaybookView(){
   if(!confirm('This will hide all current entries from the Daybook view. Client data and balances will NOT be affected. Continue?'))return;
-  db.daybookClearedAt=todayStr();
+  db.daybookClearedSeq=db._seq||0;
   save();
   renderDaybook();
   showToast('Daybook view cleared ✓');
