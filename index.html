@@ -1981,14 +1981,14 @@ function renderHistory(){
   const clientFilter=document.getElementById('hist-client').value;
 
   // Gather all transactions matching filter
+  const histCleared = db.histCleared || false;
   const clearedSeq = db.histClearedSeq || 0;
   const all=[];
   Object.entries(db.clients).forEach(([clientName,c])=>{
     if(clientFilter&&clientName!==clientFilter)return;
     (c.transactions||[]).forEach(t=>{
       if(!t.date)return;
-      if(clearedSeq && (t._seq||0) > 0 && (t._seq||0) <= clearedSeq)return; // hidden from view, kept in client data
-      if(clearedSeq && !t._seq)return; // old transactions without seq are hidden after clear
+      if(histCleared && (t._seq||0) <= clearedSeq)return; // hidden from view, kept in client data
       const [ty,tm]=t.date.split('-');
       if(yearFilter&&ty!==yearFilter)return;
       if(monthFilter&&tm!==monthFilter)return;
@@ -2102,13 +2102,13 @@ function renderDaybook(){
   const yearF=document.getElementById('db-year').value;
 
   // Gather all transactions matching filter
+  const daybookCleared = db.daybookCleared || false;
   const clearedSeq = db.daybookClearedSeq || 0;
   const all=[];
   Object.entries(db.clients).forEach(([clientName,c])=>{
     (c.transactions||[]).forEach(t=>{
       if(!t.date)return;
-      if(clearedSeq && (t._seq||0) > 0 && (t._seq||0) <= clearedSeq)return; // hidden from view, kept in client data
-      if(clearedSeq && !t._seq)return; // old transactions without seq are hidden after clear
+      if(daybookCleared && (t._seq||0) <= clearedSeq)return; // hidden from view, kept in client data
       const [ty,tm]=t.date.split('-');
       if(yearF&&ty!==yearF)return;
       if(monthF&&tm!==monthF)return;
@@ -2287,10 +2287,12 @@ window.showAuthError=function(msg){
   if(msg.includes('email-already-in-use')) clean='This email is already registered. Please sign in instead.';
   if(msg.includes('weak-password')) clean='Password must be at least 6 characters.';
   if(msg.includes('invalid-email')) clean='Please enter a valid email address.';
-  if(msg.includes('unauthorized-domain')) clean='This domain is not authorized for Google sign-in. Add it in Firebase Console → Authentication → Settings → Authorized domains.';
-  if(msg.includes('operation-not-allowed')) clean='Email/Password or Google sign-in is not enabled. Enable it in Firebase Console → Authentication → Sign-in method.';
+  if(msg.includes('unauthorized-domain')) clean='This domain is not authorized. Add "'+window.location.hostname+'" in Firebase Console → Authentication → Settings → Authorized domains.';
+  if(msg.includes('operation-not-allowed')) clean='Sign-in method not enabled. Go to Firebase Console → Authentication → Sign-in method, and enable Email/Password and Google.';
   if(msg.includes('network-request-failed')) clean='Network error. Check your internet connection.';
-  el.textContent=clean; el.style.display='block';
+  // Always show the raw error too for debugging
+  el.innerHTML=clean+'<br><span style="font-size:10px;color:#999">('+msg+')</span>';
+  el.style.display='block';
 };
 function doSignIn(){
   const email=(document.getElementById('si-email').value||'').trim();
@@ -2356,14 +2358,27 @@ function todayStr(){
 }
 function clearHistoryView(){
   if(!confirm('This will hide all current transactions from the History view. Client data and balances will NOT be affected. Continue?'))return;
-  db.histClearedSeq=db._seq||0;
+  // Ensure all existing transactions have a _seq, and mark cutoff at the highest existing seq
+  let maxSeq=0;
+  Object.values(db.clients).forEach(c=>(c.transactions||[]).forEach(t=>{
+    if(!t._seq) t._seq=getNextSeq();
+    if(t._seq>maxSeq) maxSeq=t._seq;
+  }));
+  db.histClearedSeq=maxSeq;
+  db.histCleared=true;
   save();
   renderHistory();
   showToast('History view cleared ✓');
 }
 function clearDaybookView(){
   if(!confirm('This will hide all current entries from the Daybook view. Client data and balances will NOT be affected. Continue?'))return;
-  db.daybookClearedSeq=db._seq||0;
+  let maxSeq=0;
+  Object.values(db.clients).forEach(c=>(c.transactions||[]).forEach(t=>{
+    if(!t._seq) t._seq=getNextSeq();
+    if(t._seq>maxSeq) maxSeq=t._seq;
+  }));
+  db.daybookClearedSeq=maxSeq;
+  db.daybookCleared=true;
   save();
   renderDaybook();
   showToast('Daybook view cleared ✓');
