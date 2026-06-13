@@ -680,10 +680,15 @@ select {
 .hist-txn-grams.received { color: var(--red); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
 </style>
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK with Authentication -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
     import { getFirestore, doc, setDoc, getDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import {
+      getAuth, onAuthStateChanged,
+      createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      signInWithPopup, GoogleAuthProvider, signOut, updateProfile
+    } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyCn93MozTRWbCx6FfxRCD7QUSD1EcDFK2Y",
@@ -696,25 +701,65 @@ select {
 
     const fireApp = initializeApp(firebaseConfig);
     const fireDb  = getFirestore(fireApp);
-    const DATA_DOC = doc(fireDb, 'goldledger', 'data');
+    const fireAuth = getAuth(fireApp);
+    const googleProvider = new GoogleAuthProvider();
 
-    window.firebaseSave = async function(data) {
-      try { await setDoc(DATA_DOC, { db: JSON.stringify(data) }); } catch(e) { console.error(e); }
+    let currentUserId = null;
+    let unsubscribeListener = null;
+    function userDoc(uid){ return doc(fireDb, 'users', uid, 'data', 'ledger'); }
+
+    window.authSignInGoogle = async function(){
+      try { await signInWithPopup(fireAuth, googleProvider); }
+      catch(e){ window.showAuthError && window.showAuthError(e.message); }
     };
-    window.firebaseLoad = async function() {
+    window.authSignInEmail = async function(email, password){
+      try { await signInWithEmailAndPassword(fireAuth, email, password); }
+      catch(e){ window.showAuthError && window.showAuthError(e.message); }
+    };
+    window.authRegister = async function(name, email, password){
       try {
-        const snap = await getDoc(DATA_DOC);
+        const cred = await createUserWithEmailAndPassword(fireAuth, email, password);
+        await updateProfile(cred.user, { displayName: name });
+      } catch(e){ window.showAuthError && window.showAuthError(e.message); }
+    };
+    window.authSignOut = async function(){
+      if(unsubscribeListener){ unsubscribeListener(); unsubscribeListener=null; }
+      currentUserId=null;
+      await signOut(fireAuth);
+    };
+
+    window.firebaseSave = async function(data){
+      if(!currentUserId) return; // not signed in — local only
+      try { await setDoc(userDoc(currentUserId), { db: JSON.stringify(data) }); }
+      catch(e){ console.error(e); }
+    };
+    window.firebaseLoad = async function(){
+      if(!currentUserId) return null;
+      try {
+        const snap = await getDoc(userDoc(currentUserId));
         if(snap.exists()){ const raw=snap.data().db; if(raw) return JSON.parse(raw); }
-      } catch(e) { console.error(e); }
+      } catch(e){ console.error(e); }
       return null;
     };
-    window.firebaseListen = function(callback) {
-      onSnapshot(DATA_DOC, (snap) => {
+    window.firebaseListen = function(callback){
+      if(!currentUserId) return;
+      if(unsubscribeListener) unsubscribeListener();
+      unsubscribeListener = onSnapshot(userDoc(currentUserId), (snap)=>{
         if(snap.exists()){ try{ const raw=snap.data().db; if(raw) callback(JSON.parse(raw)); }catch(e){} }
       });
     };
-    window.firebaseReady = true;
-    window.dispatchEvent(new Event('firebase-ready'));
+
+    onAuthStateChanged(fireAuth, (user)=>{
+      if(user){
+        currentUserId = user.uid;
+        window.currentUser = { uid:user.uid, name:user.displayName||user.email, email:user.email };
+        window.dispatchEvent(new Event('user-signed-in'));
+      } else {
+        currentUserId = null;
+        window.currentUser = null;
+        window.dispatchEvent(new Event('user-signed-out'));
+      }
+    });
   </script>
 </head>
 <body>
@@ -747,10 +792,11 @@ select {
     <div class="topbar">
       <div class="topbar-inner">
         <div class="topbar-logo"><img src="icons/logo.png?v=2" alt="Gold Ledger" style="width:38px;height:38px;border-radius:50%;object-fit:cover;display:block;"></div>
-        <div>
+        <div style="flex:1">
           <div class="topbar-title">Gold Ledger</div>
           <div class="topbar-sub">Sone Ka Hisaab</div>
         </div>
+        <button id="auth-btn" onclick="openAuthModal()" style="background:var(--gold-mid);color:#fff;border:none;border-radius:var(--rs);padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Sign In</button>
       </div>
     </div>
 
@@ -919,8 +965,9 @@ select {
 
       <!-- HISTORY -->
       <div id="page-history" class="page">
-        <div class="hist-header">
+        <div class="hist-header" style="display:flex;justify-content:space-between;align-items:center">
           <div class="section-title" style="font-size:17px">Transaction History</div>
+          <button onclick="clearHistoryView()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Clear View</button>
         </div>
 
         <!-- Filter bar row 1: year + month + type -->
@@ -964,8 +1011,9 @@ select {
 
       <!-- DAYBOOK -->
       <div id="page-daybook" class="page">
-        <div class="section-header" style="margin-bottom:12px">
+        <div class="section-header" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
           <div class="section-title" style="font-size:17px">📒 Daybook</div>
+          <button onclick="clearDaybookView()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Clear View</button>
         </div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Daily summary — how much Kaaj delivered and Metal received each day.</p>
 
@@ -1048,6 +1096,54 @@ select {
   </div>
 </div>
 
+<div id="auth-overlay" onclick="closeAuthModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
+<div id="auth-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:18px;padding:24px;width:calc(100% - 32px);max-width:380px;z-index:2001;box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+  <div style="text-align:center;margin-bottom:16px">
+    <img src="icons/logo.png?v=2" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:6px">
+    <div style="font-size:18px;font-weight:600;color:var(--gold-dark)">Gold Ledger</div>
+    <div style="font-size:12px;color:var(--muted)">Sign in to sync your data across devices</div>
+  </div>
+
+  <div id="auth-signed-in-view" style="display:none;text-align:center">
+    <div style="font-size:14px;color:var(--text);margin-bottom:4px">Signed in as</div>
+    <div id="auth-user-name" style="font-size:16px;font-weight:600;color:var(--gold-dark);margin-bottom:16px"></div>
+    <button onclick="doSignOut()" style="width:100%;padding:12px;border:1.5px solid var(--red-border);border-radius:var(--rs);background:#fff;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Out</button>
+  </div>
+
+  <div id="auth-signin-view">
+    <div class="auth-tabs" style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+      <button class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--gold-mid);color:#fff;font-family:'DM Sans',sans-serif;">Sign In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#fff;color:var(--muted);font-family:'DM Sans',sans-serif;">Register</button>
+    </div>
+
+    <div id="form-signin">
+      <div class="field"><label>Email</label><input type="email" id="si-email" placeholder="you@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="si-pass" placeholder="Your password"></div>
+      <button class="btn btn-gold" style="width:100%" onclick="doSignIn()">Sign In</button>
+      <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or</div>
+      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <div id="form-register" style="display:none">
+      <div class="field"><label>Your Name</label><input type="text" id="reg-name" placeholder="e.g. Ramesh Jewellers"></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="you@email.com"></div>
+      <div class="field"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"></div>
+      <button class="btn btn-gold" style="width:100%" onclick="doRegister()">Create Account</button>
+      <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or</div>
+      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+
+    <div class="auth-error" id="auth-error" style="display:none;background:#FCEBEB;border:1.5px solid #F09595;border-radius:8px;padding:9px 12px;font-size:13px;color:#A32D2D;margin-top:10px"></div>
+  </div>
+
+  <button onclick="closeAuthModal()" style="width:100%;margin-top:12px;padding:10px;border:none;background:none;color:var(--hint);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Close</button>
+</div>
 <div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
 <div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:1001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
   <div style="font-size:17px;font-family:'DM Sans',sans-serif;color:#1A1208;margin-bottom:4px">📲 Share on WhatsApp</div>
@@ -1854,11 +1950,13 @@ function renderHistory(){
   const clientFilter=document.getElementById('hist-client').value;
 
   // Gather all transactions matching filter
+  const clearedAt = db.histClearedAt || null;
   const all=[];
   Object.entries(db.clients).forEach(([clientName,c])=>{
     if(clientFilter&&clientName!==clientFilter)return;
     (c.transactions||[]).forEach(t=>{
       if(!t.date)return;
+      if(clearedAt && t.date <= clearedAt)return; // hidden from view, kept in client data
       const [ty,tm]=t.date.split('-');
       if(yearFilter&&ty!==yearFilter)return;
       if(monthFilter&&tm!==monthFilter)return;
@@ -1972,10 +2070,12 @@ function renderDaybook(){
   const yearF=document.getElementById('db-year').value;
 
   // Gather all transactions matching filter
+  const clearedAt = db.daybookClearedAt || null;
   const all=[];
   Object.entries(db.clients).forEach(([clientName,c])=>{
     (c.transactions||[]).forEach(t=>{
       if(!t.date)return;
+      if(clearedAt && t.date <= clearedAt)return; // hidden from view, kept in client data
       const [ty,tm]=t.date.split('-');
       if(yearF&&ty!==yearF)return;
       if(monthF&&tm!==monthF)return;
@@ -2127,10 +2227,114 @@ function sendWhatsApp(){
   closeWaModal();
 }
 
+/* ── AUTH UI ────────────────────────────── */
+function openAuthModal(){
+  document.getElementById('auth-overlay').style.display='block';
+  document.getElementById('auth-modal').style.display='block';
+  updateAuthModalView();
+}
+function closeAuthModal(){
+  document.getElementById('auth-overlay').style.display='none';
+  document.getElementById('auth-modal').style.display='none';
+  document.getElementById('auth-error').style.display='none';
+}
+function switchAuthTab(tab){
+  document.getElementById('tab-signin').style.background = tab==='signin'?'var(--gold-mid)':'#fff';
+  document.getElementById('tab-signin').style.color = tab==='signin'?'#fff':'var(--muted)';
+  document.getElementById('tab-register').style.background = tab==='register'?'var(--gold-mid)':'#fff';
+  document.getElementById('tab-register').style.color = tab==='register'?'#fff':'var(--muted)';
+  document.getElementById('form-signin').style.display = tab==='signin'?'block':'none';
+  document.getElementById('form-register').style.display = tab==='register'?'block':'none';
+  document.getElementById('auth-error').style.display='none';
+}
+window.showAuthError=function(msg){
+  const el=document.getElementById('auth-error');
+  let clean=msg.replace('Firebase: ','').replace(/\(auth\/[^)]+\)/,'').trim();
+  if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential')) clean='Incorrect email or password.';
+  if(msg.includes('email-already-in-use')) clean='This email is already registered. Please sign in instead.';
+  if(msg.includes('weak-password')) clean='Password must be at least 6 characters.';
+  if(msg.includes('invalid-email')) clean='Please enter a valid email address.';
+  el.textContent=clean; el.style.display='block';
+};
+function doSignIn(){
+  const email=(document.getElementById('si-email').value||'').trim();
+  const pass=document.getElementById('si-pass').value||'';
+  if(!email||!pass){window.showAuthError('Please enter email and password.');return;}
+  window.authSignInEmail(email,pass);
+}
+function doRegister(){
+  const name=(document.getElementById('reg-name').value||'').trim();
+  const email=(document.getElementById('reg-email').value||'').trim();
+  const pass=document.getElementById('reg-pass').value||'';
+  if(!name){window.showAuthError('Please enter your name.');return;}
+  if(!email){window.showAuthError('Please enter your email.');return;}
+  if(pass.length<6){window.showAuthError('Password must be at least 6 characters.');return;}
+  window.authRegister(name,email,pass);
+}
+function doSignOut(){
+  if(!confirm('Sign out? Your data will stay saved on this device.'))return;
+  window.authSignOut();
+}
+function updateAuthModalView(){
+  const signedIn=!!window.currentUser;
+  document.getElementById('auth-signed-in-view').style.display=signedIn?'block':'none';
+  document.getElementById('auth-signin-view').style.display=signedIn?'none':'block';
+  if(signedIn){
+    document.getElementById('auth-user-name').textContent=window.currentUser.name||window.currentUser.email;
+  }
+}
+function updateAuthButton(){
+  const btn=document.getElementById('auth-btn');
+  if(window.currentUser){
+    const name=window.currentUser.name||window.currentUser.email||'';
+    const short=name.length>10?name.slice(0,9)+'…':name;
+    btn.textContent='👤 '+short;
+    btn.style.background='var(--green)';
+  } else {
+    btn.textContent='Sign In';
+    btn.style.background='var(--gold-mid)';
+  }
+}
+
+window.addEventListener('user-signed-in', ()=>{
+  updateAuthButton();
+  updateAuthModalView();
+  closeAuthModal();
+  // Load this user's cloud data, replacing local data
+  loadFromFirebase();
+});
+window.addEventListener('user-signed-out', ()=>{
+  updateAuthButton();
+  updateAuthModalView();
+  // Reload local data only
+  load();
+  renderDashboard();
+  if(typeof renderClients==='function') renderClients();
+});
+
+/* ── CLEAR VIEW (History/Daybook) ───────────── */
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function clearHistoryView(){
+  if(!confirm('This will hide all current transactions from the History view. Client data and balances will NOT be affected. Continue?'))return;
+  db.histClearedAt=todayStr();
+  save();
+  renderHistory();
+  showToast('History view cleared ✓');
+}
+function clearDaybookView(){
+  if(!confirm('This will hide all current entries from the Daybook view. Client data and balances will NOT be affected. Continue?'))return;
+  db.daybookClearedAt=todayStr();
+  save();
+  renderDaybook();
+  showToast('Daybook view cleared ✓');
+}
+
 /* ── INIT ───────────────────────────────── */
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
-if(window.firebaseReady){ loadFromFirebase(); }
-else { window.addEventListener('firebase-ready', ()=>loadFromFirebase()); }
+updateAuthButton(); // shows Sign In by default; onAuthStateChanged will update if already logged in
 </script>
 </body>
 </html>
