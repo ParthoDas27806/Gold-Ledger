@@ -2325,7 +2325,7 @@ function doRegister(){
   window.authRegister(name,email,pass);
 }
 function doSignOut(){
-  if(!confirm('Sign out? Your data will stay saved on this device.'))return;
+  if(!confirm('Sign out? Your client data will be cleared from this device and only visible after signing in again.'))return;
   window.authSignOut();
 }
 function updateAuthModalView(){
@@ -2360,10 +2360,14 @@ window.addEventListener('user-signed-in', ()=>{
 window.addEventListener('user-signed-out', ()=>{
   updateAuthButton();
   updateAuthModalView();
-  // Reload local data only
-  load();
+  // Clear all data — no client/transaction data shown after sign out
+  db={clients:{}};
+  try{localStorage.removeItem(KEY);}catch(e){}
+  if(activeClient){activeClient=null;}
   renderDashboard();
   if(typeof renderClients==='function') renderClients();
+  if(typeof showPage==='function') showPage('dashboard');
+  showToast('Signed out — data cleared');
 });
 
 /* ── CLEAR VIEW (History/Daybook) ───────────── */
