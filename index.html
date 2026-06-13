@@ -923,7 +923,17 @@ select {
                 onblur="setTimeout(hideClientDropdown,150)">
               <div id="client-dropdown" class="client-dropdown"></div>
             </div>
-            <div class="field"><label>Date *</label><input type="date" id="f-date"></div>
+            <div class="field">
+              <label>Date *</label>
+              <div style="position:relative">
+                <div id="f-date-display" onclick="document.getElementById('f-date').showPicker?document.getElementById('f-date').showPicker():document.getElementById('f-date').click()"
+                  style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);cursor:pointer;font-size:14px;color:var(--text)">
+                  <span>📅</span>
+                  <span id="f-date-text">Select date</span>
+                </div>
+                <input type="date" id="f-date" oninput="updateDateDisplay()" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer">
+              </div>
+            </div>
           </div>
 
           <!-- Gold Calculation Card -->
@@ -1919,6 +1929,11 @@ function clearForm(){
 function setTodayDate(){
   const d=new Date();
   document.getElementById('f-date').value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  updateDateDisplay();
+}
+function updateDateDisplay(){
+  const val=document.getElementById('f-date').value;
+  document.getElementById('f-date-text').textContent = val ? fmtDate(val) : 'Select date';
 }
 
 function saveTransaction(){
