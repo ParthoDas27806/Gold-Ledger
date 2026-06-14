@@ -743,6 +743,7 @@ select {
       await signOut(fireAuth);
     };
 
+
     window.firebaseSave = async function(data){
       if(!currentUserId) return; // not signed in — local only
       try { await setDoc(userDoc(currentUserId), { db: JSON.stringify(data) }); }
@@ -1180,7 +1181,7 @@ select {
   <div id="auth-signed-in-view" style="display:none;text-align:center">
     <div style="font-size:14px;color:var(--text);margin-bottom:4px">Signed in as</div>
     <div id="auth-user-name" style="font-size:16px;font-weight:600;color:var(--gold-dark);margin-bottom:16px"></div>
-    <button onclick="doSignOut()" style="width:100%;padding:12px;border:1.5px solid var(--red-border);border-radius:var(--rs);background:#fff;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign Out</button>
+    <button onclick="doSignOut()" style="width:100%;padding:12px;border:1.5px solid var(--red-border);border-radius:var(--rs);background:#fff;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">Sign Out</button>
   </div>
 
   <div id="auth-signin-view">
@@ -2382,11 +2383,16 @@ function updateAuthModalView(){
 function updateAuthButton(){
   const btn=document.getElementById('auth-btn');
   const btnD=document.getElementById('auth-btn-desktop');
+  let isGuest=false;
+  try{isGuest=localStorage.getItem('gold_ledger_guest')==='1';}catch(e){}
   if(window.currentUser){
     const name=window.currentUser.name||window.currentUser.email||'';
     const short=name.length>10?name.slice(0,9)+'…':name;
     if(btn){btn.textContent='👤 '+short;btn.style.background='var(--green)';}
     if(btnD){btnD.textContent='👤 '+short;btnD.style.background='var(--green)';}
+  } else if(isGuest){
+    if(btn){btn.textContent='👤 Guest';btn.style.background='var(--hint)';}
+    if(btnD){btnD.textContent='👤 Guest';btnD.style.background='var(--hint)';}
   } else {
     if(btn){btn.textContent='Sign In';btn.style.background='var(--gold-mid)';}
     if(btnD){btnD.textContent='Sign In';btnD.style.background='var(--gold-mid)';}
@@ -2491,6 +2497,7 @@ function lsRegister(){
 function lsContinueAsGuest(){
   document.getElementById('login-screen').style.display='none';
   try{localStorage.setItem('gold_ledger_guest','1');}catch(e){}
+  updateAuthButton();
 }
 function showLoginScreen(){
   // Only show if not signed in AND user hasn't chosen guest before
