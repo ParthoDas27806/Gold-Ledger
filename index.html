@@ -1167,7 +1167,6 @@ select {
 
     <div class="auth-error" id="ls-error" style="display:none;background:#FCEBEB;border:1.5px solid #F09595;border-radius:8px;padding:9px 12px;font-size:13px;color:#A32D2D;margin-top:10px"></div>
 
-    <button onclick="lsContinueAsGuest()" style="width:100%;margin-top:14px;padding:10px;border:1.5px dashed var(--border);border-radius:var(--rs);background:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">👤 Continue as Guest</button>
   </div>
 </div>
 <div id="auth-overlay" onclick="closeAuthModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
@@ -2383,16 +2382,11 @@ function updateAuthModalView(){
 function updateAuthButton(){
   const btn=document.getElementById('auth-btn');
   const btnD=document.getElementById('auth-btn-desktop');
-  let isGuest=false;
-  try{isGuest=localStorage.getItem('gold_ledger_guest')==='1';}catch(e){}
   if(window.currentUser){
     const name=window.currentUser.name||window.currentUser.email||'';
     const short=name.length>10?name.slice(0,9)+'…':name;
     if(btn){btn.textContent='👤 '+short;btn.style.background='var(--green)';}
     if(btnD){btnD.textContent='👤 '+short;btnD.style.background='var(--green)';}
-  } else if(isGuest){
-    if(btn){btn.textContent='👤 Guest';btn.style.background='var(--hint)';}
-    if(btnD){btnD.textContent='👤 Guest';btnD.style.background='var(--hint)';}
   } else {
     if(btn){btn.textContent='Sign In';btn.style.background='var(--gold-mid)';}
     if(btnD){btnD.textContent='Sign In';btnD.style.background='var(--gold-mid)';}
@@ -2404,7 +2398,6 @@ window.addEventListener('user-signed-in', ()=>{
   updateAuthModalView();
   closeAuthModal();
   hideLoginScreen();
-  try{localStorage.removeItem('gold_ledger_guest');}catch(e){}
   // Load this user's cloud data, replacing local data
   loadFromFirebase();
 });
@@ -2494,16 +2487,9 @@ function lsRegister(){
   window._lsErrorTarget='ls';
   window.authRegister(name,email,pass);
 }
-function lsContinueAsGuest(){
-  document.getElementById('login-screen').style.display='none';
-  try{localStorage.setItem('gold_ledger_guest','1');}catch(e){}
-  updateAuthButton();
-}
 function showLoginScreen(){
-  // Only show if not signed in AND user hasn't chosen guest before
-  let isGuest=false;
-  try{isGuest=localStorage.getItem('gold_ledger_guest')==='1';}catch(e){}
-  if(!window.currentUser && !isGuest){
+  // Show login screen whenever the user is not signed in
+  if(!window.currentUser){
     document.getElementById('login-screen').style.display='flex';
   } else {
     document.getElementById('login-screen').style.display='none';
