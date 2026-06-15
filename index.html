@@ -72,7 +72,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
   background: var(--card);
   border-top: 1.5px solid var(--border);
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(6, 1fr);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   height: 64px;
 }
@@ -797,6 +797,7 @@ select {
       <button class="side-btn" id="snav-add" onclick="showPage('add')"><span class="sb-icon">➕</span> Add Transaction</button>
       <button class="side-btn" id="snav-history" onclick="showPage('history')"><span class="sb-icon">🗂️</span> History</button>
       <button class="side-btn" id="snav-daybook" onclick="showPage('daybook')"><span class="sb-icon">📒</span> Daybook</button>
+      <button class="side-btn" id="snav-vault" onclick="showPage('vault')"><span class="sb-icon">🔒</span> Vault</button>
     </nav>
     <div class="sidebar-stats" id="sidebar-stats"></div>
     <div style="padding:12px 10px">
@@ -983,6 +984,13 @@ select {
             <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
           </div>
 
+          <!-- Commission (private, not shown to client) -->
+          <div class="field">
+            <label>🔒 Commission (g) — private, optional</label>
+            <input type="number" id="f-commission" placeholder="e.g. 4.05" min="0" step="0.001" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./,'$1')" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault();">
+            <div style="font-size:11px;color:var(--hint);margin-top:4px">Extra gold you keep from this job. Stored only in your private Vault — never shown to the client.</div>
+          </div>
+
           <div class="preview-box" id="preview-box"></div>
           <div class="btn-row">
             <button class="btn btn-outline" onclick="clearForm()" style="flex:0.4">Clear</button>
@@ -1072,6 +1080,24 @@ select {
         </div>
       </div>
 
+      <!-- VAULT (private commission log) -->
+      <div id="page-vault" class="page">
+        <div class="section-header" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+          <div class="section-title" style="font-size:17px">🔒 Vault</div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Your private commission log. Never shown to clients or included in their reports.</p>
+
+        <!-- Total commission card -->
+        <div id="vault-total" style="margin-bottom:14px"></div>
+
+        <!-- Entry list -->
+        <div id="vault-list"></div>
+        <div id="vault-empty" class="empty-state" style="display:none">
+          <span class="empty-icon">🔒</span>
+          <p>No commission entries yet.<br>Add one via the Commission field<br>in Add Transaction.</p>
+        </div>
+      </div>
+
     </div><!-- /scroll-area -->
 
     <!-- Bottom nav (mobile only) -->
@@ -1081,6 +1107,7 @@ select {
       <button class="nav-btn" id="nav-add" onclick="showPage('add')"><span class="nav-icon" style="font-size:26px">➕</span>Add</button>
       <button class="nav-btn" id="nav-history" onclick="showPage('history')"><span class="nav-icon">🗂️</span>History</button>
       <button class="nav-btn" id="nav-daybook" onclick="showPage('daybook')"><span class="nav-icon">📒</span>Daybook</button>
+      <button class="nav-btn" id="nav-vault" onclick="showPage('vault')"><span class="nav-icon">🔒</span>Vault</button>
     </nav>
 
   </div><!-- /main-col -->
@@ -1358,6 +1385,7 @@ function showPage(p){
   if(p==='add'){updateSuggestions();updatePreview();}
   if(p==='history'){populateHistoryYears();renderHistory();}
   if(p==='daybook'){populateDaybookYears();renderDaybook();}
+  if(p==='vault'){renderVault();}
 }
 
 /* ── DASHBOARD ──────────────────────────── */
@@ -1987,19 +2015,35 @@ function saveTransaction(){
   // Extra: save gross+purity for record
   const grossVal=parseFloat(document.getElementById('f-gross').value)||0;
   const purity=parseFloat(document.getElementById('f-purity').value)||0;
+  // Private commission (never sent to client)
+  const commission=parseFloat(document.getElementById('f-commission').value)||0;
 
   if(!name){alert('Please enter the client name.');return;}
   if(!phone){alert('Please enter the phone number.');return;}
   if(!/^[0-9]{10}$/.test(phone)){alert('Phone number must be exactly 10 digits.');return;}
   if(!grams||grams<=0){alert('Please enter or calculate the pure gold amount.');return;}
   if(!date){alert('Please select a date.');return;}
+  if(commission<0){alert('Commission cannot be negative.');return;}
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
   if(phone)db.clients[name].phone=phone;
 
-  const txn={type:selectedType,grams,date,note,_seq:getNextSeq()};
+  const seq=getNextSeq();
+  const txn={type:selectedType,grams,date,note,_seq:seq};
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
+  if(commission>0)txn.commission=commission;
   db.clients[name].transactions.push(txn);
+
+  // Log commission privately in the vault (never visible to client views)
+  if(commission>0){
+    if(!db.vault)db.vault=[];
+    db.vault.push({
+      clientName:name, date, note, commission,
+      type:selectedType, grams, _seq:seq
+    });
+  }
+
   save(); showToast('Transaction saved ✓'); clearForm(); updateSuggestions(); renderDashboard();
+  if(typeof renderVault==='function') renderVault();
 }
 
 /* ── HISTORY ────────────────────────────── */
@@ -2405,7 +2449,7 @@ window.addEventListener('user-signed-out', ()=>{
   updateAuthButton();
   updateAuthModalView();
   // Clear all data — no client/transaction data shown after sign out
-  db={clients:{}};
+  db={clients:{},vault:[]};
   try{localStorage.removeItem(KEY);}catch(e){}
   if(activeClient){activeClient=null;}
   renderDashboard();
@@ -2413,6 +2457,52 @@ window.addEventListener('user-signed-out', ()=>{
   if(typeof showPage==='function') showPage('dashboard');
   showToast('Signed out — data cleared');
 });
+
+/* ── VAULT (private commission log) ────────── */
+function renderVault(){
+  const vault = db.vault || [];
+  const totalEl = document.getElementById('vault-total');
+  const listEl = document.getElementById('vault-list');
+  const emptyEl = document.getElementById('vault-empty');
+
+  if(!vault.length){
+    totalEl.innerHTML='';
+    listEl.innerHTML='';
+    emptyEl.style.display='block';
+    return;
+  }
+  emptyEl.style.display='none';
+
+  // Total commission
+  let total=0;
+  vault.forEach(v=>total+=(v.commission||0));
+
+  totalEl.innerHTML=`
+    <div class="hist-sum-card card-net-zero" style="display:block">
+      <div class="hist-sum-label">Total Commission</div>
+      <div class="hist-sum-val">${total.toFixed(3)}g</div>
+      <div class="hist-sum-sub">${fmtGramMg(total)}</div>
+    </div>`;
+
+  // Sort newest first
+  const sorted=[...vault].sort((a,b)=> (b._seq||0)-(a._seq||0));
+
+  listEl.innerHTML = sorted.map(v=>{
+    const typeLabel = v.type==='delivered' ? 'Casting' : 'Metal';
+    return `<div class="txn-item" style="cursor:default">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div class="txn-label">${esc(v.clientName)}</div>
+          <div class="txn-meta">${fmtDate(v.date)} · ${typeLabel}${v.note?' · '+esc(v.note):''}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+          <div class="txn-grams" style="color:var(--gold-dark)">+${v.commission.toFixed(3)}g</div>
+          <div class="txn-gram-mg">${fmtGramMg(v.commission)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
 
 /* ── CLEAR VIEW (History/Daybook) ───────────── */
 function todayStr(){
