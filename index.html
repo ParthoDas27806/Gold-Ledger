@@ -972,6 +972,26 @@ select {
               <div class="calc-result-value" id="calc-value">—</div>
               <div class="calc-result-breakdown" id="calc-breakdown">—</div>
             </div>
+
+            <!-- Actual Purity (private, vault) -->
+            <div class="field" style="margin-top:14px;padding-top:14px;border-top:1.5px dashed rgba(0,0,0,0.1)">
+              <label>🔒 Actual Purity Percentage (private)</label>
+              <div class="purity-row">
+                <div class="purity-custom-wrap">
+                  <input type="number" id="f-actual-purity" placeholder="e.g. 88.0" min="0.1" max="100" step="0.01" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="purity-input">
+                  <span class="weight-unit">%</span>
+                </div>
+              </div>
+              <div style="font-size:11px;color:var(--hint);margin-top:4px">The real purity, known only to you. Leave blank if same as Purity Percentage above.</div>
+            </div>
+
+            <!-- Actual Pure Gold result (private) -->
+            <div class="calc-result" id="calc-result-actual" style="margin-top:10px;display:none">
+              <div class="calc-result-label">🔒 Actual Pure Gold</div>
+              <div class="calc-result-formula" id="calc-actual-formula">—</div>
+              <div class="calc-result-value" id="calc-actual-value">—</div>
+              <div class="calc-result-breakdown" id="calc-actual-breakdown">—</div>
+            </div>
           </div>
 
           <!-- Manual override (removed from UI, kept for JS logic) -->
@@ -982,13 +1002,6 @@ select {
           <div class="field-row">
             <div class="field"><label>Phone *</label><input type="tel" id="f-phone" placeholder="9876543210" maxlength="10" pattern="[0-9]{10}" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"></div>
             <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
-          </div>
-
-          <!-- Commission (private, not shown to client) -->
-          <div class="field">
-            <label>🔒 Commission (g) — private, optional</label>
-            <input type="number" id="f-commission" placeholder="e.g. 4.05" min="0" step="0.001" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./,'$1')" onkeydown="if(['e','E','+','-'].includes(event.key)) event.preventDefault();">
-            <div style="font-size:11px;color:var(--hint);margin-top:4px">Extra gold you keep from this job. Stored only in your private Vault — never shown to the client.</div>
           </div>
 
           <div class="preview-box" id="preview-box"></div>
@@ -1085,7 +1098,7 @@ select {
         <div class="section-header" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
           <div class="section-title" style="font-size:17px">🔒 Vault</div>
         </div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Your private commission log. Never shown to clients or included in their reports.</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Your private gold stock. Casting deducts the actual pure gold; Metal received adds to it. Never shown to clients or included in their reports.</p>
 
         <!-- Total commission card -->
         <div id="vault-total" style="margin-bottom:14px"></div>
@@ -1094,7 +1107,7 @@ select {
         <div id="vault-list"></div>
         <div id="vault-empty" class="empty-state" style="display:none">
           <span class="empty-icon">🔒</span>
-          <p>No commission entries yet.<br>Add one via the Commission field<br>in Add Transaction.</p>
+          <p>No vault movements yet.<br>Enter "Actual Purity %" in<br>Add Transaction to track gold.</p>
         </div>
       </div>
 
@@ -1846,6 +1859,7 @@ function getGrossGrams(){
 function calcPureGold(){
   const gross=getGrossGrams();
   const purityVal=parseFloat(document.getElementById('f-purity').value)||0;
+  const actualPurityVal=parseFloat(document.getElementById('f-actual-purity').value)||0;
 
   // Update gross display
   const gd=document.getElementById('gross-display');
@@ -1857,18 +1871,20 @@ function calcPureGold(){
     btn.classList.toggle('active',Math.abs(v-purityVal)<0.01);
   });
 
+  const factor=Math.pow(10,decimalPlaces);
+
   if(!gross||!purityVal){
     document.getElementById('calc-formula').textContent='—';
     document.getElementById('calc-value').textContent='—';
     document.getElementById('calc-breakdown').textContent='—';
     document.getElementById('f-grams').value='';
     document.getElementById('manual-tag').textContent='';
+    document.getElementById('calc-result-actual').style.display='none';
     updatePreview();
     return;
   }
 
   const pure=(gross*purityVal)/100;
-  const factor=Math.pow(10,decimalPlaces);
   const pureRounded=Math.round(pure*factor)/factor;
 
   document.getElementById('calc-formula').textContent=gross.toFixed(3)+' g × '+purityVal+'% = ';
@@ -1878,6 +1894,21 @@ function calcPureGold(){
   // Auto-fill the hidden grams field
   document.getElementById('f-grams').value=pureRounded.toFixed(decimalPlaces);
   document.getElementById('manual-tag').textContent='auto-calculated';
+
+  // Actual Pure Gold (private) — only if actual purity is entered
+  if(gross && actualPurityVal){
+    const actualPure=(gross*actualPurityVal)/100;
+    const actualRounded=Math.round(actualPure*factor)/factor;
+    document.getElementById('calc-result-actual').style.display='block';
+    document.getElementById('calc-actual-formula').textContent=gross.toFixed(3)+' g × '+actualPurityVal+'% = ';
+    document.getElementById('calc-actual-value').textContent=actualRounded.toFixed(decimalPlaces)+' g';
+    document.getElementById('calc-actual-breakdown').textContent=fmtGramMg(actualRounded);
+    window._actualPureGold=actualRounded;
+  } else {
+    document.getElementById('calc-result-actual').style.display='none';
+    window._actualPureGold=0;
+  }
+
   updatePreview();
 }
 
@@ -1990,6 +2021,7 @@ function clearForm(){
   document.getElementById('calc-formula').textContent='—';
   document.getElementById('calc-value').textContent='—';
   document.getElementById('calc-breakdown').textContent='—';
+  document.getElementById('calc-result-actual').style.display='none';
   document.getElementById('manual-tag').textContent='';
   document.querySelectorAll('.purity-btn').forEach(b=>b.classList.remove('active'));
   selectType('delivered'); setTodayDate();
@@ -2015,30 +2047,41 @@ function saveTransaction(){
   // Extra: save gross+purity for record
   const grossVal=parseFloat(document.getElementById('f-gross').value)||0;
   const purity=parseFloat(document.getElementById('f-purity').value)||0;
-  // Private commission (never sent to client)
-  const commission=parseFloat(document.getElementById('f-commission').value)||0;
+  // Private actual purity / actual pure gold (vault tracking, never sent to client)
+  const actualPurity=parseFloat(document.getElementById('f-actual-purity').value)||0;
+  const actualPureGold=window._actualPureGold||0;
 
   if(!name){alert('Please enter the client name.');return;}
   if(!phone){alert('Please enter the phone number.');return;}
   if(!/^[0-9]{10}$/.test(phone)){alert('Phone number must be exactly 10 digits.');return;}
   if(!grams||grams<=0){alert('Please enter or calculate the pure gold amount.');return;}
   if(!date){alert('Please select a date.');return;}
-  if(commission<0){alert('Commission cannot be negative.');return;}
   if(!db.clients[name])db.clients[name]={phone:'',transactions:[]};
   if(phone)db.clients[name].phone=phone;
 
   const seq=getNextSeq();
   const txn={type:selectedType,grams,date,note,_seq:seq};
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
-  if(commission>0)txn.commission=commission;
+  if(actualPurity>0){txn.actualPurity=actualPurity;txn.actualPureGold=actualPureGold;}
   db.clients[name].transactions.push(txn);
 
-  // Log commission privately in the vault (never visible to client views)
-  if(commission>0){
-    if(!db.vault)db.vault=[];
-    db.vault.push({
-      clientName:name, date, note, commission,
-      type:selectedType, grams, _seq:seq
+  // Update private vault balance (only if actual purity was provided)
+  if(actualPurity>0 && actualPureGold>0){
+    if(!db.vaultBalance)db.vaultBalance=0;
+    if(!db.vaultLog)db.vaultLog=[];
+    let delta=0;
+    if(selectedType==='delivered'){
+      // Casting: actual gold leaves your stock
+      delta=-actualPureGold;
+    } else {
+      // Metal: actual gold comes into your stock
+      delta=actualPureGold;
+    }
+    db.vaultBalance=Math.round((db.vaultBalance+delta)*1000)/1000;
+    db.vaultLog.push({
+      clientName:name, date, note, type:selectedType,
+      grams, actualPureGold, delta, _seq:seq,
+      balanceAfter:db.vaultBalance
     });
   }
 
@@ -2449,7 +2492,7 @@ window.addEventListener('user-signed-out', ()=>{
   updateAuthButton();
   updateAuthModalView();
   // Clear all data — no client/transaction data shown after sign out
-  db={clients:{},vault:[]};
+  db={clients:{},vaultBalance:0,vaultLog:[]};
   try{localStorage.removeItem(KEY);}catch(e){}
   if(activeClient){activeClient=null;}
   renderDashboard();
@@ -2458,51 +2501,55 @@ window.addEventListener('user-signed-out', ()=>{
   showToast('Signed out — data cleared');
 });
 
-/* ── VAULT (private commission log) ────────── */
+/* ── VAULT (private gold balance) ────────────── */
 function renderVault(){
-  const vault = db.vault || [];
+  const log = db.vaultLog || [];
+  const balance = db.vaultBalance || 0;
   const totalEl = document.getElementById('vault-total');
   const listEl = document.getElementById('vault-list');
   const emptyEl = document.getElementById('vault-empty');
 
-  if(!vault.length){
-    totalEl.innerHTML='';
+  // Always show the balance card, even if zero/empty
+  const balClass = balance>0 ? 'card-net-pos' : balance<0 ? 'card-net-neg' : 'card-net-zero';
+  const balSign = balance>0 ? '+' : '';
+  totalEl.innerHTML=`
+    <div class="hist-sum-card ${balClass}" style="display:block">
+      <div class="hist-sum-label">Vault Balance</div>
+      <div class="hist-sum-val">${balSign}${balance.toFixed(3)}g</div>
+      <div class="hist-sum-sub">${fmtGramMg(Math.abs(balance))}</div>
+    </div>`;
+
+  if(!log.length){
     listEl.innerHTML='';
     emptyEl.style.display='block';
     return;
   }
   emptyEl.style.display='none';
 
-  // Total commission
-  let total=0;
-  vault.forEach(v=>total+=(v.commission||0));
-
-  totalEl.innerHTML=`
-    <div class="hist-sum-card card-net-zero" style="display:block">
-      <div class="hist-sum-label">Total Commission</div>
-      <div class="hist-sum-val">${total.toFixed(3)}g</div>
-      <div class="hist-sum-sub">${fmtGramMg(total)}</div>
-    </div>`;
-
   // Sort newest first
-  const sorted=[...vault].sort((a,b)=> (b._seq||0)-(a._seq||0));
+  const sorted=[...log].sort((a,b)=> (b._seq||0)-(a._seq||0));
 
   listEl.innerHTML = sorted.map(v=>{
     const typeLabel = v.type==='delivered' ? 'Casting' : 'Metal';
+    const isAdd = v.delta>0;
+    const sign = isAdd ? '+' : '−';
+    const color = isAdd ? 'var(--green)' : 'var(--red)';
     return `<div class="txn-item" style="cursor:default">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1;min-width:0">
           <div class="txn-label">${esc(v.clientName)}</div>
           <div class="txn-meta">${fmtDate(v.date)} · ${typeLabel}${v.note?' · '+esc(v.note):''}</div>
+          <div class="txn-meta" style="margin-top:2px">Balance after: ${v.balanceAfter.toFixed(3)}g</div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
-          <div class="txn-grams" style="color:var(--gold-dark)">+${v.commission.toFixed(3)}g</div>
-          <div class="txn-gram-mg">${fmtGramMg(v.commission)}</div>
+          <div class="txn-grams" style="color:${color}">${sign}${Math.abs(v.delta).toFixed(3)}g</div>
+          <div class="txn-gram-mg">${fmtGramMg(Math.abs(v.delta))}</div>
         </div>
       </div>
     </div>`;
   }).join('');
 }
+
 
 /* ── CLEAR VIEW (History/Daybook) ───────────── */
 function todayStr(){
