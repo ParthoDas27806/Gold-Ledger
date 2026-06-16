@@ -847,6 +847,8 @@ select {
             <div class="big-stat-sub" id="s-net-mg">0 gram</div>
           </div>
         </div>
+        <!-- Vault balance on dashboard -->
+        <div id="dash-vault-card" style="margin-top:10px"></div>
         <!-- Quick tip at bottom of dashboard -->
         <div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">
           Go to <strong>Clients</strong> to view all balances
@@ -1095,20 +1097,32 @@ select {
 
       <!-- VAULT (private commission log) -->
       <div id="page-vault" class="page">
-        <div class="section-header" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <div class="section-header" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
           <div class="section-title" style="font-size:17px">🔒 Vault</div>
-          <button onclick="openSetVaultBalance()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">⚙️ Set Balance</button>
+          <div style="display:flex;gap:6px">
+            <button onclick="openSetVaultBalance()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">⚙️ Set</button>
+            <button onclick="clearVaultView()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;">🗑 Clear View</button>
+          </div>
         </div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Your private gold stock. Casting deducts the actual pure gold; Metal received adds to it. Never shown to clients or included in their reports.</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Your private gold stock — never shown to clients.</p>
 
         <!-- Vault balance card -->
         <div id="vault-total" style="margin-bottom:14px"></div>
+
+        <!-- Add/Take out buttons -->
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button onclick="openVaultEntry('add')" style="flex:1;padding:11px;border:none;border-radius:var(--rs);background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Add Gold</button>
+          <button onclick="openVaultEntry('out')" style="flex:1;padding:11px;border:none;border-radius:var(--rs);background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">− Take Out Gold</button>
+        </div>
+
+        <!-- History header -->
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Vault History</div>
 
         <!-- Entry list -->
         <div id="vault-list"></div>
         <div id="vault-empty" class="empty-state" style="display:none">
           <span class="empty-icon">🔒</span>
-          <p>No vault movements yet.<br>Enter "Actual Purity %" in<br>Add Transaction to track gold.</p>
+          <p>No vault movements yet.</p>
         </div>
       </div>
 
@@ -1173,7 +1187,7 @@ select {
 <div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;background:linear-gradient(160deg,#5A3E00 0%,#B8860B 60%,#D4A017 100%);align-items:center;justify-content:center;padding:20px;flex-direction:column">
   <div style="background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
     <div style="text-align:center;margin-bottom:18px">
-      <img src="icons/logo.png?v=2" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:10px">
+      <img src="icons/logo.png?v=2" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:10px" onerror="this.outerHTML='<div style=\'width:64px;height:64px;border-radius:50%;background:var(--gold-mid);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 10px\'>⚖️</div>'">
       <div style="font-size:20px;font-weight:700;color:var(--gold-dark)">Gold Ledger</div>
       <div style="font-size:13px;color:var(--muted);margin-top:2px">Sign in to access all your data across devices.</div>
     </div>
@@ -1226,7 +1240,8 @@ select {
 <div id="auth-overlay" onclick="closeAuthModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
 <div id="auth-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:18px;padding:24px;width:calc(100% - 32px);max-width:380px;z-index:2001;box-shadow:0 10px 40px rgba(0,0,0,0.25)">
   <div style="text-align:center;margin-bottom:16px">
-    <img src="icons/logo.png?v=2" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:6px">
+    <img src="icons/logo.png?v=2" style="width:56px;height:56px;border-radius:50%;object-fit:cover;margin-bottom:6px" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+    <div style="display:none;width:56px;height:56px;border-radius:50%;background:var(--gold-mid);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 6px">⚖️</div>
     <div style="font-size:18px;font-weight:600;color:var(--gold-dark)">Gold Ledger</div>
     <div style="font-size:12px;color:var(--muted)">Sign in to sync your data across devices</div>
   </div>
@@ -2537,6 +2552,57 @@ window.addEventListener('user-signed-out', ()=>{
   showToast('Signed out — data cleared');
 });
 
+/* ── VAULT ENTRY (manual add/take out) ───────── */
+let _vaultEntryMode = 'add';
+function openVaultEntry(mode){
+  _vaultEntryMode = mode;
+  document.getElementById('vault-entry-title').textContent = mode==='add' ? '+ Add Gold to Vault' : '− Take Out Gold from Vault';
+  document.getElementById('vault-entry-save-btn').textContent = mode==='add' ? '+ Add' : '− Take Out';
+  document.getElementById('vault-entry-save-btn').style.background = mode==='add' ? 'var(--green)' : 'var(--red)';
+  document.getElementById('vault-entry-amount').value='';
+  document.getElementById('vault-entry-note').value='';
+  document.getElementById('vault-entry-overlay').style.display='block';
+  document.getElementById('vault-entry-modal').style.display='block';
+  setTimeout(()=>document.getElementById('vault-entry-amount').focus(),100);
+}
+function closeVaultEntry(){
+  document.getElementById('vault-entry-overlay').style.display='none';
+  document.getElementById('vault-entry-modal').style.display='none';
+}
+function saveVaultEntry(){
+  const amount=parseFloat(document.getElementById('vault-entry-amount').value);
+  const note=(document.getElementById('vault-entry-note').value||'').trim();
+  if(!amount||amount<=0){alert('Please enter a valid gold amount.');return;}
+  if(!db.vaultBalance)db.vaultBalance=0;
+  if(!db.vaultLog)db.vaultLog=[];
+  const delta = _vaultEntryMode==='add' ? amount : -amount;
+  db.vaultBalance=Math.round((db.vaultBalance+delta)*1000)/1000;
+  db.vaultLog.push({
+    clientName: _vaultEntryMode==='add' ? '(Manual Add)' : '(Manual Withdrawal)',
+    date: todayStr(),
+    note, type: _vaultEntryMode,
+    grams: amount, actualPureGold: amount, delta,
+    balanceAfter: db.vaultBalance,
+    _seq: getNextSeq(), manual: true
+  });
+  save();
+  closeVaultEntry();
+  renderVault();
+  renderDashboard();
+  showToast(_vaultEntryMode==='add' ? 'Gold added to Vault ✓' : 'Gold removed from Vault ✓');
+}
+
+function clearVaultView(){
+  if(!confirm('This will hide all current vault entries from view. Your vault balance will remain unchanged. Continue?'))return;
+  let maxSeq=0;
+  (db.vaultLog||[]).forEach(v=>{if(!v._seq)v._seq=getNextSeq();if(v._seq>maxSeq)maxSeq=v._seq;});
+  db.vaultClearedSeq=maxSeq;
+  db.vaultCleared=true;
+  save();
+  renderVault();
+  showToast('Vault history cleared ✓');
+}
+
 /* ── VAULT (private gold balance) ────────────── */
 function openSetVaultBalance(){
   document.getElementById('vault-bal-input').value = (db.vaultBalance||0).toFixed(3);
@@ -2582,14 +2648,28 @@ function renderVault(){
   }
   emptyEl.style.display='none';
 
+  // Filter by cleared seq
+  const vCleared = db.vaultCleared||false;
+  const vClearedSeq = db.vaultClearedSeq||0;
+  const visible = log.filter(v=>!(vCleared && (v._seq||0)<=vClearedSeq));
+
+  if(!visible.length){
+    listEl.innerHTML='';
+    emptyEl.style.display='block';
+    return;
+  }
+  emptyEl.style.display='none';
+
   // Sort newest first
-  const sorted=[...log].sort((a,b)=> (b._seq||0)-(a._seq||0));
+  const sorted=[...visible].sort((a,b)=> (b._seq||0)-(a._seq||0));
 
   listEl.innerHTML = sorted.map(v=>{
-    const typeLabel = v.type==='delivered' ? 'Casting' : 'Metal';
     const isAdd = v.delta>0;
     const sign = isAdd ? '+' : '−';
     const color = isAdd ? 'var(--green)' : 'var(--red)';
+    let typeLabel;
+    if(v.manual) typeLabel = isAdd ? 'Manual Add' : 'Manual Withdrawal';
+    else typeLabel = v.type==='delivered' ? 'Casting' : 'Metal';
     return `<div class="txn-item" style="cursor:default">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1;min-width:0">
