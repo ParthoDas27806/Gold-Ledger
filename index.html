@@ -1495,7 +1495,7 @@ function renderDashboard(){
   const vaultPPCard=document.getElementById('dash-vaultpp-card');
   if(vaultPPCard){
     const vb=db.vaultBalance||0;
-    const vpp=Math.round((vb-net)*1000)/1000;
+    const vpp=Math.round((vb+net)*1000)/1000;
     const vppColor=vpp>0?'linear-gradient(145deg,#1B5E30,#2D8A42)':vpp<0?'linear-gradient(145deg,#7A1A1A,#B83232)':'linear-gradient(145deg,#5A3E00,#C49010)';
     const vppSign=vpp>0?'+':'';
     vaultPPCard.innerHTML=`<div style="background:${vppColor};border-radius:14px;padding:18px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;height:100%">
