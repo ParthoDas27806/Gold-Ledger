@@ -514,6 +514,12 @@ select {
   .big-stat-grid { flex-direction: row; gap: 16px; height: 200px; margin-bottom: 0; }
   .big-stat-card { padding: 30px 24px; }
   .big-stat-val { font-size: 34px; }
+  #dash-vault-row { gap: 16px; margin-top: 16px; }
+}
+
+/* On mobile — vault cards stack full width */
+@media (max-width: 499px) {
+  #dash-vault-row { grid-template-columns: 1fr; }
 }
 
 /* On wide mobile (landscape) — row */
@@ -522,6 +528,7 @@ select {
   .big-stat-card { padding: 20px 16px; }
   .big-stat-val { font-size: 22px; }
   .big-stat-sub { font-size: 11px; }
+  #dash-vault-row { grid-template-columns: 1fr 1fr; }
 }
 
 /* ── HISTORY PAGE ── */
@@ -847,10 +854,11 @@ select {
             <div class="big-stat-sub" id="s-net-mg">0 gram</div>
           </div>
         </div>
-        <!-- Vault balance on dashboard -->
-        <div id="dash-vault-card" style="margin-top:10px"></div>
-        <!-- Vault++ on dashboard -->
-        <div id="dash-vaultpp-card" style="margin-top:8px"></div>
+        <!-- Vault + Vault++ side by side on desktop -->
+        <div id="dash-vault-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+          <div id="dash-vault-card"></div>
+          <div id="dash-vaultpp-card"></div>
+        </div>
         <!-- Quick tip at bottom of dashboard -->
         <div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">
           Go to <strong>Clients</strong> to view all balances
@@ -1472,14 +1480,14 @@ function renderDashboard(){
     const vb=db.vaultBalance||0;
     const vbColor=vb>0?'linear-gradient(145deg,#1B5E30,#2D8A42)':vb<0?'linear-gradient(145deg,#7A1A1A,#B83232)':'linear-gradient(145deg,#5A3E00,#C49010)';
     const vbSign=vb>0?'+':'';
-    vaultCard.innerHTML=`<div style="background:${vbColor};border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden">
+    vaultCard.innerHTML=`<div style="background:${vbColor};border-radius:14px;padding:18px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;height:100%">
       <div style="position:absolute;right:-14px;bottom:-14px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.10)"></div>
       <div>
         <div style="font-size:10px;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.6px;font-weight:700;margin-bottom:4px">🔒 Vault Balance</div>
-        <div style="font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px">${vbSign}${vb.toFixed(3)}g</div>
+        <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px">${vbSign}${vb.toFixed(3)}g</div>
         <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">${fmtGramMg(Math.abs(vb))}</div>
       </div>
-      <div style="font-size:32px;opacity:0.6">🔒</div>
+      <div style="font-size:26px;opacity:0.6">🔒</div>
     </div>`;
   }
 
@@ -1490,14 +1498,14 @@ function renderDashboard(){
     const vpp=Math.round((vb-net)*1000)/1000;
     const vppColor=vpp>0?'linear-gradient(145deg,#1B5E30,#2D8A42)':vpp<0?'linear-gradient(145deg,#7A1A1A,#B83232)':'linear-gradient(145deg,#5A3E00,#C49010)';
     const vppSign=vpp>0?'+':'';
-    vaultPPCard.innerHTML=`<div style="background:${vppColor};border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden">
+    vaultPPCard.innerHTML=`<div style="background:${vppColor};border-radius:14px;padding:18px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;height:100%">
       <div style="position:absolute;right:-14px;bottom:-14px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.10)"></div>
       <div>
         <div style="font-size:10px;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.6px;font-weight:700;margin-bottom:4px">🔒 Vault++</div>
-        <div style="font-size:24px;font-weight:700;color:#fff;letter-spacing:-0.5px">${vppSign}${vpp.toFixed(3)}g</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">${fmtGramMg(Math.abs(vpp))} · Vault − Net Balance</div>
+        <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px">${vppSign}${vpp.toFixed(3)}g</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">Vault − Net Balance</div>
       </div>
-      <div style="font-size:32px;opacity:0.6">🔒</div>
+      <div style="font-size:26px;opacity:0.6">🔒</div>
     </div>`;
   }
   // Change net card color based on value
