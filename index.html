@@ -1503,7 +1503,7 @@ function renderDashboard(){
       <div>
         <div style="font-size:10px;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.6px;font-weight:700;margin-bottom:4px">🔒 Vault++</div>
         <div style="font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px">${vppSign}${vpp.toFixed(3)}g</div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">Vault − Net Balance</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:2px">${fmtGramMg(Math.abs(vpp))}</div>
       </div>
       <div style="font-size:26px;opacity:0.6">🔒</div>
     </div>`;
