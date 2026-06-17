@@ -1651,7 +1651,7 @@ function deleteClient(){
 function deleteTxn(name,idx){
   if(!confirm('Delete this transaction?'))return;
   db.clients[name].transactions.splice(idx,1);
-  if(!db.clients[name].transactions.length){delete db.clients[name];save();showToast('Deleted');closeDetail();renderDashboard();return;}
+  if(!db.clients[name].transactions.length){save();renderDashboard();openDetail(name);return;}
   save();openDetail(name);renderDashboard();
 }
 
