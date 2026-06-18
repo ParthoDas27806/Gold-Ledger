@@ -2192,7 +2192,16 @@ function saveTransaction(){
   // Private actual purity / actual pure gold (vault tracking, never sent to client)
   const actualPurity=parseFloat(document.getElementById('f-actual-purity').value)||0;
   let actualPureGold=window._actualPureGold||0;
-  // For Metal (received): vault addition uses the same Pure Gold as the client record
+
+  // If Actual Purity left blank → use the same purity as the client's transaction
+  // So vault always gets updated, using client purity as fallback
+  if(selectedType==='delivered'){
+    if(!actualPurity || !actualPureGold){
+      // fallback: same as client pure gold
+      actualPureGold = grams;
+    }
+  }
+  // For Metal (received): vault addition always uses the same Pure Gold as the client record
   if(selectedType==='received'){
     actualPureGold=grams;
   }
@@ -2210,11 +2219,10 @@ function saveTransaction(){
   if(grossVal){txn.grossGrams=grossVal;txn.purity=purity;}
   db.clients[name].transactions.push(txn);
 
-  // Update private vault balance:
-  // - Casting: only if Actual Purity was entered (actual gold leaving your stock)
-  // - Metal: always (Pure Gold received always adds to vault)
-  const shouldTrackVault = (selectedType==='delivered' && actualPurity>0 && actualPureGold>0)
-                          || (selectedType==='received' && actualPureGold>0);
+  // Update private vault balance — always tracks for both Casting and Metal
+  // Casting: uses actual pure gold (or client pure gold if actual purity blank)
+  // Metal: uses client pure gold (what you physically received)
+  const shouldTrackVault = actualPureGold > 0;
 
   if(shouldTrackVault){
     if(!db.vaultBalance)db.vaultBalance=0;
