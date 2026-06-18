@@ -823,6 +823,7 @@ select {
           <div class="topbar-title">Gold Ledger</div>
           <div class="topbar-sub">Sone Ka Hisaab</div>
         </div>
+        <button onclick="openLangPicker()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;line-height:1" title="Language">🌐</button>
         <button id="auth-btn" onclick="openAuthModal()" style="background:var(--gold-mid);color:#fff;border:none;border-radius:var(--rs);padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Sign In</button>
       </div>
     </div>
@@ -958,7 +959,7 @@ select {
 
             <!-- Gross Gold: single decimal input -->
             <div class="field">
-              <label>Gross Gold (total weight in grams) *</label>
+              <label id="label-gross-gold">Gross Gold (total weight in grams) *</label>
               <div class="weight-input-wrap">
                 <input type="number" id="f-gross" placeholder="e.g. 12.350" min="0" step="0.001" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="weight-input">
                 <span class="weight-unit">gram</span>
@@ -968,7 +969,7 @@ select {
 
             <!-- Purity -->
             <div class="field">
-              <label>Purity Percentage *</label>
+              <label id="label-purity">Purity Percentage *</label>
               <div class="purity-row">
                 <div class="purity-custom-wrap">
                   <input type="number" id="f-purity" placeholder="e.g. 91.6" min="0.1" max="100" step="0.01" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="purity-input">
@@ -1012,14 +1013,14 @@ select {
 
           <!-- Phone + Note -->
           <div class="field-row">
-            <div class="field"><label>Phone *</label><input type="tel" id="f-phone" placeholder="9876543210" maxlength="10" pattern="[0-9]{10}" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"></div>
-            <div class="field"><label>Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
+            <div class="field"><label id="label-phone">Phone *</label><input type="tel" id="f-phone" placeholder="9876543210" maxlength="10" pattern="[0-9]{10}" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"></div>
+            <div class="field"><label id="label-note">Note (optional)</label><input type="text" id="f-note" placeholder="e.g. Necklace, 22K"></div>
           </div>
 
           <div class="preview-box" id="preview-box"></div>
           <div class="btn-row">
             <button class="btn btn-outline" onclick="clearForm()" style="flex:0.4">Clear</button>
-            <button class="btn btn-gold" onclick="saveTransaction()">✓ Save Transaction</button>
+            <button class="btn btn-gold" id="btn-save-txn" onclick="saveTransaction()">✓ Save Transaction</button>
           </div>
         </div>
       </div>
@@ -1314,6 +1315,7 @@ select {
     <div class="auth-error" id="auth-error" style="display:none;background:#FCEBEB;border:1.5px solid #F09595;border-radius:8px;padding:9px 12px;font-size:13px;color:#A32D2D;margin-top:10px"></div>
   </div>
 
+  <div id="auth-lang-picker"></div>
   <button onclick="closeAuthModal()" style="width:100%;margin-top:12px;padding:10px;border:none;background:none;color:var(--hint);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Close</button>
 </div>
 <div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
@@ -2843,8 +2845,273 @@ function hideLoginScreen(){
   document.getElementById('login-screen').style.display='none';
 }
 
+
+/* ══════════════════════════════════════════════
+   LANGUAGE / i18n SYSTEM
+══════════════════════════════════════════════ */
+const LANGS = {
+  en: {
+    name:'English', flag:'🇬🇧',
+    dashboard:'Dashboard', clients:'Clients', addTxn:'Add', history:'History',
+    daybook:'Daybook', vault:'Vault',
+    delivered:'Delivered', received:'Received', netBalance:'Net Balance',
+    vaultBalance:'Vault Balance',
+    goToClients:'Go to Clients to view all balances',
+    txnHistory:'Transaction History', noTxn:'No transactions yet.',
+    castingType:'Casting', metalType:'Metal',
+    clientName:'Client Name *', date:'Date *',
+    grossGold:'Gross Gold (Total Weight in Grams) *',
+    purityPct:'Purity Percentage *', pureGold:'Pure Gold',
+    actualPurity:'🔒 Actual Purity Percentage (private)',
+    actualPureGold:'🔒 Actual Pure Gold',
+    phone:'Phone *', note:'Note (optional)',
+    saveTxn:'✓ Save Transaction', clear:'Clear',
+    newTxn:'New Transaction', txnType:'Transaction Type *',
+    signIn:'Sign In', signOut:'Sign Out', register:'Register',
+    switchAccount:'🔄 Switch Account',
+    emailAddr:'Email Address', password:'Password',
+    orContinue:'or continue with', continueGoogle:'Continue with Google',
+    signedInAs:'Signed in as',
+    totalKaaj:'Total Kaaj', totalMetal:'Total Metal',
+    allYears:'All Years', allMonths:'All Months',
+    allTypes:'All Types', allClients:'All Clients',
+    clearView:'🗑 Clear View', addTransaction:'➕ Add Transaction',
+    selectAll:'Select All', deselectAll:'Deselect All',
+    deleteClient:'🗑 Delete', editClient:'✏️ Edit',
+    back:'← Back', addGold:'+ Add Gold', takeOut:'− Take Out Gold',
+    vaultHistory:'Vault History', setBalance:'⚙️ Set',
+    language:'Language',
+  },
+  hi: {
+    name:'हिंदी', flag:'🇮🇳',
+    dashboard:'डैशबोर्ड', clients:'ग्राहक', addTxn:'जोड़ें', history:'इतिहास',
+    daybook:'दिनबुक', vault:'तिजोरी',
+    delivered:'दिया गया', received:'प्राप्त', netBalance:'शुद्ध शेष',
+    vaultBalance:'तिजोरी शेष',
+    goToClients:'सभी शेष देखने के लिए ग्राहक में जाएं',
+    txnHistory:'लेनदेन इतिहास', noTxn:'अभी तक कोई लेनदेन नहीं।',
+    castingType:'कास्टिंग', metalType:'धातु',
+    clientName:'ग्राहक का नाम *', date:'तारीख *',
+    grossGold:'कुल सोना (ग्राम में) *',
+    purityPct:'शुद्धता प्रतिशत *', pureGold:'शुद्ध सोना',
+    actualPurity:'🔒 वास्तविक शुद्धता % (निजी)',
+    actualPureGold:'🔒 वास्तविक शुद्ध सोना',
+    phone:'फोन *', note:'नोट (वैकल्पिक)',
+    saveTxn:'✓ लेनदेन सहेजें', clear:'साफ करें',
+    newTxn:'नया लेनदेन', txnType:'लेनदेन प्रकार *',
+    signIn:'साइन इन', signOut:'साइन आउट', register:'रजिस्टर',
+    switchAccount:'🔄 खाता बदलें',
+    emailAddr:'ईमेल पता', password:'पासवर्ड',
+    orContinue:'या जारी रखें', continueGoogle:'Google से जारी रखें',
+    signedInAs:'के रूप में लॉग इन',
+    totalKaaj:'कुल काज', totalMetal:'कुल धातु',
+    allYears:'सभी वर्ष', allMonths:'सभी महीने',
+    allTypes:'सभी प्रकार', allClients:'सभी ग्राहक',
+    clearView:'🗑 दृश्य साफ करें', addTransaction:'➕ लेनदेन जोड़ें',
+    selectAll:'सभी चुनें', deselectAll:'सभी हटाएं',
+    deleteClient:'🗑 हटाएं', editClient:'✏️ संपादित करें',
+    back:'← वापस', addGold:'+ सोना जोड़ें', takeOut:'− सोना निकालें',
+    vaultHistory:'तिजोरी इतिहास', setBalance:'⚙️ सेट',
+    language:'भाषा',
+  },
+  bn: {
+    name:'বাংলা', flag:'🇧🇩',
+    dashboard:'ড্যাশবোর্ড', clients:'গ্রাহক', addTxn:'যোগ করুন', history:'ইতিহাস',
+    daybook:'দিনবুক', vault:'ভল্ট',
+    delivered:'প্রদান করা', received:'প্রাপ্ত', netBalance:'নিট ব্যালেন্স',
+    vaultBalance:'ভল্ট ব্যালেন্স',
+    goToClients:'সকল ব্যালেন্স দেখতে গ্রাহকে যান',
+    txnHistory:'লেনদেনের ইতিহাস', noTxn:'এখনো কোনো লেনদেন নেই।',
+    castingType:'কাস্টিং', metalType:'ধাতু',
+    clientName:'গ্রাহকের নাম *', date:'তারিখ *',
+    grossGold:'মোট সোনা (গ্রামে) *',
+    purityPct:'বিশুদ্ধতার শতাংশ *', pureGold:'বিশুদ্ধ সোনা',
+    actualPurity:'🔒 প্রকৃত বিশুদ্ধতা % (ব্যক্তিগত)',
+    actualPureGold:'🔒 প্রকৃত বিশুদ্ধ সোনা',
+    phone:'ফোন *', note:'নোট (ঐচ্ছিক)',
+    saveTxn:'✓ লেনদেন সংরক্ষণ করুন', clear:'পরিষ্কার করুন',
+    newTxn:'নতুন লেনদেন', txnType:'লেনদেনের ধরন *',
+    signIn:'সাইন ইন', signOut:'সাইন আউট', register:'নিবন্ধন',
+    switchAccount:'🔄 অ্যাকাউন্ট পরিবর্তন',
+    emailAddr:'ইমেইল ঠিকানা', password:'পাসওয়ার্ড',
+    orContinue:'অথবা চালিয়ে যান', continueGoogle:'Google দিয়ে চালিয়ে যান',
+    signedInAs:'হিসেবে সাইন ইন করা',
+    totalKaaj:'মোট কাজ', totalMetal:'মোট ধাতু',
+    allYears:'সব বছর', allMonths:'সব মাস',
+    allTypes:'সব ধরন', allClients:'সব গ্রাহক',
+    clearView:'🗑 দেখা পরিষ্কার করুন', addTransaction:'➕ লেনদেন যোগ করুন',
+    selectAll:'সব নির্বাচন করুন', deselectAll:'সব বাতিল করুন',
+    deleteClient:'🗑 মুছুন', editClient:'✏️ সম্পাদনা করুন',
+    back:'← ফিরে', addGold:'+ সোনা যোগ করুন', takeOut:'− সোনা বের করুন',
+    vaultHistory:'ভল্ট ইতিহাস', setBalance:'⚙️ সেট',
+    language:'ভাষা',
+  },
+  gu: {
+    name:'ગુજરાતી', flag:'🇮🇳',
+    dashboard:'ડેશબોર્ડ', clients:'ગ્રાહક', addTxn:'ઉમેરો', history:'ઇતિહાસ',
+    daybook:'દૈનિક', vault:'તિજોરી',
+    delivered:'આપ્યું', received:'મળ્યું', netBalance:'ચોખ્ખું બેલેન્સ',
+    vaultBalance:'તિજોરી બેલેન્સ',
+    goToClients:'બધા બેલેન્સ જોવા ગ્રાહકમાં જાઓ',
+    txnHistory:'વ્યવહાર ઇતિહાસ', noTxn:'હજી કોઈ વ્યવહાર નથી.',
+    castingType:'કાસ્ટિંગ', metalType:'ધાતુ',
+    clientName:'ગ્રાહકનું નામ *', date:'તારીખ *',
+    grossGold:'કુલ સોનું (ગ્રામમાં) *',
+    purityPct:'શુદ્ધતા ટકા *', pureGold:'શુદ્ધ સોનું',
+    actualPurity:'🔒 વાસ્તવિક શુદ્ધતા % (ખાનગી)',
+    actualPureGold:'🔒 વાસ્તવિક શુદ્ધ સોનું',
+    phone:'ફોન *', note:'નોંધ (વૈકલ્પિક)',
+    saveTxn:'✓ વ્યવહાર સાચવો', clear:'સાફ કરો',
+    newTxn:'નવો વ્યવહાર', txnType:'વ્યવહારનો પ્રકાર *',
+    signIn:'સાઇન ઇન', signOut:'સાઇન આઉટ', register:'નોંધણી',
+    switchAccount:'🔄 ખાતું બદલો',
+    emailAddr:'ઈમેઇલ સરનામું', password:'પાસવર્ડ',
+    orContinue:'અથવા ચાલુ રાખો', continueGoogle:'Google સાથે ચાલુ રાખો',
+    signedInAs:'તરીકે સાઇન ઇન',
+    totalKaaj:'કુલ કાજ', totalMetal:'કુલ ધાતુ',
+    allYears:'બધા વર્ષ', allMonths:'બધા મહિના',
+    allTypes:'બધા પ્રકાર', allClients:'બધા ગ્રાહક',
+    clearView:'🗑 દૃશ્ય સાફ કરો', addTransaction:'➕ વ્યવહાર ઉમેરો',
+    selectAll:'બધા પસંદ કરો', deselectAll:'બધા રદ કરો',
+    deleteClient:'🗑 કાઢો', editClient:'✏️ સંપાદિત કરો',
+    back:'← પાછળ', addGold:'+ સોનું ઉમેરો', takeOut:'− સોનું કાઢો',
+    vaultHistory:'તિજોરી ઇતિહાસ', setBalance:'⚙️ સેટ',
+    language:'ભાષા',
+  },
+  ta: {
+    name:'தமிழ்', flag:'🇮🇳',
+    dashboard:'டாஷ்போர்ட்', clients:'வாடிக்கையாளர்', addTxn:'சேர்', history:'வரலாறு',
+    daybook:'தினப்புத்தகம்', vault:'பூட்டு',
+    delivered:'வழங்கப்பட்டது', received:'பெறப்பட்டது', netBalance:'நிகர இருப்பு',
+    vaultBalance:'பூட்டு இருப்பு',
+    goToClients:'அனைத்து இருப்புகளையும் காண வாடிக்கையாளரிடம் செல்லுங்கள்',
+    txnHistory:'பரிவர்த்தனை வரலாறு', noTxn:'இன்னும் பரிவர்த்தனைகள் இல்லை.',
+    castingType:'வார்ப்பு', metalType:'உலோகம்',
+    clientName:'வாடிக்கையாளர் பெயர் *', date:'தேதி *',
+    grossGold:'மொத்த தங்கம் (கிராமில்) *',
+    purityPct:'தூய்மை சதவீதம் *', pureGold:'தூய தங்கம்',
+    actualPurity:'🔒 உண்மையான தூய்மை % (தனிப்பட்ட)',
+    actualPureGold:'🔒 உண்மையான தூய தங்கம்',
+    phone:'தொலைபேசி *', note:'குறிப்பு (விருப்பம்)',
+    saveTxn:'✓ பரிவர்த்தனை சேமி', clear:'அழி',
+    newTxn:'புதிய பரிவர்த்தனை', txnType:'பரிவர்த்தனை வகை *',
+    signIn:'உள்நுழை', signOut:'வெளியேறு', register:'பதிவு செய்',
+    switchAccount:'🔄 கணக்கை மாற்று',
+    emailAddr:'மின்னஞ்சல் முகவரி', password:'கடவுச்சொல்',
+    orContinue:'அல்லது தொடர்க', continueGoogle:'Google உடன் தொடர்க',
+    signedInAs:'என்று உள்நுழைந்தீர்கள்',
+    totalKaaj:'மொத்த வார்ப்பு', totalMetal:'மொத்த உலோகம்',
+    allYears:'அனைத்து ஆண்டுகள்', allMonths:'அனைத்து மாதங்கள்',
+    allTypes:'அனைத்து வகைகள்', allClients:'அனைத்து வாடிக்கையாளர்கள்',
+    clearView:'🗑 காட்சி அழி', addTransaction:'➕ பரிவர்த்தனை சேர்',
+    selectAll:'அனைத்தையும் தேர்ந்தெடு', deselectAll:'அனைத்தையும் நீக்கு',
+    deleteClient:'🗑 நீக்கு', editClient:'✏️ திருத்து',
+    back:'← திரும்பு', addGold:'+ தங்கம் சேர்', takeOut:'− தங்கம் எடு',
+    vaultHistory:'பூட்டு வரலாறு', setBalance:'⚙️ அமை',
+    language:'மொழி',
+  }
+};
+
+let currentLang = 'en';
+
+function t(key){ return (LANGS[currentLang]||LANGS.en)[key] || LANGS.en[key] || key; }
+
+function setLang(lang){
+  if(!LANGS[lang]) return;
+  currentLang = lang;
+  try{localStorage.setItem('gold_ledger_lang', lang);}catch(e){}
+  applyLang();
+  // Re-render current visible page
+  renderDashboard();
+  if(typeof renderClients==='function') renderClients();
+  updateLangButtons();
+}
+
+function applyLang(){
+  // Nav labels
+  const navMap = {
+    'nav-dashboard':'dashboard','nav-clients':'clients','nav-add':'addTxn',
+    'nav-history':'history','nav-daybook':'daybook','nav-vault':'vault',
+    'snav-dashboard':'dashboard','snav-clients':'clients','snav-add':'addTxn',
+    'snav-history':'history','snav-daybook':'daybook','snav-vault':'vault',
+  };
+  Object.entries(navMap).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el){
+      const icon=el.querySelector('.nav-icon,.sb-icon');
+      const iconHTML=icon?icon.outerHTML:'';
+      el.innerHTML=iconHTML+' '+t(key);
+    }
+  });
+
+  // Dashboard footer tip
+  const tip=document.querySelector('#page-dashboard .empty-tip');
+  if(tip) tip.innerHTML='Go to <strong>'+t('clients')+'</strong> to view all balances';
+
+  // Add transaction form labels
+  const labelMap = {
+    'label-txn-type':    'txnType',
+    'label-client-name': 'clientName',
+    'label-date':        'date',
+    'label-gross-gold':  'grossGold',
+    'label-purity':      'purityPct',
+    'label-phone':       'phone',
+    'label-note':        'note',
+    'label-actual-purity': 'actualPurity',
+    'label-actual-result': 'actualPureGold',
+  };
+  Object.entries(labelMap).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(key);
+  });
+
+  // Buttons
+  const btnMap = {
+    'btn-save-txn': 'saveTxn',
+    'btn-clear-form': 'clear',
+  };
+  Object.entries(btnMap).forEach(([id,key])=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(key);
+  });
+}
+
+function updateLangButtons(){
+  document.querySelectorAll('.lang-btn').forEach(btn=>{
+    btn.style.fontWeight = btn.getAttribute('data-lang')===currentLang?'700':'400';
+    btn.style.background = btn.getAttribute('data-lang')===currentLang?'var(--gold-mid)':'transparent';
+    btn.style.color = btn.getAttribute('data-lang')===currentLang?'#fff':'var(--text)';
+  });
+}
+
+function langPickerHTML(){
+  return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px">🌐 Language</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      ${Object.entries(LANGS).map(([code,l])=>`
+        <button class="lang-btn" data-lang="${code}" onclick="setLang('${code}')"
+          style="padding:5px 10px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;background:${code===currentLang?'var(--gold-mid)':'transparent'};color:${code===currentLang?'#fff':'var(--text)'};font-weight:${code===currentLang?'700':'400'}">
+          ${l.flag} ${l.name}
+        </button>`).join('')}
+    </div>
+  </div>`;
+}
+function openLangPicker(){
+  // Update the picker in auth modal and open it
+  const picker=document.getElementById('auth-lang-picker');
+  if(picker) picker.innerHTML=langPickerHTML();
+  openAuthModal();
+}
+
 /* ── INIT ───────────────────────────────── */
+// Load saved language preference
+try{const sl=localStorage.getItem('gold_ledger_lang');if(sl&&LANGS[sl])currentLang=sl;}catch(e){}
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+// Apply language after DOM ready
+setTimeout(()=>{applyLang();updateLangButtons();
+  const picker=document.getElementById('auth-lang-picker');
+  if(picker) picker.innerHTML=langPickerHTML();
+}, 100);
 updateAuthButton(); // shows Sign In by default; onAuthStateChanged will update if already logged in
 // Show login screen on first open if not signed in and not a guest yet
 </script>
