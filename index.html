@@ -1674,13 +1674,18 @@ function deleteTxn(name,idx){
   if(txn && txn._seq && db.vaultLog && db.vaultLog.length){
     const vIdx = db.vaultLog.findIndex(v => v._seq === txn._seq && !v.manual);
     if(vIdx !== -1){
-      // Remove vault entry and recalculate balance from scratch
+      const deletedEntry = db.vaultLog[vIdx];
+      
+      // 1. Remove from log
       db.vaultLog.splice(vIdx, 1);
-      // Recalculate vault balance from all remaining log entries
-      let bal = db.vaultInitial || 0;
-      const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
-      sorted.forEach(v=>{ bal = Math.round((bal + v.delta)*1000)/1000; v.balanceAfter = bal; });
-      db.vaultBalance = bal;
+      
+      // 2. Reverse the delta from the current overall vault balance
+      db.vaultBalance = Math.round((db.vaultBalance - deletedEntry.delta) * 1000) / 1000;
+      
+      // 3. Adjust 'balanceAfter' for all subsequent log entries to keep history accurate
+      for (let i = vIdx; i < db.vaultLog.length; i++) {
+        db.vaultLog[i].balanceAfter = Math.round((db.vaultLog[i].balanceAfter - deletedEntry.delta) * 1000) / 1000;
+      }
     }
   }
 
