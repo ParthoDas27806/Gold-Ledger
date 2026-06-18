@@ -1126,6 +1126,22 @@ select {
           <button onclick="openVaultEntry('out')" style="flex:1;padding:11px;border:none;border-radius:var(--rs);background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">− Take Out Gold</button>
         </div>
 
+        <!-- Date filter -->
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <select id="vault-filter-month" onchange="renderVault()" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text)">
+            <option value="">All Months</option>
+            <option value="01">January</option><option value="02">February</option>
+            <option value="03">March</option><option value="04">April</option>
+            <option value="05">May</option><option value="06">June</option>
+            <option value="07">July</option><option value="08">August</option>
+            <option value="09">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+          <select id="vault-filter-year" onchange="renderVault()" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text)">
+            <option value="">All Years</option>
+          </select>
+        </div>
+
         <!-- History header -->
         <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Vault History</div>
 
@@ -1652,9 +1668,27 @@ function deleteClient(){
 }
 function deleteTxn(name,idx){
   if(!confirm('Delete this transaction?'))return;
-  db.clients[name].transactions.splice(idx,1);
-  if(!db.clients[name].transactions.length){save();renderDashboard();openDetail(name);return;}
-  save();openDetail(name);renderDashboard();
+  const txn = db.clients[name].transactions[idx];
+
+  // Remove matching vault entry if this transaction had one
+  if(txn && txn._seq && db.vaultLog && db.vaultLog.length){
+    const vIdx = db.vaultLog.findIndex(v => v._seq === txn._seq && !v.manual);
+    if(vIdx !== -1){
+      // Remove vault entry and recalculate balance from scratch
+      db.vaultLog.splice(vIdx, 1);
+      // Recalculate vault balance from all remaining log entries
+      let bal = db.vaultInitial || 0;
+      const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
+      sorted.forEach(v=>{ bal = Math.round((bal + v.delta)*1000)/1000; v.balanceAfter = bal; });
+      db.vaultBalance = bal;
+    }
+  }
+
+  db.clients[name].transactions.splice(idx, 1);
+  save();
+  openDetail(name);
+  renderDashboard();
+  if(typeof renderVault==='function') renderVault();
 }
 
 function addTxnForClient(){
@@ -2704,6 +2738,18 @@ function renderVault(){
   const listEl = document.getElementById('vault-list');
   const emptyEl = document.getElementById('vault-empty');
 
+  // Populate year dropdown
+  const yearSel = document.getElementById('vault-filter-year');
+  if(yearSel){
+    const years = [...new Set(log.map(v=>(v.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+    const curYear = yearSel.value;
+    yearSel.innerHTML = '<option value="">All Years</option>' + years.map(y=>`<option value="${y}" ${y===curYear?'selected':''}>${y}</option>`).join('');
+  }
+
+  // Apply date filters
+  const monthF = (document.getElementById('vault-filter-month')||{}).value||'';
+  const yearF  = (document.getElementById('vault-filter-year')||{}).value||'';
+
   // Always show the balance card, even if zero/empty
   const balClass = balance>0 ? 'card-net-pos' : balance<0 ? 'card-net-neg' : 'card-net-zero';
   const balSign = balance>0 ? '+' : '';
@@ -2721,10 +2767,15 @@ function renderVault(){
   }
   emptyEl.style.display='none';
 
-  // Filter by cleared seq
+  // Filter by cleared seq AND date
   const vCleared = db.vaultCleared||false;
   const vClearedSeq = db.vaultClearedSeq||0;
-  const visible = log.filter(v=>!(vCleared && (v._seq||0)<=vClearedSeq));
+  const visible = log.filter(v=>{
+    if(vCleared && (v._seq||0)<=vClearedSeq) return false;
+    if(yearF && (v.date||'').slice(0,4)!==yearF) return false;
+    if(monthF && (v.date||'').slice(5,7)!==monthF) return false;
+    return true;
+  });
 
   if(!visible.length){
     listEl.innerHTML='';
@@ -2734,27 +2785,52 @@ function renderVault(){
   emptyEl.style.display='none';
 
   // Sort newest first
-  const sorted=[...visible].sort((a,b)=> (b._seq||0)-(a._seq||0));
+  const sorted=[...visible].sort((a,b)=>b.date.localeCompare(a.date)||(b._seq||0)-(a._seq||0));
 
-  listEl.innerHTML = sorted.map(v=>{
-    const isAdd = v.delta>0;
-    const sign = isAdd ? '+' : '−';
-    const color = isAdd ? 'var(--green)' : 'var(--red)';
-    let typeLabel;
-    if(v.manual) typeLabel = isAdd ? 'Manual Add' : 'Manual Withdrawal';
-    else typeLabel = v.type==='delivered' ? 'Casting' : 'Metal';
-    return `<div class="txn-item" style="cursor:default">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-        <div style="flex:1;min-width:0">
-          <div class="txn-label">${esc(v.clientName)}</div>
-          <div class="txn-meta">${fmtDate(v.date)} · ${typeLabel}${v.note?' · '+esc(v.note):''}</div>
-          <div class="txn-meta" style="margin-top:2px">Balance after: ${v.balanceAfter.toFixed(3)}g</div>
+  // Group by date
+  const groups={};
+  sorted.forEach(v=>{
+    const d=v.date||'unknown';
+    if(!groups[d]) groups[d]=[];
+    groups[d].push(v);
+  });
+
+  listEl.innerHTML = Object.entries(groups).map(([date, entries])=>{
+    // Day total
+    let dayIn=0, dayOut=0;
+    entries.forEach(v=>{ v.delta>0 ? dayIn+=v.delta : dayOut+=Math.abs(v.delta); });
+    const netDay=Math.round((dayIn-dayOut)*1000)/1000;
+    const netSign=netDay>0?'+':'';
+    const netColor=netDay>=0?'var(--green)':'var(--red)';
+
+    const rows = entries.map(v=>{
+      const isAdd=v.delta>0;
+      const sign=isAdd?'+':'−';
+      const color=isAdd?'var(--green)':'var(--red)';
+      let typeLabel;
+      if(v.manual) typeLabel=isAdd?'Manual Add':'Manual Withdrawal';
+      else typeLabel=v.type==='delivered'?'Casting':'Metal';
+      return `<div class="txn-item" style="cursor:default;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div class="txn-label">${esc(v.clientName)}</div>
+            <div class="txn-meta">${typeLabel}${v.note?' · '+esc(v.note):''}</div>
+            <div class="txn-meta" style="margin-top:2px;color:var(--hint)">Balance after: ${v.balanceAfter.toFixed(3)}g</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+            <div class="txn-grams" style="color:${color}">${sign}${Math.abs(v.delta).toFixed(3)}g</div>
+            <div class="txn-gram-mg">${fmtGramMg(Math.abs(v.delta))}</div>
+          </div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
-          <div class="txn-grams" style="color:${color}">${sign}${Math.abs(v.delta).toFixed(3)}g</div>
-          <div class="txn-gram-mg">${fmtGramMg(Math.abs(v.delta))}</div>
-        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">📅 ${fmtDate(date)}</div>
+        <div style="font-size:12px;font-weight:600;color:${netColor}">${netSign}${netDay.toFixed(3)}g net</div>
       </div>
+      ${rows}
     </div>`;
   }).join('');
 }
