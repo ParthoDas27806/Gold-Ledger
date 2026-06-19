@@ -22,5 +22,64 @@
     }
   ],
   "categories": ["finance", "business", "utilities"],
-  "lang": "en-IN"
+  "lang": "en-IN",
+  "dir": "ltr",
+  "id": "/Gold-Ledger/",
+  "scope": "/Gold-Ledger/",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Add Transaction",
+      "short_name": "Add",
+      "description": "Quickly add a new gold transaction",
+      "url": "/Gold-Ledger/index.html?action=add-transaction",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Clients",
+      "short_name": "Clients",
+      "description": "View all client balances",
+      "url": "/Gold-Ledger/index.html?action=clients",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Vault",
+      "short_name": "Vault",
+      "description": "Check your private gold stock",
+      "url": "/Gold-Ledger/index.html?action=vault",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open your dashboard overview",
+      "url": "/Gold-Ledger/index.html?action=dashboard",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }
