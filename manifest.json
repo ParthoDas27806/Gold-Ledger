@@ -28,6 +28,29 @@
   "scope": "/Gold-Ledger/",
   "display_override": ["standalone", "minimal-ui", "browser"],
   "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "screenshots/dashboard-wide.png",
+      "sizes": "1365x740",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Dashboard showing delivered, received, net balance and vault overview"
+    },
+    {
+      "src": "screenshots/add-transaction-narrow.jpeg",
+      "sizes": "717x1600",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Add a new transaction with the gold weight calculator"
+    },
+    {
+      "src": "screenshots/vault-narrow.jpeg",
+      "sizes": "717x1600",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Vault screen showing private gold stock and history"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Add Transaction",
