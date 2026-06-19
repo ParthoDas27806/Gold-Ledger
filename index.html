@@ -1259,7 +1259,7 @@ select {
   </div>
   <div class="field" style="margin-top:12px">
     <label>Gold Amount (g)</label>
-    <input type="number" id="vault-entry-amount" inputmode="decimal" placeholder="e.g. 102.56" min="0.001" step="any" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./,'$1')">
+    <input type="number" id="vault-entry-amount" placeholder="e.g. 50.000" min="0.001" step="0.001" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./,'$1')">
   </div>
   <div class="field">
     <label>Note (optional)</label>
@@ -1277,7 +1277,7 @@ select {
   <div style="font-size:12px;color:var(--hint);margin-bottom:14px">Enter how much pure gold (in grams) you currently have. This sets your starting point — future Casting/Metal transactions will adjust from here.</div>
   <div class="field">
     <label>Vault Balance (g)</label>
-    <input type="number" id="vault-bal-input" inputmode="decimal" placeholder="e.g. 102.56" step="any" oninput="this.value=this.value.replace(/[^0-9.\-]/g,'')">
+    <input type="number" id="vault-bal-input" placeholder="e.g. 250.000" step="0.001">
   </div>
   <div style="display:flex;gap:8px;margin-top:12px">
     <button onclick="closeSetVaultBalance()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
@@ -1674,18 +1674,13 @@ function deleteTxn(name,idx){
   if(txn && txn._seq && db.vaultLog && db.vaultLog.length){
     const vIdx = db.vaultLog.findIndex(v => v._seq === txn._seq && !v.manual);
     if(vIdx !== -1){
-      const deletedEntry = db.vaultLog[vIdx];
-      
-      // 1. Remove from log
+      // Remove vault entry and recalculate balance from scratch
       db.vaultLog.splice(vIdx, 1);
-      
-      // 2. Reverse the delta from the current overall vault balance
-      db.vaultBalance = Math.round((db.vaultBalance - deletedEntry.delta) * 1000) / 1000;
-      
-      // 3. Adjust 'balanceAfter' for all subsequent log entries to keep history accurate
-      for (let i = vIdx; i < db.vaultLog.length; i++) {
-        db.vaultLog[i].balanceAfter = Math.round((db.vaultLog[i].balanceAfter - deletedEntry.delta) * 1000) / 1000;
-      }
+      // Recalculate vault balance from all remaining log entries
+      let bal = db.vaultInitial || 0;
+      const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
+      sorted.forEach(v=>{ bal = Math.round((bal + v.delta)*1000)/1000; v.balanceAfter = bal; });
+      db.vaultBalance = bal;
     }
   }
 
@@ -2737,10 +2732,14 @@ function closeSetVaultBalance(){
 function saveVaultBalance(){
   const val=parseFloat(document.getElementById('vault-bal-input').value);
   if(isNaN(val)){alert('Please enter a valid number.');return;}
-  db.vaultBalance=Math.round(val*1000)/1000;
+  const rounded=Math.round(val*1000)/1000;
+  db.vaultBalance=rounded;
+  db.vaultInitial=rounded; // baseline for future recalculation
+  db.vaultLog=[]; // start fresh — old entries no longer apply
   save();
   closeSetVaultBalance();
   renderVault();
+  renderDashboard();
   showToast('Vault balance updated ✓');
 }
 
