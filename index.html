@@ -1005,56 +1005,71 @@ select {
 
           <!-- Gold Calculation Card -->
           <div class="calc-card" id="calc-card">
-            <div class="calc-title">⚖️ Gold Weight Calculator</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+              <div class="calc-title" style="margin:0">⚖️ Gold Weight Calculator</div>
+              <span id="calc-type-badge" style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:0.4px;background:var(--blue);color:#fff">Casting</span>
+            </div>
             <div class="calc-subtitle">Enter gross gold &amp; purity to auto-calculate pure gold</div>
 
-            <!-- Gross Gold: single decimal input -->
-            <div class="field">
-              <label id="label-gross-gold">Gross Gold (total weight in grams) *</label>
-              <div class="weight-input-wrap">
-                <input type="number" id="f-gross" placeholder="e.g. 12.350" min="0" step="0.001" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="weight-input">
-                <span class="weight-unit">gram</span>
+            <!-- ── Section 1: Client-facing values ── -->
+            <div style="background:rgba(255,255,255,0.55);border-radius:10px;padding:12px;margin-top:12px">
+              <div style="font-size:10px;font-weight:700;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px">
+                👁️ Visible to Client
               </div>
-              <div class="weight-hint" id="gross-display">e.g. 12.350 = 12 gram 350 mg</div>
-            </div>
 
-            <!-- Purity -->
-            <div class="field">
-              <label id="label-purity">Purity Percentage *</label>
-              <div class="purity-row">
-                <div class="purity-custom-wrap">
-                  <input type="number" id="f-purity" placeholder="e.g. 91.6" min="0.1" max="100" step="0.01" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="purity-input">
-                  <span class="weight-unit">%</span>
+              <!-- Gross Gold -->
+              <div class="field">
+                <label id="label-gross-gold">Gross Gold (total weight in grams) *</label>
+                <div class="weight-input-wrap">
+                  <input type="number" id="f-gross" placeholder="e.g. 12.350" min="0" step="0.001" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="weight-input">
+                  <span class="weight-unit">gram</span>
+                </div>
+                <div class="weight-hint" id="gross-display">e.g. 12.350 = 12 gram 350 mg</div>
+              </div>
+
+              <!-- Purity -->
+              <div class="field">
+                <label id="label-purity">Purity Percentage *</label>
+                <div class="purity-row">
+                  <div class="purity-custom-wrap">
+                    <input type="number" id="f-purity" placeholder="e.g. 91.6" min="0.1" max="100" step="0.01" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="purity-input">
+                    <span class="weight-unit">%</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Result -->
-            <div class="calc-result" id="calc-result">
-              <div class="calc-result-label">Pure Gold</div>
-              <div class="calc-result-formula" id="calc-formula">—</div>
-              <div class="calc-result-value" id="calc-value">—</div>
-              <div class="calc-result-breakdown" id="calc-breakdown">—</div>
-            </div>
-
-            <!-- Actual Purity (private, vault) — Casting only -->
-            <div class="field" id="actual-purity-field" style="margin-top:14px;padding-top:14px;border-top:1.5px dashed rgba(0,0,0,0.1)">
-              <label>🔒 Actual Purity Percentage (private)</label>
-              <div class="purity-row">
-                <div class="purity-custom-wrap">
-                  <input type="number" id="f-actual-purity" placeholder="e.g. 88.0" min="0.1" max="100" step="0.01" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="purity-input">
-                  <span class="weight-unit">%</span>
-                </div>
+              <!-- Result -->
+              <div class="calc-result" id="calc-result">
+                <div class="calc-result-label">Pure Gold <span id="calc-result-type-tag" style="font-weight:600;color:var(--hint);text-transform:none;letter-spacing:0">(sent to client)</span></div>
+                <div class="calc-result-formula" id="calc-formula">—</div>
+                <div class="calc-result-value" id="calc-value">—</div>
+                <div class="calc-result-breakdown" id="calc-breakdown">—</div>
               </div>
-              <div style="font-size:11px;color:var(--hint);margin-top:4px">The real purity, known only to you. Leave blank if same as Purity Percentage above.</div>
             </div>
 
-            <!-- Actual Pure Gold result (private) -->
-            <div class="calc-result" id="calc-result-actual" style="margin-top:10px;display:none">
-              <div class="calc-result-label">🔒 Actual Pure Gold</div>
-              <div class="calc-result-formula" id="calc-actual-formula">—</div>
-              <div class="calc-result-value" id="calc-actual-value">—</div>
-              <div class="calc-result-breakdown" id="calc-actual-breakdown">—</div>
+            <!-- ── Section 2: Private vault tracking — Casting only ── -->
+            <div id="actual-purity-field" style="margin-top:14px;background:rgba(122,90,0,0.06);border:1.5px dashed var(--gold-border);border-radius:10px;padding:12px">
+              <div style="font-size:10px;font-weight:700;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px">
+                🔒 Private — Only You See This
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label>Actual Purity Percentage</label>
+                <div class="purity-row">
+                  <div class="purity-custom-wrap">
+                    <input type="number" id="f-actual-purity" placeholder="e.g. 88.0" min="0.1" max="100" step="0.01" oninput="calcPureGold()" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();" class="purity-input">
+                    <span class="weight-unit">%</span>
+                  </div>
+                </div>
+                <div style="font-size:11px;color:var(--hint);margin-top:4px">The real purity, known only to you. Leave blank if same as Purity Percentage above — vault will then use the client's Pure Gold value.</div>
+              </div>
+
+              <!-- Actual Pure Gold result (private) -->
+              <div class="calc-result" id="calc-result-actual" style="margin-top:12px;display:none;border-color:var(--gold-mid)">
+                <div class="calc-result-label">🔒 Actual Pure Gold <span style="font-weight:600;color:var(--hint);text-transform:none;letter-spacing:0">(vault only)</span></div>
+                <div class="calc-result-formula" id="calc-actual-formula">—</div>
+                <div class="calc-result-value" id="calc-actual-value">—</div>
+                <div class="calc-result-breakdown" id="calc-actual-breakdown">—</div>
+              </div>
             </div>
           </div>
 
@@ -2047,12 +2062,19 @@ function selectType(type){
   const calcCard=document.getElementById('calc-card');
   calcCard.style.opacity='1'; calcCard.style.pointerEvents='auto';
 
+  const badge=document.getElementById('calc-type-badge');
+  const resultTag=document.getElementById('calc-result-type-tag');
+
   if(type==='delivered'){
     calcCard.style.background='linear-gradient(135deg,#C8D8F5,#9DB8E8)';
     calcCard.style.borderColor='#153E7A';
+    if(badge){badge.textContent='Casting'; badge.style.background='var(--blue)';}
+    if(resultTag) resultTag.textContent='(gold given to client)';
   }else{
     calcCard.style.background='linear-gradient(135deg,#CFE8CF,#A8D5A8)';
     calcCard.style.borderColor='#1F5F24';
+    if(badge){badge.textContent='Metal'; badge.style.background='var(--green)';}
+    if(resultTag) resultTag.textContent='(gold received from client)';
   }
 
   // Actual Purity field is only relevant for Casting (delivered).
