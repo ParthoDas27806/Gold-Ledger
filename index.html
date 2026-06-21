@@ -41,6 +41,21 @@ button:active{transform:scale(0.97)}
   --ease: cubic-bezier(0.4,0,0.2,1);
 }
 
+[data-theme="dark"]{
+  --gold:#D4A017;--gold-mid:#E8B838;--gold-dark:#F0C860;
+  --gold-bg:#2A2410;--gold-border:#4A3F1A;
+  --bg:#16140F;--surface:#1E1B14;--card:#221E16;
+  --text:#F0EAD8;--muted:#B8AC8A;--hint:#8A7F62;
+  --border:#3A3424;
+  --green:#4ADE80;--green-bg:#1A2E1F;--green-border:#2D5A3A;
+  --red:#F87171;--red-bg:#2E1A1A;--red-border:#5A2D2D;
+  --blue:#60A5FA;--blue-bg:#1A2433;
+  --amber:#F0C860;--amber-bg:#2E2614;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.30), 0 1px 2px rgba(0,0,0,0.20);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.40), 0 2px 6px rgba(0,0,0,0.25);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.50), 0 4px 10px rgba(0,0,0,0.30);
+}
+
 /* ── FULL SCREEN FOUNDATION ── */
 html, body {
   width: 100%; height: 100%;
@@ -840,6 +855,7 @@ select {
       <button class="side-btn" id="snav-history" onclick="showPage('history')"><span class="sb-icon">🗂️</span> History</button>
       <button class="side-btn" id="snav-daybook" onclick="showPage('daybook')"><span class="sb-icon">📒</span> Daybook</button>
       <button class="side-btn" id="snav-vault" onclick="showPage('vault')"><span class="sb-icon">🔒</span> Vault</button>
+      <button class="side-btn" id="snav-settings" onclick="showPage('settings')"><span class="sb-icon">⚙️</span> Settings</button>
     </nav>
     <div class="sidebar-stats" id="sidebar-stats"></div>
     <div style="padding:12px 10px">
@@ -858,7 +874,7 @@ select {
           <div class="topbar-title">Gold Ledger</div>
           <div class="topbar-sub">Sone Ka Hisaab</div>
         </div>
-        <button onclick="openLangPicker()" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;line-height:1" title="Language">🌐</button>
+        <button onclick="showPage('settings')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;line-height:1" title="Settings">⚙️</button>
         <button id="auth-btn" onclick="openAuthModal()" style="background:var(--gold-mid);color:#fff;border:none;border-radius:var(--rs);padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Sign In</button>
       </div>
     </div>
@@ -1188,6 +1204,38 @@ select {
         </div>
       </div>
 
+      <!-- SETTINGS -->
+      <div id="page-settings" class="page">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-title" style="font-size:17px">⚙️ Settings</div>
+        </div>
+
+        <!-- Appearance -->
+        <div style="margin-bottom:24px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">🎨 Appearance</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <button class="theme-opt" data-theme-val="light" onclick="setThemeMode('light')" style="padding:16px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--card);cursor:pointer;text-align:center;box-shadow:var(--shadow-sm)">
+              <div style="font-size:26px;margin-bottom:6px">☀️</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text)">Light</div>
+            </button>
+            <button class="theme-opt" data-theme-val="dark" onclick="setThemeMode('dark')" style="padding:16px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--card);cursor:pointer;text-align:center;box-shadow:var(--shadow-sm)">
+              <div style="font-size:26px;margin-bottom:6px">🌙</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text)">Dark</div>
+            </button>
+            <button class="theme-opt" data-theme-val="system" onclick="setThemeMode('system')" style="padding:16px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--card);cursor:pointer;text-align:center;box-shadow:var(--shadow-sm)">
+              <div style="font-size:26px;margin-bottom:6px">🖥️</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text)">System</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Language -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">🌐 Language</div>
+          <div id="settings-lang-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+        </div>
+      </div>
+
     </div><!-- /scroll-area -->
 
     <!-- Bottom nav (mobile only) -->
@@ -1366,7 +1414,6 @@ select {
     <div class="auth-error" id="auth-error" style="display:none;background:#FCEBEB;border:1.5px solid #F09595;border-radius:8px;padding:9px 12px;font-size:13px;color:#A32D2D;margin-top:10px"></div>
   </div>
 
-  <div id="auth-lang-picker"></div>
   <button onclick="closeAuthModal()" style="width:100%;margin-top:12px;padding:10px;border:none;background:none;color:var(--hint);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Close</button>
 </div>
 <div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
@@ -1511,6 +1558,7 @@ function showPage(p){
   if(p==='history'){populateHistoryYears();renderHistory();}
   if(p==='daybook'){populateDaybookYears();renderDaybook();}
   if(p==='vault'){renderVault();}
+  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();}
 }
 
 /* ── DASHBOARD ──────────────────────────── */
@@ -3132,6 +3180,230 @@ const LANGS = {
     back:'← திரும்பு', addGold:'+ தங்கம் சேர்', takeOut:'− தங்கம் எடு',
     vaultHistory:'பூட்டு வரலாறு', setBalance:'⚙️ அமை',
     language:'மொழி',
+  },
+  mr: {
+    name:'मराठी', flag:'🇮🇳',
+    dashboard:'डॅशबोर्ड', clients:'ग्राहक', addTxn:'जोडा', history:'इतिहास',
+    daybook:'दैनिक वही', vault:'तिजोरी',
+    delivered:'दिले', received:'मिळाले', netBalance:'निव्वळ शिल्लक',
+    vaultBalance:'तिजोरी शिल्लक',
+    goToClients:'सर्व शिल्लक पाहण्यासाठी ग्राहकांवर जा',
+    txnHistory:'व्यवहार इतिहास', noTxn:'अद्याप कोणतेही व्यवहार नाहीत.',
+    castingType:'कास्टिंग', metalType:'धातू',
+    clientName:'ग्राहकाचे नाव *', date:'तारीख *',
+    grossGold:'एकूण सोने (ग्रॅममध्ये) *',
+    purityPct:'शुद्धता टक्केवारी *', pureGold:'शुद्ध सोने',
+    actualPurity:'🔒 प्रत्यक्ष शुद्धता % (खाजगी)',
+    actualPureGold:'🔒 प्रत्यक्ष शुद्ध सोने',
+    phone:'फोन *', note:'टीप (पर्यायी)',
+    saveTxn:'✓ व्यवहार जतन करा', clear:'साफ करा',
+    newTxn:'नवीन व्यवहार', txnType:'व्यवहार प्रकार *',
+    signIn:'साइन इन', signOut:'साइन आउट', register:'नोंदणी करा',
+    switchAccount:'🔄 खाते बदला',
+    emailAddr:'ईमेल पत्ता', password:'पासवर्ड',
+    orContinue:'किंवा सुरू ठेवा', continueGoogle:'Google सह सुरू ठेवा',
+    signedInAs:'म्हणून साइन इन केले',
+    totalKaaj:'एकूण काज', totalMetal:'एकूण धातू',
+    allYears:'सर्व वर्षे', allMonths:'सर्व महिने',
+    allTypes:'सर्व प्रकार', allClients:'सर्व ग्राहक',
+    clearView:'🗑 दृश्य साफ करा', addTransaction:'➕ व्यवहार जोडा',
+    selectAll:'सर्व निवडा', deselectAll:'सर्व रद्द करा',
+    deleteClient:'🗑 हटवा', editClient:'✏️ संपादित करा',
+    back:'← मागे', addGold:'+ सोने जोडा', takeOut:'− सोने काढा',
+    vaultHistory:'तिजोरी इतिहास', setBalance:'⚙️ सेट करा',
+    language:'भाषा',
+  },
+  te: {
+    name:'తెలుగు', flag:'🇮🇳',
+    dashboard:'డాష్‌బోర్డ్', clients:'క్లయింట్లు', addTxn:'జోడించు', history:'చరిత్ర',
+    daybook:'రోజువారీ పుస్తకం', vault:'వాల్ట్',
+    delivered:'ఇవ్వబడింది', received:'స్వీకరించబడింది', netBalance:'నికర నిల్వ',
+    vaultBalance:'వాల్ట్ నిల్వ',
+    goToClients:'అన్ని నిల్వలను చూడటానికి క్లయింట్లకు వెళ్లండి',
+    txnHistory:'లావాదేవీల చరిత్ర', noTxn:'ఇంకా లావాదేవీలు లేవు.',
+    castingType:'కాస్టింగ్', metalType:'మెటల్',
+    clientName:'క్లయింట్ పేరు *', date:'తేదీ *',
+    grossGold:'మొత్తం బంగారం (గ్రాములలో) *',
+    purityPct:'స్వచ్ఛత శాతం *', pureGold:'స్వచ్ఛమైన బంగారం',
+    actualPurity:'🔒 వాస్తవ స్వచ్ఛత % (ప్రైవేట్)',
+    actualPureGold:'🔒 వాస్తవ స్వచ్ఛమైన బంగారం',
+    phone:'ఫోన్ *', note:'గమనిక (ఐచ్ఛికం)',
+    saveTxn:'✓ లావాదేవీని సేవ్ చేయండి', clear:'క్లియర్',
+    newTxn:'కొత్త లావాదేవీ', txnType:'లావాదేవీ రకం *',
+    signIn:'సైన్ ఇన్', signOut:'సైన్ అవుట్', register:'నమోదు',
+    switchAccount:'🔄 ఖాతా మార్చు',
+    emailAddr:'ఇమెయిల్ చిరునామా', password:'పాస్‌వర్డ్',
+    orContinue:'లేదా కొనసాగించండి', continueGoogle:'Google తో కొనసాగించండి',
+    signedInAs:'గా సైన్ ఇన్ చేయబడింది',
+    totalKaaj:'మొత్తం కాజ్', totalMetal:'మొత్తం మెటల్',
+    allYears:'అన్ని సంవత్సరాలు', allMonths:'అన్ని నెలలు',
+    allTypes:'అన్ని రకాలు', allClients:'అందరు క్లయింట్లు',
+    clearView:'🗑 వీక్షణ క్లియర్', addTransaction:'➕ లావాదేవీ జోడించు',
+    selectAll:'అన్నీ ఎంచుకోండి', deselectAll:'అన్నీ తీసివేయండి',
+    deleteClient:'🗑 తొలగించు', editClient:'✏️ సవరించు',
+    back:'← వెనుకకు', addGold:'+ బంగారం జోడించు', takeOut:'− బంగారం తీయండి',
+    vaultHistory:'వాల్ట్ చరిత్ర', setBalance:'⚙️ సెట్',
+    language:'భాష',
+  },
+  kn: {
+    name:'ಕನ್ನಡ', flag:'🇮🇳',
+    dashboard:'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', clients:'ಗ್ರಾಹಕರು', addTxn:'ಸೇರಿಸಿ', history:'ಇತಿಹಾಸ',
+    daybook:'ದಿನಚರಿ', vault:'ವಾಲ್ಟ್',
+    delivered:'ತಲುಪಿಸಲಾಗಿದೆ', received:'ಸ್ವೀಕರಿಸಲಾಗಿದೆ', netBalance:'ನಿವ್ವಳ ಬಾಕಿ',
+    vaultBalance:'ವಾಲ್ಟ್ ಬಾಕಿ',
+    goToClients:'ಎಲ್ಲಾ ಬಾಕಿಗಳನ್ನು ನೋಡಲು ಗ್ರಾಹಕರಿಗೆ ಹೋಗಿ',
+    txnHistory:'ವಹಿವಾಟು ಇತಿಹಾಸ', noTxn:'ಇನ್ನೂ ಯಾವುದೇ ವಹಿವಾಟುಗಳಿಲ್ಲ.',
+    castingType:'ಕಾಸ್ಟಿಂಗ್', metalType:'ಲೋಹ',
+    clientName:'ಗ್ರಾಹಕರ ಹೆಸರು *', date:'ದಿನಾಂಕ *',
+    grossGold:'ಒಟ್ಟು ಚಿನ್ನ (ಗ್ರಾಂಗಳಲ್ಲಿ) *',
+    purityPct:'ಶುದ್ಧತೆ ಶೇಕಡಾವಾರು *', pureGold:'ಶುದ್ಧ ಚಿನ್ನ',
+    actualPurity:'🔒 ನಿಜವಾದ ಶುದ್ಧತೆ % (ಖಾಸಗಿ)',
+    actualPureGold:'🔒 ನಿಜವಾದ ಶುದ್ಧ ಚಿನ್ನ',
+    phone:'ಫೋನ್ *', note:'ಟಿಪ್ಪಣಿ (ಐಚ್ಛಿಕ)',
+    saveTxn:'✓ ವಹಿವಾಟು ಉಳಿಸಿ', clear:'ಅಳಿಸಿ',
+    newTxn:'ಹೊಸ ವಹಿವಾಟು', txnType:'ವಹಿವಾಟು ಪ್ರಕಾರ *',
+    signIn:'ಸೈನ್ ಇನ್', signOut:'ಸೈನ್ ಔಟ್', register:'ನೋಂದಣಿ',
+    switchAccount:'🔄 ಖಾತೆ ಬದಲಿಸಿ',
+    emailAddr:'ಇಮೇಲ್ ವಿಳಾಸ', password:'ಪಾಸ್‌ವರ್ಡ್',
+    orContinue:'ಅಥವಾ ಮುಂದುವರಿಸಿ', continueGoogle:'Google ನೊಂದಿಗೆ ಮುಂದುವರಿಸಿ',
+    signedInAs:'ಎಂದು ಸೈನ್ ಇನ್ ಆಗಿದೆ',
+    totalKaaj:'ಒಟ್ಟು ಕಾಜ್', totalMetal:'ಒಟ್ಟು ಲೋಹ',
+    allYears:'ಎಲ್ಲಾ ವರ್ಷಗಳು', allMonths:'ಎಲ್ಲಾ ತಿಂಗಳುಗಳು',
+    allTypes:'ಎಲ್ಲಾ ಪ್ರಕಾರಗಳು', allClients:'ಎಲ್ಲಾ ಗ್ರಾಹಕರು',
+    clearView:'🗑 ವೀಕ್ಷಣೆ ತೆರವುಗೊಳಿಸಿ', addTransaction:'➕ ವಹಿವಾಟು ಸೇರಿಸಿ',
+    selectAll:'ಎಲ್ಲಾ ಆಯ್ಕೆಮಾಡಿ', deselectAll:'ಎಲ್ಲಾ ತೆಗೆದುಹಾಕಿ',
+    deleteClient:'🗑 ಅಳಿಸಿ', editClient:'✏️ ಸಂಪಾದಿಸಿ',
+    back:'← ಹಿಂದೆ', addGold:'+ ಚಿನ್ನ ಸೇರಿಸಿ', takeOut:'− ಚಿನ್ನ ತೆಗೆಯಿರಿ',
+    vaultHistory:'ವಾಲ್ಟ್ ಇತಿಹಾಸ', setBalance:'⚙️ ಸೆಟ್',
+    language:'ಭಾಷೆ',
+  },
+  ml: {
+    name:'മലയാളം', flag:'🇮🇳',
+    dashboard:'ഡാഷ്‌ബോർഡ്', clients:'ക്ലയന്റുകൾ', addTxn:'ചേർക്കുക', history:'ചരിത്രം',
+    daybook:'ദിനപുസ്തകം', vault:'വാൾട്ട്',
+    delivered:'നൽകി', received:'സ്വീകരിച്ചു', netBalance:'അറ്റ ബാലൻസ്',
+    vaultBalance:'വാൾട്ട് ബാലൻസ്',
+    goToClients:'എല്ലാ ബാലൻസുകളും കാണാൻ ക്ലയന്റുകളിലേക്ക് പോകുക',
+    txnHistory:'ഇടപാട് ചരിത്രം', noTxn:'ഇതുവരെ ഇടപാടുകൾ ഇല്ല.',
+    castingType:'കാസ്റ്റിംഗ്', metalType:'ലോഹം',
+    clientName:'ക്ലയന്റിന്റെ പേര് *', date:'തീയതി *',
+    grossGold:'മൊത്തം സ്വർണ്ണം (ഗ്രാമിൽ) *',
+    purityPct:'ശുദ്ധി ശതമാനം *', pureGold:'ശുദ്ധ സ്വർണ്ണം',
+    actualPurity:'🔒 യഥാർത്ഥ ശുദ്ധി % (സ്വകാര്യം)',
+    actualPureGold:'🔒 യഥാർത്ഥ ശുദ്ധ സ്വർണ്ണം',
+    phone:'ഫോൺ *', note:'കുറിപ്പ് (ഓപ്ഷണൽ)',
+    saveTxn:'✓ ഇടപാട് സംരക്ഷിക്കുക', clear:'മായ്ക്കുക',
+    newTxn:'പുതിയ ഇടപാട്', txnType:'ഇടപാട് തരം *',
+    signIn:'സൈൻ ഇൻ', signOut:'സൈൻ ഔട്ട്', register:'രജിസ്റ്റർ',
+    switchAccount:'🔄 അക്കൗണ്ട് മാറ്റുക',
+    emailAddr:'ഇമെയിൽ വിലാസം', password:'പാസ്‌വേഡ്',
+    orContinue:'അല്ലെങ്കിൽ തുടരുക', continueGoogle:'Google ഉപയോഗിച്ച് തുടരുക',
+    signedInAs:'ആയി സൈൻ ഇൻ ചെയ്തു',
+    totalKaaj:'ആകെ കാജ്', totalMetal:'ആകെ ലോഹം',
+    allYears:'എല്ലാ വർഷങ്ങളും', allMonths:'എല്ലാ മാസങ്ങളും',
+    allTypes:'എല്ലാ തരങ്ങളും', allClients:'എല്ലാ ക്ലയന്റുകളും',
+    clearView:'🗑 കാഴ്ച മായ്ക്കുക', addTransaction:'➕ ഇടപാട് ചേർക്കുക',
+    selectAll:'എല്ലാം തിരഞ്ഞെടുക്കുക', deselectAll:'എല്ലാം നീക്കം ചെയ്യുക',
+    deleteClient:'🗑 ഇല്ലാതാക്കുക', editClient:'✏️ എഡിറ്റ് ചെയ്യുക',
+    back:'← തിരികെ', addGold:'+ സ്വർണ്ണം ചേർക്കുക', takeOut:'− സ്വർണ്ണം എടുക്കുക',
+    vaultHistory:'വാൾട്ട് ചരിത്രം', setBalance:'⚙️ സെറ്റ്',
+    language:'ഭാഷ',
+  },
+  pa: {
+    name:'ਪੰਜਾਬੀ', flag:'🇮🇳',
+    dashboard:'ਡੈਸ਼ਬੋਰਡ', clients:'ਗਾਹਕ', addTxn:'ਜੋੜੋ', history:'ਇਤਿਹਾਸ',
+    daybook:'ਡੇਬੁੱਕ', vault:'ਵਾਲਟ',
+    delivered:'ਦਿੱਤਾ ਗਿਆ', received:'ਪ੍ਰਾਪਤ ਹੋਇਆ', netBalance:'ਸ਼ੁੱਧ ਬਕਾਇਆ',
+    vaultBalance:'ਵਾਲਟ ਬਕਾਇਆ',
+    goToClients:'ਸਾਰੇ ਬਕਾਏ ਦੇਖਣ ਲਈ ਗਾਹਕਾਂ ਤੇ ਜਾਓ',
+    txnHistory:'ਲੈਣ-ਦੇਣ ਇਤਿਹਾਸ', noTxn:'ਅਜੇ ਤੱਕ ਕੋਈ ਲੈਣ-ਦੇਣ ਨਹੀਂ।',
+    castingType:'ਕਾਸਟਿੰਗ', metalType:'ਧਾਤ',
+    clientName:'ਗਾਹਕ ਦਾ ਨਾਮ *', date:'ਮਿਤੀ *',
+    grossGold:'ਕੁੱਲ ਸੋਨਾ (ਗ੍ਰਾਮਾਂ ਵਿੱਚ) *',
+    purityPct:'ਸ਼ੁੱਧਤਾ ਪ੍ਰਤੀਸ਼ਤ *', pureGold:'ਸ਼ੁੱਧ ਸੋਨਾ',
+    actualPurity:'🔒 ਅਸਲ ਸ਼ੁੱਧਤਾ % (ਨਿੱਜੀ)',
+    actualPureGold:'🔒 ਅਸਲ ਸ਼ੁੱਧ ਸੋਨਾ',
+    phone:'ਫੋਨ *', note:'ਨੋਟ (ਵਿਕਲਪਿਕ)',
+    saveTxn:'✓ ਲੈਣ-ਦੇਣ ਸੰਭਾਲੋ', clear:'ਸਾਫ਼ ਕਰੋ',
+    newTxn:'ਨਵਾਂ ਲੈਣ-ਦੇਣ', txnType:'ਲੈਣ-ਦੇਣ ਦੀ ਕਿਸਮ *',
+    signIn:'ਸਾਈਨ ਇਨ', signOut:'ਸਾਈਨ ਆਉਟ', register:'ਰਜਿਸਟਰ',
+    switchAccount:'🔄 ਖਾਤਾ ਬਦਲੋ',
+    emailAddr:'ਈਮੇਲ ਪਤਾ', password:'ਪਾਸਵਰਡ',
+    orContinue:'ਜਾਂ ਜਾਰੀ ਰੱਖੋ', continueGoogle:'Google ਨਾਲ ਜਾਰੀ ਰੱਖੋ',
+    signedInAs:'ਵਜੋਂ ਸਾਈਨ ਇਨ ਕੀਤਾ',
+    totalKaaj:'ਕੁੱਲ ਕਾਜ', totalMetal:'ਕੁੱਲ ਧਾਤ',
+    allYears:'ਸਾਰੇ ਸਾਲ', allMonths:'ਸਾਰੇ ਮਹੀਨੇ',
+    allTypes:'ਸਾਰੀਆਂ ਕਿਸਮਾਂ', allClients:'ਸਾਰੇ ਗਾਹਕ',
+    clearView:'🗑 ਦ੍ਰਿਸ਼ ਸਾਫ਼ ਕਰੋ', addTransaction:'➕ ਲੈਣ-ਦੇਣ ਜੋੜੋ',
+    selectAll:'ਸਾਰੇ ਚੁਣੋ', deselectAll:'ਸਾਰੇ ਹਟਾਓ',
+    deleteClient:'🗑 ਮਿਟਾਓ', editClient:'✏️ ਸੋਧੋ',
+    back:'← ਪਿੱਛੇ', addGold:'+ ਸੋਨਾ ਜੋੜੋ', takeOut:'− ਸੋਨਾ ਕੱਢੋ',
+    vaultHistory:'ਵਾਲਟ ਇਤਿਹਾਸ', setBalance:'⚙️ ਸੈੱਟ',
+    language:'ਭਾਸ਼ਾ',
+  },
+  or: {
+    name:'ଓଡ଼ିଆ', flag:'🇮🇳',
+    dashboard:'ଡ୍ୟାସବୋର୍ଡ', clients:'ଗ୍ରାହକ', addTxn:'ଯୋଡ଼ନ୍ତୁ', history:'ଇତିହାସ',
+    daybook:'ଡାଇବୁକ', vault:'ଭଲ୍ଟ',
+    delivered:'ପ୍ରଦାନ କରାଗଲା', received:'ପ୍ରାପ୍ତ', netBalance:'ନିଟ୍ ବାଲାନ୍ସ',
+    vaultBalance:'ଭଲ୍ଟ ବାଲାନ୍ସ',
+    goToClients:'ସମସ୍ତ ବାଲାନ୍ସ ଦେଖିବାକୁ ଗ୍ରାହକଙ୍କ ନିକଟକୁ ଯାଆନ୍ତୁ',
+    txnHistory:'କାରବାର ଇତିହାସ', noTxn:'ଏପର୍ଯ୍ୟନ୍ତ କୌଣସି କାରବାର ନାହିଁ।',
+    castingType:'କାଷ୍ଟିଂ', metalType:'ଧାତୁ',
+    clientName:'ଗ୍ରାହକଙ୍କ ନାମ *', date:'ତାରିଖ *',
+    grossGold:'ମୋଟ ସୁନା (ଗ୍ରାମରେ) *',
+    purityPct:'ଶୁଦ୍ଧତା ଶତକଡ଼ା *', pureGold:'ଶୁଦ୍ଧ ସୁନା',
+    actualPurity:'🔒 ପ୍ରକୃତ ଶୁଦ୍ଧତା % (ବ୍ୟକ୍ତିଗତ)',
+    actualPureGold:'🔒 ପ୍ରକୃତ ଶୁଦ୍ଧ ସୁନା',
+    phone:'ଫୋନ *', note:'ଟିପ୍ପଣୀ (ବୈକଳ୍ପିକ)',
+    saveTxn:'✓ କାରବାର ସେଭ୍ କରନ୍ତୁ', clear:'ସଫା କରନ୍ତୁ',
+    newTxn:'ନୂତନ କାରବାର', txnType:'କାରବାର ପ୍ରକାର *',
+    signIn:'ସାଇନ୍ ଇନ୍', signOut:'ସାଇନ୍ ଆଉଟ୍', register:'ପଞ୍ଜିକରଣ',
+    switchAccount:'🔄 ଖାତା ବଦଳାନ୍ତୁ',
+    emailAddr:'ଇମେଲ ଠିକଣା', password:'ପାସୱାର୍ଡ',
+    orContinue:'କିମ୍ବା ଜାରି ରଖନ୍ତୁ', continueGoogle:'Google ସହିତ ଜାରି ରଖନ୍ତୁ',
+    signedInAs:'ଭାବରେ ସାଇନ୍ ଇନ୍ ହୋଇଛି',
+    totalKaaj:'ମୋଟ କାଜ', totalMetal:'ମୋଟ ଧାତୁ',
+    allYears:'ସମସ୍ତ ବର୍ଷ', allMonths:'ସମସ୍ତ ମାସ',
+    allTypes:'ସମସ୍ତ ପ୍ରକାର', allClients:'ସମସ୍ତ ଗ୍ରାହକ',
+    clearView:'🗑 ଦୃଶ୍ୟ ସଫା କରନ୍ତୁ', addTransaction:'➕ କାରବାର ଯୋଡ଼ନ୍ତୁ',
+    selectAll:'ସମସ୍ତ ବାଛନ୍ତୁ', deselectAll:'ସମସ୍ତ ହଟାନ୍ତୁ',
+    deleteClient:'🗑 ଡିଲିଟ୍ କରନ୍ତୁ', editClient:'✏️ ସମ୍ପାଦନା କରନ୍ତୁ',
+    back:'← ପଛକୁ', addGold:'+ ସୁନା ଯୋଡ଼ନ୍ତୁ', takeOut:'− ସୁନା ବାହାର କରନ୍ତୁ',
+    vaultHistory:'ଭଲ୍ଟ ଇତିହାସ', setBalance:'⚙️ ସେଟ୍',
+    language:'ଭାଷା',
+  },
+  ur: {
+    name:'اردو', flag:'🇮🇳',
+    dashboard:'ڈیش بورڈ', clients:'گاہک', addTxn:'شامل کریں', history:'تاریخ',
+    daybook:'روزنامچہ', vault:'والٹ',
+    delivered:'دیا گیا', received:'موصول ہوا', netBalance:'خالص بیلنس',
+    vaultBalance:'والٹ بیلنس',
+    goToClients:'تمام بیلنس دیکھنے کے لیے گاہکوں کے پاس جائیں',
+    txnHistory:'لین دین کی تاریخ', noTxn:'ابھی تک کوئی لین دین نہیں۔',
+    castingType:'کاسٹنگ', metalType:'دھات',
+    clientName:'گاہک کا نام *', date:'تاریخ *',
+    grossGold:'کل سونا (گرام میں) *',
+    purityPct:'خالصیت فیصد *', pureGold:'خالص سونا',
+    actualPurity:'🔒 اصل خالصیت % (نجی)',
+    actualPureGold:'🔒 اصل خالص سونا',
+    phone:'فون *', note:'نوٹ (اختیاری)',
+    saveTxn:'✓ لین دین محفوظ کریں', clear:'صاف کریں',
+    newTxn:'نیا لین دین', txnType:'لین دین کی قسم *',
+    signIn:'سائن ان', signOut:'سائن آؤٹ', register:'رجسٹر',
+    switchAccount:'🔄 اکاؤنٹ تبدیل کریں',
+    emailAddr:'ای میل پتہ', password:'پاس ورڈ',
+    orContinue:'یا جاری رکھیں', continueGoogle:'Google کے ساتھ جاری رکھیں',
+    signedInAs:'کے طور پر سائن ان',
+    totalKaaj:'کل کاج', totalMetal:'کل دھات',
+    allYears:'تمام سال', allMonths:'تمام مہینے',
+    allTypes:'تمام اقسام', allClients:'تمام گاہک',
+    clearView:'🗑 منظر صاف کریں', addTransaction:'➕ لین دین شامل کریں',
+    selectAll:'سب منتخب کریں', deselectAll:'سب ہٹائیں',
+    deleteClient:'🗑 حذف کریں', editClient:'✏️ ترمیم کریں',
+    back:'← واپس', addGold:'+ سونا شامل کریں', takeOut:'− سونا نکالیں',
+    vaultHistory:'والٹ تاریخ', setBalance:'⚙️ سیٹ',
+    language:'زبان',
   }
 };
 
@@ -3148,6 +3420,7 @@ function setLang(lang){
   renderDashboard();
   if(typeof renderClients==='function') renderClients();
   updateLangButtons();
+  renderSettingsLangGrid();
 }
 
 function applyLang(){
@@ -3201,39 +3474,78 @@ function applyLang(){
 
 function updateLangButtons(){
   document.querySelectorAll('.lang-btn').forEach(btn=>{
-    btn.style.fontWeight = btn.getAttribute('data-lang')===currentLang?'700':'400';
-    btn.style.background = btn.getAttribute('data-lang')===currentLang?'var(--gold-mid)':'transparent';
-    btn.style.color = btn.getAttribute('data-lang')===currentLang?'#fff':'var(--text)';
+    const active = btn.getAttribute('data-lang')===currentLang;
+    btn.style.fontWeight = active?'700':'400';
+    btn.style.background = active?'var(--gold-mid)':'var(--card)';
+    btn.style.color = active?'#fff':'var(--text)';
+    btn.style.borderColor = active?'var(--gold-mid)':'var(--border)';
   });
 }
 
-function langPickerHTML(){
-  return `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px">🌐 Language</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px">
-      ${Object.entries(LANGS).map(([code,l])=>`
-        <button class="lang-btn" data-lang="${code}" onclick="setLang('${code}')"
-          style="padding:5px 10px;border:1.5px solid var(--border);border-radius:20px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;background:${code===currentLang?'var(--gold-mid)':'transparent'};color:${code===currentLang?'#fff':'var(--text)'};font-weight:${code===currentLang?'700':'400'}">
-          ${l.flag} ${l.name}
-        </button>`).join('')}
-    </div>
-  </div>`;
+function renderSettingsLangGrid(){
+  const grid=document.getElementById('settings-lang-grid');
+  if(!grid)return;
+  grid.innerHTML = Object.entries(LANGS).map(([code,l])=>{
+    const active = code===currentLang;
+    return `<button class="lang-btn" data-lang="${code}" onclick="setLang('${code}')"
+      style="display:flex;align-items:center;gap:8px;padding:12px 14px;border:1.5px solid ${active?'var(--gold-mid)':'var(--border)'};border-radius:var(--rs);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;background:${active?'var(--gold-mid)':'var(--card)'};color:${active?'#fff':'var(--text)'};font-weight:${active?'700':'500'};box-shadow:var(--shadow-sm);text-align:left">
+      <span style="font-size:18px">${l.flag}</span> ${l.name}
+    </button>`;
+  }).join('');
 }
-function openLangPicker(){
-  // Update the picker in auth modal and open it
-  const picker=document.getElementById('auth-lang-picker');
-  if(picker) picker.innerHTML=langPickerHTML();
-  openAuthModal();
+
+/* ══════════════════════════════════════════════
+   THEME (Light / Dark / System)
+══════════════════════════════════════════════ */
+let themeMode = 'system'; // 'light' | 'dark' | 'system'
+
+function applyResolvedTheme(){
+  let resolved = themeMode;
+  if(themeMode === 'system'){
+    resolved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', resolved);
+  // Update theme-color meta for native browser chrome
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', resolved==='dark' ? '#16140F' : '#B8860B');
+}
+
+function setThemeMode(mode){
+  themeMode = mode;
+  try{localStorage.setItem('gold_ledger_theme', mode);}catch(e){}
+  applyResolvedTheme();
+  updateThemeButtons();
+}
+
+function updateThemeButtons(){
+  document.querySelectorAll('.theme-opt').forEach(btn=>{
+    const active = btn.getAttribute('data-theme-val')===themeMode;
+    btn.style.borderColor = active ? 'var(--gold-mid)' : 'var(--border)';
+    btn.style.background = active ? 'var(--gold-bg)' : 'var(--card)';
+    btn.style.boxShadow = active ? '0 0 0 3px rgba(212,160,23,0.18)' : 'var(--shadow-sm)';
+  });
+}
+
+// React to system theme changes live, only when in 'system' mode
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+    if(themeMode==='system') applyResolvedTheme();
+  });
 }
 
 /* ── INIT ───────────────────────────────── */
+// Load saved theme preference
+try{const st=localStorage.getItem('gold_ledger_theme');if(st)themeMode=st;}catch(e){}
+applyResolvedTheme();
 // Load saved language preference
 try{const sl=localStorage.getItem('gold_ledger_lang');if(sl&&LANGS[sl])currentLang=sl;}catch(e){}
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
-// Apply language after DOM ready
-setTimeout(()=>{applyLang();updateLangButtons();
-  const picker=document.getElementById('auth-lang-picker');
-  if(picker) picker.innerHTML=langPickerHTML();
+// Apply language and theme buttons after DOM ready
+setTimeout(()=>{
+  applyLang();
+  updateLangButtons();
+  updateThemeButtons();
+  renderSettingsLangGrid();
 }, 100);
 updateAuthButton(); // shows Sign In by default; onAuthStateChanged will update if already logged in
 // Show login screen on first open if not signed in and not a guest yet
