@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Gold Ledger</title>
+<title>Gold Ledger – Sone Ka Hisaab</title>
 <meta name="theme-color" content="#B8860B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Gold Ledger">
@@ -1265,10 +1265,40 @@ select {
         <!-- Vault balance card -->
         <div id="vault-total" style="margin-bottom:14px"></div>
 
-        <!-- Add/Take out buttons -->
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <button onclick="openVaultEntry('add')" style="flex:1;padding:11px;border:none;border-radius:var(--rs);background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">+ Add Gold</button>
-          <button onclick="openVaultEntry('out')" style="flex:1;padding:11px;border:none;border-radius:var(--rs);background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">− Take Out Gold</button>
+        <!-- Add/Take out — inline entry panel -->
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button id="vault-add-tab" onclick="openInlineVault('add')" style="flex:1;padding:11px;border:2px solid var(--green);border-radius:var(--rs);background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">+ Add Gold</button>
+          <button id="vault-out-tab" onclick="openInlineVault('out')" style="flex:1;padding:11px;border:2px solid var(--red);border-radius:var(--rs);background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">− Take Out</button>
+        </div>
+
+        <!-- Inline input panel -->
+        <div id="vault-inline-panel" style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px;display:block">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px" id="vault-inline-label">+ Adding Gold to Vault</div>
+
+          <!-- Amount input with big keyboard-friendly style -->
+          <div style="position:relative;margin-bottom:10px">
+            <input type="number" id="vault-inline-amount"
+              placeholder="0.000"
+              min="0.001" step="0.001"
+              inputmode="decimal"
+              oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./,'$1');updateVaultPreview()"
+              style="width:100%;padding:14px 52px 14px 16px;font-size:22px;font-weight:700;font-family:'DM Sans',sans-serif;border:2px solid var(--green);border-radius:10px;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;transition:border-color .2s">
+            <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--muted)">g</span>
+          </div>
+
+          <!-- Live preview -->
+          <div id="vault-inline-preview" style="display:none;background:var(--gold-bg);border:1.5px solid var(--gold-border);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--gold-dark);margin-bottom:10px;line-height:1.8"></div>
+
+          <!-- Note input -->
+          <input type="text" id="vault-inline-note"
+            placeholder="Note (optional) — e.g. Stock purchase"
+            style="width:100%;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;margin-bottom:12px">
+
+          <!-- Action button -->
+          <button id="vault-inline-save" onclick="saveInlineVaultEntry()"
+            style="width:100%;padding:13px;border:none;border-radius:var(--rs);background:var(--green);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:0.3px">
+            + Add to Vault
+          </button>
         </div>
 
         <!-- Date filter -->
@@ -2858,45 +2888,82 @@ window.addEventListener('user-signed-out', ()=>{
   showLoginScreen();
 });
 
-/* ── VAULT ENTRY (manual add/take out) ───────── */
+/* ── VAULT ENTRY — inline panel ─────────────── */
 let _vaultEntryMode = 'add';
-function openVaultEntry(mode){
+
+function openInlineVault(mode){
   _vaultEntryMode = mode;
-  document.getElementById('vault-entry-title').textContent = mode==='add' ? '+ Add Gold to Vault' : '− Take Out Gold from Vault';
-  document.getElementById('vault-entry-save-btn').textContent = mode==='add' ? '+ Add' : '− Take Out';
-  document.getElementById('vault-entry-save-btn').style.background = mode==='add' ? 'var(--green)' : 'var(--red)';
-  document.getElementById('vault-entry-amount').value='';
-  document.getElementById('vault-entry-note').value='';
-  document.getElementById('vault-entry-overlay').style.display='block';
-  document.getElementById('vault-entry-modal').style.display='block';
-  setTimeout(()=>document.getElementById('vault-entry-amount').focus(),100);
+  const isAdd = mode === 'add';
+  const color  = isAdd ? 'var(--green)' : 'var(--red)';
+  const bgAdd  = isAdd ? 'var(--green)' : 'transparent';
+  const bgOut  = isAdd ? 'transparent'  : 'var(--red)';
+  const colAdd = isAdd ? '#fff'          : 'var(--green)';
+  const colOut = isAdd ? 'var(--red)'   : '#fff';
+
+  // Toggle tab styles
+  const addTab = document.getElementById('vault-add-tab');
+  const outTab = document.getElementById('vault-out-tab');
+  if(addTab){ addTab.style.background=bgAdd; addTab.style.color=colAdd; }
+  if(outTab){ outTab.style.background=bgOut; outTab.style.color=colOut; }
+
+  // Update panel label, input border, save button
+  const lbl  = document.getElementById('vault-inline-label');
+  const inp  = document.getElementById('vault-inline-amount');
+  const btn  = document.getElementById('vault-inline-save');
+  if(lbl) lbl.textContent = isAdd ? '+ Adding Gold to Vault' : '− Removing Gold from Vault';
+  if(inp){ inp.style.borderColor = color; inp.value=''; inp.focus(); }
+  if(btn){ btn.textContent = isAdd ? '+ Add to Vault' : '− Take Out from Vault'; btn.style.background = color; }
+
+  // Reset preview
+  const prev = document.getElementById('vault-inline-preview');
+  if(prev){ prev.style.display='none'; prev.textContent=''; }
+  const noteEl = document.getElementById('vault-inline-note');
+  if(noteEl) noteEl.value='';
 }
-function closeVaultEntry(){
-  document.getElementById('vault-entry-overlay').style.display='none';
-  document.getElementById('vault-entry-modal').style.display='none';
+
+function updateVaultPreview(){
+  const inp  = document.getElementById('vault-inline-amount');
+  const prev = document.getElementById('vault-inline-preview');
+  if(!inp||!prev) return;
+  const amount = parseFloat(inp.value);
+  if(!amount||amount<=0){ prev.style.display='none'; return; }
+  const cur  = db.vaultBalance||0;
+  const next = Math.round((cur + (_vaultEntryMode==='add'?amount:-amount))*1000)/1000;
+  const sign = _vaultEntryMode==='add' ? '+' : '−';
+  prev.style.display='block';
+  prev.innerHTML = `Current Balance: <b>${cur.toFixed(3)} g</b><br>${sign} <b>${amount.toFixed(3)} g</b><br>New Balance: <b>${next.toFixed(3)} g</b>`;
 }
-function saveVaultEntry(){
-  const amount=parseFloat(document.getElementById('vault-entry-amount').value);
-  const note=(document.getElementById('vault-entry-note').value||'').trim();
-  if(!amount||amount<=0){alert('Please enter a valid gold amount.');return;}
-  if(!db.vaultBalance)db.vaultBalance=0;
-  if(!db.vaultLog)db.vaultLog=[];
+
+function saveInlineVaultEntry(){
+  const amount = parseFloat((document.getElementById('vault-inline-amount')||{}).value);
+  const note   = ((document.getElementById('vault-inline-note')||{}).value||'').trim();
+  if(!amount||amount<=0){ showToast('⚠️ Enter a valid gold amount'); return; }
+  if(!db.vaultBalance) db.vaultBalance=0;
+  if(!db.vaultLog)     db.vaultLog=[];
   const delta = _vaultEntryMode==='add' ? amount : -amount;
-  db.vaultBalance=Math.round((db.vaultBalance+delta)*1000)/1000;
+  db.vaultBalance = Math.round((db.vaultBalance+delta)*1000)/1000;
   db.vaultLog.push({
     clientName: _vaultEntryMode==='add' ? '(Manual Add)' : '(Manual Withdrawal)',
-    date: todayStr(),
-    note, type: _vaultEntryMode,
+    date: todayStr(), note, type: _vaultEntryMode,
     grams: amount, actualPureGold: amount, delta,
     balanceAfter: db.vaultBalance,
     _seq: getNextSeq(), manual: true
   });
-  save();
-  closeVaultEntry();
-  renderVault();
-  renderDashboard();
+  save(); renderVault(); renderDashboard();
   showToast(_vaultEntryMode==='add' ? 'Gold added to Vault ✓' : 'Gold removed from Vault ✓');
+  // Reset input
+  const inp  = document.getElementById('vault-inline-amount');
+  const prev = document.getElementById('vault-inline-preview');
+  const note2= document.getElementById('vault-inline-note');
+  if(inp)  { inp.value=''; inp.focus(); }
+  if(prev) prev.style.display='none';
+  if(note2) note2.value='';
 }
+
+// Legacy stubs so any old references don't crash
+function openVaultEntry(mode){ openInlineVault(mode); }
+function closeVaultEntry(){}
+function saveVaultEntry(){ saveInlineVaultEntry(); }
 
 function clearVaultView(){
   if(!confirm('This will hide all current vault entries from view. Your vault balance will remain unchanged. Continue?'))return;
