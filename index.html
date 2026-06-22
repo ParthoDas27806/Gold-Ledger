@@ -1281,7 +1281,7 @@ select {
               placeholder="0.000"
               min="0.001" step="0.001"
               inputmode="decimal"
-              oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./,'$1');updateVaultPreview()"
+              oninput="updateVaultPreview()"
               style="width:100%;padding:14px 52px 14px 16px;font-size:22px;font-weight:700;font-family:'DM Sans',sans-serif;border:2px solid var(--green);border-radius:10px;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;transition:border-color .2s">
             <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:700;color:var(--muted)">g</span>
           </div>
