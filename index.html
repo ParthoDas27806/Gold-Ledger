@@ -296,10 +296,11 @@ select {
 .txn-grams.received,.txn-grams.payment { color: var(--red); }
 .txn-del { background: none; border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); cursor: pointer; padding: 3px 8px; font-size: 12px; font-weight: 600; }
 .txn-item { transition: background 0.15s; cursor: pointer; }
-.txn-item.selected { background: #E8F4E8 !important; border-color: #25D366 !important; }
+.txn-item.selected { background: #DFF5E4 !important; border-color: #25D366 !important; }
+[data-theme="dark"] .txn-item.selected { background: #162A1C !important; border-color: #25D366 !important; }
 .txn-circle {
   width: 22px; height: 22px; border-radius: 50%;
-  border: 2px solid #C0B090; background: #fff;
+  border: 2px solid var(--gold-border); background: var(--surface);
   flex-shrink: 0; transition: all 0.15s;
   display: flex; align-items: center; justify-content: center;
 }
@@ -459,8 +460,8 @@ select {
   margin-bottom: 11px;
   box-shadow: 0 3px 12px rgba(184,134,11,0.08);
 }
-.calc-title { font-size: 15px; font-family: 'DM Sans',sans-serif; color: var(--gold-dark); margin-bottom: 2px; }
-.calc-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+.calc-title { font-size: 15px; font-family: 'DM Sans',sans-serif; color: var(--text); margin-bottom: 2px; }
+.calc-subtitle { font-size: 12px; color: var(--text); opacity: 0.85; margin-bottom: 12px; }
 
 /* Weight input row: gram + mg */
 .weight-row { display: flex; align-items: center; gap: 8px; }
@@ -736,6 +737,80 @@ select {
 .hist-txn-grams.delivered { color: var(--green); }
 .hist-txn-grams.received { color: var(--red); }
 .hist-txn-mg { font-size: 10px; color: var(--hint); margin-top: 1px; }
+/* ── Auth error base ───────────────────────── */
+.auth-error { background:#FCEBEB; border:1.5px solid #F09595; color:#A32D2D; }
+
+/* ════════════════════════════════════════════
+   DARK MODE OVERRIDES  (Gold Ledger v2)
+   ════════════════════════════════════════════ */
+
+/* ── All popup modals ─────────────────────── */
+[data-theme="dark"] #vault-entry-modal,
+[data-theme="dark"] #vault-bal-modal,
+[data-theme="dark"] #auth-modal,
+[data-theme="dark"] #wa-modal {
+  background: var(--card) !important;
+  color: var(--text);
+}
+/* Login screen inner card */
+[data-theme="dark"] #login-screen > div {
+  background: var(--card) !important;
+  color: var(--text);
+}
+/* Auth error — dark */
+[data-theme="dark"] .auth-error {
+  background: var(--red-bg) !important;
+  border-color: var(--red-border) !important;
+  color: var(--red) !important;
+}
+/* WA modal text */
+[data-theme="dark"] .wa-modal-title { color: var(--text) !important; }
+[data-theme="dark"] .wa-modal-sub   { color: var(--muted) !important; }
+[data-theme="dark"] #wa-msg {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+/* Transaction multi-select highlight */
+[data-theme="dark"] .txn-item.selected {
+  background: #162A1C !important;
+  border-color: #25D366 !important;
+}
+/* ── Calc-card inner sections ────────────── */
+.calc-section-pub {
+  background: rgba(255,255,255,0.93);
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+}
+[data-theme="dark"] .calc-section-pub {
+  background: rgba(255,255,255,0.07);
+}
+.calc-pub-label {
+  font-size: 10px; font-weight: 700; color: #1A5200;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
+}
+[data-theme="dark"] .calc-pub-label { color: #6ADE80; }
+
+.calc-section-priv {
+  margin-top: 14px;
+  background: rgba(255,255,255,0.90);
+  border: 1.5px dashed #7A5A00;
+  border-radius: 10px;
+  padding: 12px;
+}
+[data-theme="dark"] .calc-section-priv {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--gold-border);
+}
+.calc-priv-label {
+  font-size: 10px; font-weight: 700; color: #5A3A00;
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
+}
+[data-theme="dark"] .calc-priv-label { color: var(--gold-mid); }
+
 </style>
   <!-- Firebase SDK with Authentication -->
   <script type="module">
@@ -1012,10 +1087,8 @@ select {
             <div class="calc-subtitle">Enter gross gold &amp; purity to auto-calculate pure gold</div>
 
             <!-- ── Section 1: Client-facing values ── -->
-            <div style="background:rgba(255,255,255,0.55);border-radius:10px;padding:12px;margin-top:12px">
-              <div style="font-size:10px;font-weight:700;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px">
-                👁️ Visible to Client
-              </div>
+            <div class="calc-section-pub">
+              <div class="calc-pub-label">👁️ Visible to Client</div>
 
               <!-- Gross Gold -->
               <div class="field">
@@ -1048,10 +1121,8 @@ select {
             </div>
 
             <!-- ── Section 2: Private vault tracking — Casting only ── -->
-            <div id="actual-purity-field" style="margin-top:14px;background:rgba(122,90,0,0.06);border:1.5px dashed var(--gold-border);border-radius:10px;padding:12px">
-              <div style="font-size:10px;font-weight:700;color:var(--gold-dark);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:5px">
-                🔒 Private — Only You See This
-              </div>
+            <div id="actual-purity-field" class="calc-section-priv">
+              <div class="calc-priv-label">🔒 Private — Only You See This</div>
               <div class="field" style="margin-bottom:0">
                 <label>Actual Purity Percentage</label>
                 <div class="purity-row">
@@ -1310,7 +1381,7 @@ select {
 </div>
 
 <div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;background:linear-gradient(160deg,#5A3E00 0%,#B8860B 60%,#D4A017 100%);align-items:center;justify-content:center;padding:20px;flex-direction:column">
-  <div style="background:#fff;border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+  <div style="background:var(--card);border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
     <div style="text-align:center;margin-bottom:18px">
       <img src="icons/logo.png?v=2" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:10px" onerror="this.outerHTML='<div style=\'width:64px;height:64px;border-radius:50%;background:var(--gold-mid);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 10px\'>⚖️</div>'">
       <div style="font-size:20px;font-weight:700;color:var(--gold-dark)">Gold Ledger</div>
@@ -1319,7 +1390,7 @@ select {
 
     <div class="auth-tabs" style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
       <button class="auth-tab" id="ls-tab-signin" onclick="lsSwitchTab('signin')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--gold-mid);color:#fff;font-family:'DM Sans',sans-serif;">Sign In</button>
-      <button class="auth-tab" id="ls-tab-register" onclick="lsSwitchTab('register')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#fff;color:var(--muted);font-family:'DM Sans',sans-serif;">Register</button>
+      <button class="auth-tab" id="ls-tab-register" onclick="lsSwitchTab('register')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;">Register</button>
     </div>
 
     <div id="ls-form-signin">
@@ -1327,7 +1398,7 @@ select {
       <div class="field"><label>Password</label><input type="password" id="ls-si-pass" placeholder="••••••••"></div>
       <button class="btn btn-gold" style="width:100%" onclick="lsSignIn()">Sign In</button>
       <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or continue with</div>
-      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Continue with Google
       </button>
@@ -1339,18 +1410,18 @@ select {
       <div class="field"><label>Password</label><input type="password" id="ls-reg-pass" placeholder="Min 6 characters"></div>
       <button class="btn btn-gold" style="width:100%" onclick="lsRegister()">Create Account</button>
       <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or continue with</div>
-      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Continue with Google
       </button>
     </div>
 
-    <div class="auth-error" id="ls-error" style="display:none;background:#FCEBEB;border:1.5px solid #F09595;border-radius:8px;padding:9px 12px;font-size:13px;color:#A32D2D;margin-top:10px"></div>
+    <div class="auth-error" id="ls-error" style="display:none;border-radius:8px;padding:9px 12px;font-size:13px;margin-top:10px"></div>
 
   </div>
 </div>
 <div id="vault-entry-overlay" onclick="closeVaultEntry()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
-<div id="vault-entry-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+<div id="vault-entry-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
   <div class="modal-header">
     <div class="modal-title" id="vault-entry-title">Add Gold to Vault</div>
     <button class="modal-close" onclick="closeVaultEntry()">✕</button>
@@ -1370,7 +1441,7 @@ select {
 </div>
 
 <div id="vault-bal-overlay" onclick="closeSetVaultBalance()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
-<div id="vault-bal-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+<div id="vault-bal-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
   <div style="font-size:17px;font-weight:600;color:var(--gold-dark);margin-bottom:4px">⚙️ Set Vault Balance</div>
   <div style="font-size:12px;color:var(--hint);margin-bottom:14px">Enter how much pure gold (in grams) you currently have. This sets your starting point — future Casting/Metal transactions will adjust from here.</div>
   <div class="field">
@@ -1378,12 +1449,12 @@ select {
     <input type="number" id="vault-bal-input" placeholder="e.g. 250.000" step="0.001">
   </div>
   <div style="display:flex;gap:8px;margin-top:12px">
-    <button onclick="closeSetVaultBalance()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
+    <button onclick="closeSetVaultBalance()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
     <button onclick="saveVaultBalance()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--gold-mid);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">Save</button>
   </div>
 </div>
 <div id="auth-overlay" onclick="closeAuthModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
-<div id="auth-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:18px;padding:24px;width:calc(100% - 32px);max-width:380px;z-index:2001;box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+<div id="auth-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:18px;padding:24px;width:calc(100% - 32px);max-width:380px;z-index:2001;box-shadow:0 10px 40px rgba(0,0,0,0.25)">
   <div style="text-align:center;margin-bottom:16px">
     <div style="width:56px;height:56px;border-radius:50%;background:var(--gold-mid);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px">⚖️</div>
     <div style="font-size:18px;font-weight:600;color:var(--gold-dark)">Gold Ledger</div>
@@ -1393,14 +1464,14 @@ select {
   <div id="auth-signed-in-view" style="display:none;text-align:center">
     <div style="font-size:14px;color:var(--text);margin-bottom:4px">Signed in as</div>
     <div id="auth-user-name" style="font-size:16px;font-weight:600;color:var(--gold-dark);margin-bottom:16px"></div>
-    <button onclick="doSwitchAccount()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">🔄 Switch Account</button>
-    <button onclick="doSignOut()" style="width:100%;padding:12px;border:1.5px solid var(--red-border);border-radius:var(--rs);background:#fff;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">Sign Out</button>
+    <button onclick="doSwitchAccount()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">🔄 Switch Account</button>
+    <button onclick="doSignOut()" style="width:100%;padding:12px;border:1.5px solid var(--red-border);border-radius:var(--rs);background:var(--red-bg);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">Sign Out</button>
   </div>
 
   <div id="auth-signin-view">
     <div class="auth-tabs" style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
       <button class="auth-tab active" id="tab-signin" onclick="switchAuthTab('signin')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--gold-mid);color:#fff;font-family:'DM Sans',sans-serif;">Sign In</button>
-      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:#fff;color:var(--muted);font-family:'DM Sans',sans-serif;">Register</button>
+      <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;">Register</button>
     </div>
 
     <div id="form-signin">
@@ -1408,7 +1479,7 @@ select {
       <div class="field"><label>Password</label><input type="password" id="si-pass" placeholder="Your password"></div>
       <button class="btn btn-gold" style="width:100%" onclick="doSignIn()">Sign In</button>
       <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or</div>
-      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Continue with Google
       </button>
@@ -1420,24 +1491,24 @@ select {
       <div class="field"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters"></div>
       <button class="btn btn-gold" style="width:100%" onclick="doRegister()">Create Account</button>
       <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or</div>
-      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:#fff;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">
+      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);">
         <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Continue with Google
       </button>
     </div>
 
-    <div class="auth-error" id="auth-error" style="display:none;background:#FCEBEB;border:1.5px solid #F09595;border-radius:8px;padding:9px 12px;font-size:13px;color:#A32D2D;margin-top:10px"></div>
+    <div class="auth-error" id="auth-error" style="display:none;border-radius:8px;padding:9px 12px;font-size:13px;margin-top:10px"></div>
   </div>
 
   <button onclick="closeAuthModal()" style="width:100%;margin-top:12px;padding:10px;border:none;background:none;color:var(--hint);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Close</button>
 </div>
 <div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
-<div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:1001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
-  <div style="font-size:17px;font-family:'DM Sans',sans-serif;color:#1A1208;margin-bottom:4px">📲 Share on WhatsApp</div>
-  <div style="font-size:12px;color:#888;margin-bottom:14px">Preview the message before sending</div>
-  <textarea id="wa-msg" style="width:100%;height:180px;border:1.5px solid #E8DFC0;border-radius:8px;padding:10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;color:#1A1208;background:#FFFDF7;line-height:1.6"></textarea>
+<div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:1001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+  <div class="wa-modal-title" style="font-size:17px;font-family:'DM Sans',sans-serif;color:var(--text);margin-bottom:4px">📲 Share on WhatsApp</div>
+  <div class="wa-modal-sub" style="font-size:12px;color:var(--muted);margin-bottom:14px">Preview the message before sending</div>
+  <textarea id="wa-msg" style="width:100%;height:180px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;color:var(--text);background:var(--surface);line-height:1.6"></textarea>
   <div style="display:flex;gap:8px;margin-top:12px">
-    <button onclick="closeWaModal()" style="flex:1;padding:11px;border:1.5px solid #E8DFC0;border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
+    <button onclick="closeWaModal()" style="flex:1;padding:11px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer">Cancel</button>
     <button onclick="sendWhatsApp()" style="flex:1;padding:11px;border:none;border-radius:8px;background:#25D366;color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">Send WhatsApp</button>
   </div>
 </div>
@@ -2065,14 +2136,19 @@ function selectType(type){
   const badge=document.getElementById('calc-type-badge');
   const resultTag=document.getElementById('calc-result-type-tag');
 
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
   if(type==='delivered'){
-    calcCard.style.background='linear-gradient(135deg,#C8D8F5,#9DB8E8)';
-    calcCard.style.borderColor='#153E7A';
+    calcCard.style.background=isDark
+      ?'linear-gradient(135deg,#152035,#1A2A45)'
+      :'linear-gradient(135deg,#C8D8F5,#9DB8E8)';
+    calcCard.style.borderColor=isDark?'#2A4A7A':'#153E7A';
     if(badge){badge.textContent='Casting'; badge.style.background='var(--blue)';}
     if(resultTag) resultTag.textContent='(gold given to client)';
   }else{
-    calcCard.style.background='linear-gradient(135deg,#CFE8CF,#A8D5A8)';
-    calcCard.style.borderColor='#1F5F24';
+    calcCard.style.background=isDark
+      ?'linear-gradient(135deg,#152518,#1A2E1F)'
+      :'linear-gradient(135deg,#CFE8CF,#A8D5A8)';
+    calcCard.style.borderColor=isDark?'#2D5A3A':'#1F5F24';
     if(badge){badge.textContent='Metal'; badge.style.background='var(--green)';}
     if(resultTag) resultTag.textContent='(gold received from client)';
   }
