@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Gold Ledger – Sone Ka Hisaab</title>
+<title>Gold Ledger</title>
 <meta name="theme-color" content="#B8860B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Gold Ledger">
@@ -901,10 +901,18 @@ select {
       if(user){
         currentUserId = user.uid;
         window.currentUser = { uid:user.uid, name:user.displayName||user.email, email:user.email };
+        // Cache for instant display on next load
+        try{ localStorage.setItem('gl_user_name', user.displayName||user.email||'');
+             localStorage.setItem('gl_user_uid', user.uid); }catch(e){}
         window.dispatchEvent(new Event('user-signed-in'));
       } else {
         currentUserId = null;
         window.currentUser = null;
+        // Only clear cache if there was a deliberate sign-out (not just loading)
+        if(window._glSigningOut){
+          try{ localStorage.removeItem('gl_user_name');
+               localStorage.removeItem('gl_user_uid'); }catch(e){}
+        }
         window.dispatchEvent(new Event('user-signed-out'));
       }
     });
@@ -2801,6 +2809,8 @@ function doSwitchAccount(){
 }
 function doSignOut(){
   if(!confirm('Sign out? Your client data will be cleared from this device and only visible after signing in again.'))return;
+  window._glSigningOut = true;
+  try{ localStorage.removeItem('gl_user_name'); localStorage.removeItem('gl_user_uid'); }catch(e){}
   window.authSignOut();
 }
 function updateAuthModalView(){
@@ -3645,7 +3655,20 @@ setTimeout(()=>{
   updateThemeButtons();
   renderSettingsLangGrid();
 }, 100);
-updateAuthButton(); // shows Sign In by default; onAuthStateChanged will update if already logged in
+// ── Instant auth button from cache (no Firebase delay) ──────
+(function(){
+  try{
+    const cachedName = localStorage.getItem('gl_user_name');
+    if(cachedName){
+      const btn  = document.getElementById('auth-btn');
+      const btnD = document.getElementById('auth-btn-desktop');
+      const short = cachedName.length > 10 ? cachedName.slice(0,9)+'\u2026' : cachedName;
+      if(btn) { btn.textContent='👤 '+short; btn.style.background='var(--green)'; }
+      if(btnD){ btnD.textContent='👤 '+short; btnD.style.background='var(--green)'; }
+    }
+  }catch(e){}
+})();
+updateAuthButton(); // will confirm/correct once Firebase resolves
 // Show login screen on first open if not signed in and not a guest yet
 </script>
 </body>
