@@ -753,10 +753,7 @@ select {
   color: var(--text);
 }
 /* Login screen inner card */
-[data-theme="dark"] #login-screen > div {
-  background: var(--card) !important;
-  color: var(--text);
-}
+/* dark mode login card handled by light design */
 /* Auth error — dark */
 [data-theme="dark"] .auth-error {
   background: var(--red-bg) !important;
@@ -1418,44 +1415,432 @@ select {
   </div>
 </div>
 
-<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;background:linear-gradient(160deg,#5A3E00 0%,#B8860B 60%,#D4A017 100%);align-items:center;justify-content:center;padding:20px;flex-direction:column">
-  <div style="background:var(--card);border-radius:20px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+<!-- ═══════════════ ANIMATED LOGIN SCREEN ═══════════════ -->
+<style>
+/* ════ LOGIN SCREEN — SUITCASE ANIMATION ════ */
+#login-screen {
+  background: linear-gradient(145deg,#6B4200 0%,#C68B00 45%,#A06800 100%);
+  overflow: hidden;
+}
+
+/* ── Walking stage ── */
+#ls-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 38%;
+  pointer-events: none;
+}
+
+/* ── Character ── */
+#ls-char {
+  position: relative;
+  width: 54px;
+  transform: translateX(-220px);
+  animation: lsWalk 2.2s cubic-bezier(0.4,0,0.6,1) forwards;
+  animation-delay: 0.3s;
+}
+@keyframes lsWalk {
+  0%   { transform: translateX(-220px); }
+  70%  { transform: translateX(0px); }
+  85%  { transform: translateX(10px); }
+  100% { transform: translateX(0px); }
+}
+
+/* Body parts */
+.ls-head {
+  width: 36px; height: 36px;
+  background: #F5C27A;
+  border-radius: 50%;
+  margin: 0 auto 0;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.ls-head::before { /* hair */
+  content: '';
+  position: absolute;
+  width: 36px; height: 18px;
+  background: #C8860A;
+  border-radius: 18px 18px 0 0;
+  top: 0; left: 0;
+}
+.ls-head::after { /* face dots = eyes */
+  content: '👀';
+  position: absolute;
+  font-size: 10px;
+  top: 12px; left: 4px;
+  letter-spacing: 2px;
+}
+.ls-body {
+  width: 38px; height: 46px;
+  background: linear-gradient(180deg,#4A5568,#2D3748);
+  border-radius: 6px 6px 2px 2px;
+  margin: 2px auto 0;
+  position: relative;
+}
+.ls-body::after { /* tie */
+  content: '';
+  position: absolute;
+  width: 8px; height: 22px;
+  background: #D4A017;
+  border-radius: 2px;
+  top: 6px; left: 50%; margin-left: -4px;
+}
+/* Arms */
+.ls-arm-l, .ls-arm-r {
+  position: absolute;
+  width: 12px; height: 36px;
+  background: #4A5568;
+  border-radius: 6px;
+  top: 4px;
+  transform-origin: top center;
+}
+.ls-arm-l { left: -10px; animation: lsArmL 0.45s ease-in-out infinite alternate; }
+.ls-arm-r { right: -10px; animation: lsArmR 0.45s ease-in-out infinite alternate; }
+@keyframes lsArmL {
+  from { transform: rotate(-20deg); }
+  to   { transform: rotate(20deg); }
+}
+@keyframes lsArmR {
+  from { transform: rotate(20deg); }
+  to   { transform: rotate(-20deg); }
+}
+/* Suitcase held by right arm */
+.ls-suitcase {
+  position: absolute;
+  bottom: -20px; right: -26px;
+  width: 28px; height: 20px;
+  background: linear-gradient(135deg,#7B3F00,#5C2E00);
+  border-radius: 4px;
+  border: 2px solid #4A2400;
+  animation: lsArmR 0.45s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+.ls-suitcase::before { /* handle */
+  content: '';
+  position: absolute;
+  width: 12px; height: 6px;
+  border: 2px solid #4A2400;
+  border-radius: 3px 3px 0 0;
+  border-bottom: none;
+  top: -6px; left: 50%; margin-left: -6px;
+}
+.ls-suitcase::after { /* latch */
+  content: '';
+  position: absolute;
+  width: 8px; height: 4px;
+  background: #D4A017;
+  border-radius: 2px;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+/* Legs */
+.ls-legs {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.ls-leg-l, .ls-leg-r {
+  width: 14px; height: 30px;
+  background: #1A202C;
+  border-radius: 3px;
+  transform-origin: top center;
+}
+.ls-leg-l { animation: lsLegL 0.45s ease-in-out infinite alternate; }
+.ls-leg-r { animation: lsLegR 0.45s ease-in-out infinite alternate; }
+@keyframes lsLegL {
+  from { transform: rotate(-18deg); }
+  to   { transform: rotate(10deg); }
+}
+@keyframes lsLegR {
+  from { transform: rotate(10deg); }
+  to   { transform: rotate(-18deg); }
+}
+/* Shoes */
+.ls-shoe-l,.ls-shoe-r {
+  width: 18px; height: 9px;
+  background: #1A202C;
+  border-radius: 2px 6px 4px 2px;
+  margin-top: 1px;
+}
+
+/* ── Drop suitcase on arrival ── */
+#ls-dropped-case {
+  position: absolute;
+  bottom: calc(38% - 42px);
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 44px; height: 32px;
+  background: linear-gradient(135deg,#7B3F00,#5C2E00);
+  border-radius: 5px;
+  border: 2.5px solid #4A2400;
+  animation: lsCaseDrop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  animation-delay: 2.3s;
+  z-index: 2;
+}
+#ls-dropped-case::before {
+  content: '';
+  position: absolute;
+  width: 16px; height: 8px;
+  border: 2.5px solid #4A2400;
+  border-radius: 4px 4px 0 0;
+  border-bottom: none;
+  top: -9px; left: 50%; margin-left: -8px;
+}
+#ls-dropped-case::after {
+  content: '';
+  position: absolute;
+  width: 12px; height: 6px;
+  background: #D4A017;
+  border-radius: 3px;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+}
+@keyframes lsCaseDrop {
+  from { transform: translateX(-50%) scale(0) rotate(-10deg); opacity:0; }
+  to   { transform: translateX(-50%) scale(1) rotate(0deg);  opacity:1; }
+}
+
+/* ── Card emerges from suitcase ── */
+@keyframes lsCardEmerge {
+  0%   { opacity:0; transform: translateY(60px) scale(0.7); }
+  60%  { opacity:1; transform: translateY(-8px) scale(1.02); }
+  100% { opacity:1; transform: translateY(0) scale(1); }
+}
+@keyframes lsCharExit {
+  from { opacity:1; transform: translateX(0); }
+  to   { opacity:0; transform: translateX(160px); }
+}
+#ls-card {
+  position: relative; z-index: 10;
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 24px 22px;
+  width: 100%; max-width: 350px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.30), 0 4px 16px rgba(0,0,0,0.15);
+  opacity: 0;
+  animation: lsCardEmerge 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
+  animation-delay: 2.7s;
+}
+
+/* ── Logo ── */
+@keyframes lsLogoIn {
+  from { transform: scale(0) rotate(-180deg); opacity:0; }
+  to   { transform: scale(1) rotate(0deg);   opacity:1; }
+}
+#ls-logo-wrap {
+  animation: lsLogoIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+  animation-delay: 3.1s;
+}
+
+/* ── Tabs ── */
+#ls-tab-wrap {
+  display: flex;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid #E8D5A0;
+  margin-bottom: 18px;
+}
+.ls-tab-btn {
+  flex: 1; padding: 10px 0;
+  text-align: center;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; border: none;
+  background: transparent;
+  color: #8B6914;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.25s, color 0.25s;
+}
+.ls-tab-btn.ls-active {
+  background: linear-gradient(135deg,#D4A017,#B8860B);
+  color: #fff;
+}
+
+/* ── Inputs ── */
+.ls-field {
+  margin-bottom: 16px;
+}
+.ls-field-label {
+  font-size: 10px; font-weight: 700;
+  color: #7A5C00;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+  font-family: 'DM Sans', sans-serif;
+  display: block;
+}
+.ls-field input {
+  width: 100%;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  border: 1.5px solid #E8D5A0;
+  border-radius: 10px;
+  background: #FDFAF2;
+  color: #2D1E00;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ls-field input::placeholder { color: #C4A96A; }
+.ls-field input:focus {
+  border-color: #D4A017;
+  box-shadow: 0 0 0 3px rgba(212,160,23,0.15);
+  background: #fff;
+}
+
+/* ── Gold button ── */
+.ls-btn-gold {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg,#E8B838,#C8900A);
+  color: #fff;
+  font-size: 15px; font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(184,134,11,0.35);
+  transition: box-shadow 0.2s, transform 0.15s;
+  position: relative; overflow: hidden;
+}
+.ls-btn-gold:active { transform: scale(0.97); }
+.ls-btn-gold::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
+  transform: translateX(-100%);
+}
+.ls-btn-gold:hover { box-shadow: 0 6px 20px rgba(184,134,11,0.50); }
+.ls-btn-gold:hover::after { transform:translateX(100%); transition:transform 0.5s; }
+
+/* ── Google button ── */
+.ls-btn-google {
+  width: 100%; padding: 11px;
+  border: 1.5px solid #E8D5A0;
+  border-radius: 10px;
+  background: #fff;
+  color: #2D1E00;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+.ls-btn-google:hover { background:#FDFAF2; border-color:#D4A017; box-shadow:0 2px 8px rgba(212,160,23,0.15); }
+
+/* ── Divider ── */
+.ls-divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 14px 0;
+  font-size: 12px; color: #B0944A;
+  font-family: 'DM Sans', sans-serif;
+}
+.ls-divider::before,.ls-divider::after {
+  content: ''; flex: 1; height: 1px; background: #E8D5A0;
+}
+
+/* ── Error ── */
+#ls-error {
+  background: #FEF2F2 !important;
+  border: 1.5px solid #FCA5A5 !important;
+  color: #B91C1C !important;
+  border-radius: 8px; padding: 9px 12px;
+  font-size: 13px; margin-top: 10px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Form slide ── */
+@keyframes lsSlideInRight { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:translateX(0)} }
+@keyframes lsSlideInLeft  { from{opacity:0;transform:translateX(-18px)} to{opacity:1;transform:translateX(0)} }
+.ls-anim-r { animation: lsSlideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+.ls-anim-l { animation: lsSlideInLeft  0.28s cubic-bezier(0.22,1,0.36,1) both; }
+</style>
+
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:20px;flex-direction:column">
+
+  <!-- Walking character stage -->
+  <div id="ls-stage">
+    <div id="ls-char" style="animation-fill-mode:forwards">
+      <div class="ls-head"></div>
+      <div class="ls-body" style="position:relative">
+        <div class="ls-arm-l"></div>
+        <div class="ls-arm-r">
+          <div class="ls-suitcase"></div>
+        </div>
+      </div>
+      <div class="ls-legs">
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="ls-leg-l"></div>
+          <div class="ls-shoe-l"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center">
+          <div class="ls-leg-r"></div>
+          <div class="ls-shoe-r"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dropped suitcase -->
+  <div id="ls-dropped-case"></div>
+
+  <!-- Login card — emerges from suitcase -->
+  <div id="ls-card">
+
+    <!-- Logo -->
     <div style="text-align:center;margin-bottom:18px">
-      <img src="icons/logo.png?v=2" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin-bottom:10px" onerror="this.outerHTML='<div style=\'width:64px;height:64px;border-radius:50%;background:var(--gold-mid);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 10px\'>⚖️</div>'">
-      <div style="font-size:20px;font-weight:700;color:var(--gold-dark)">Gold Ledger</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:2px">Sign in to access all your data across devices.</div>
+      <div id="ls-logo-wrap" style="width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#7A5800);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 10px;border:3px solid #D4A017;box-shadow:0 4px 14px rgba(184,134,11,0.30)">
+        <img src="icons/logo.png?v=2" style="width:58px;height:58px;border-radius:50%;object-fit:cover;position:absolute" onerror="this.style.display='none'">
+        ⚖️
+      </div>
+      <div style="font-size:20px;font-weight:800;color:#7A5800;font-family:'DM Sans',sans-serif;letter-spacing:-0.3px">Gold Ledger</div>
+      <div style="font-size:12px;color:#A07820;margin-top:4px;font-family:'DM Sans',sans-serif">Sign in to access <span style="color:#C8900A;font-weight:600">all</span> your data across devices.</div>
     </div>
 
-    <div class="auth-tabs" style="display:flex;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
-      <button class="auth-tab" id="ls-tab-signin" onclick="lsSwitchTab('signin')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--gold-mid);color:#fff;font-family:'DM Sans',sans-serif;">Sign In</button>
-      <button class="auth-tab" id="ls-tab-register" onclick="lsSwitchTab('register')" style="flex:1;padding:9px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;border:none;background:var(--surface);color:var(--muted);font-family:'DM Sans',sans-serif;">Register</button>
+    <!-- Tabs -->
+    <div id="ls-tab-wrap">
+      <button class="ls-tab-btn ls-active" id="ls-tab-signin"   onclick="lsSwitchTab('signin')">Sign In</button>
+      <button class="ls-tab-btn"            id="ls-tab-register" onclick="lsSwitchTab('register')">Register</button>
     </div>
 
-    <div id="ls-form-signin">
-      <div class="field"><label>Email Address</label><input type="email" id="ls-si-email" placeholder="name@example.com"></div>
-      <div class="field"><label>Password</label><input type="password" id="ls-si-pass" placeholder="••••••••"></div>
-      <button class="btn btn-gold" style="width:100%" onclick="lsSignIn()">Sign In</button>
-      <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or continue with</div>
-      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);">
-        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continue with Google
-      </button>
+    <!-- Sign In form -->
+    <div id="ls-form-signin" class="ls-anim-l">
+      <div class="ls-field">
+        <label class="ls-field-label">Email Address</label>
+        <input type="email" id="ls-si-email" placeholder="name@example.com" autocomplete="email">
+      </div>
+      <div class="ls-field">
+        <label class="ls-field-label">Password</label>
+        <input type="password" id="ls-si-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="ls-btn-gold" onclick="lsSignIn()" style="margin-bottom:4px">Sign In</button>
+      <div class="ls-divider">or continue with</div>
+      <button class="ls-btn-google" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
     </div>
 
+    <!-- Register form -->
     <div id="ls-form-register" style="display:none">
-      <div class="field"><label>Your Name</label><input type="text" id="ls-reg-name" placeholder="e.g. Ramesh Jewellers"></div>
-      <div class="field"><label>Email Address</label><input type="email" id="ls-reg-email" placeholder="name@example.com"></div>
-      <div class="field"><label>Password</label><input type="password" id="ls-reg-pass" placeholder="Min 6 characters"></div>
-      <button class="btn btn-gold" style="width:100%" onclick="lsRegister()">Create Account</button>
-      <div style="text-align:center;font-size:12px;color:var(--hint);margin:12px 0">or continue with</div>
-      <button onclick="window.authSignInGoogle()" style="width:100%;padding:11px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);">
-        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Continue with Google
-      </button>
+      <div class="ls-field">
+        <label class="ls-field-label">Your Name</label>
+        <input type="text" id="ls-reg-name" placeholder="e.g. Ramesh Jewellers" autocomplete="name">
+      </div>
+      <div class="ls-field">
+        <label class="ls-field-label">Email Address</label>
+        <input type="email" id="ls-reg-email" placeholder="name@example.com" autocomplete="email">
+      </div>
+      <div class="ls-field">
+        <label class="ls-field-label">Password</label>
+        <input type="password" id="ls-reg-pass" placeholder="Min 6 characters" autocomplete="new-password">
+      </div>
+      <button class="ls-btn-gold" onclick="lsRegister()" style="margin-bottom:4px">Create Account</button>
+      <div class="ls-divider">or continue with</div>
+      <button class="ls-btn-google" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
     </div>
 
-    <div class="auth-error" id="ls-error" style="display:none;border-radius:8px;padding:9px 12px;font-size:13px;margin-top:10px"></div>
-
+    <div class="auth-error" id="ls-error" style="display:none"></div>
   </div>
 </div>
 <div id="vault-entry-overlay" onclick="closeVaultEntry()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
@@ -3141,13 +3526,28 @@ function clearDaybookView(){
 
 /* ── LOGIN SCREEN (shown on first open for new users) ── */
 function lsSwitchTab(tab){
-  document.getElementById('ls-tab-signin').style.background = tab==='signin'?'var(--gold-mid)':'#fff';
-  document.getElementById('ls-tab-signin').style.color = tab==='signin'?'#fff':'var(--muted)';
-  document.getElementById('ls-tab-register').style.background = tab==='register'?'var(--gold-mid)':'#fff';
-  document.getElementById('ls-tab-register').style.color = tab==='register'?'#fff':'var(--muted)';
-  document.getElementById('ls-form-signin').style.display = tab==='signin'?'block':'none';
-  document.getElementById('ls-form-register').style.display = tab==='register'?'block':'none';
-  document.getElementById('ls-error').style.display='none';
+  const isSignIn = tab==='signin';
+  const btnSI  = document.getElementById('ls-tab-signin');
+  const btnReg = document.getElementById('ls-tab-register');
+  if(btnSI)  btnSI.classList.toggle('ls-active', isSignIn);
+  if(btnReg) btnReg.classList.toggle('ls-active', !isSignIn);
+  const fSI  = document.getElementById('ls-form-signin');
+  const fReg = document.getElementById('ls-form-register');
+  if(isSignIn){
+    fReg.style.display='none';
+    fSI.style.display='block';
+    fSI.classList.remove('ls-anim-r','ls-anim-l');
+    void fSI.offsetWidth;
+    fSI.classList.add('ls-anim-l');
+  } else {
+    fSI.style.display='none';
+    fReg.style.display='block';
+    fReg.classList.remove('ls-anim-r','ls-anim-l');
+    void fReg.offsetWidth;
+    fReg.classList.add('ls-anim-r');
+  }
+  const err = document.getElementById('ls-error');
+  if(err) err.style.display='none';
 }
 function lsShowError(msg){
   const el=document.getElementById('ls-error');
