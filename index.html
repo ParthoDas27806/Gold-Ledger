@@ -1417,365 +1417,417 @@ select {
 
 <!-- ═══════════════ ANIMATED LOGIN SCREEN ═══════════════ -->
 <style>
-/* ════ LOGIN SCREEN — SUITCASE ANIMATION ════ */
+/* ════ LOGIN SCREEN — SLIDING PANEL (Gold Ledger) ════ */
+
 #login-screen {
-  background: linear-gradient(145deg,#6B4200 0%,#C68B00 45%,#A06800 100%);
+  background: linear-gradient(to right, #c9b87a, #f5e6b0);
   overflow: hidden;
 }
 
-/* ── Scene sits above the card ── */
-#ls-scene {
+/* ── Outer container (mirrors .container from uploaded CSS) ── */
+#ls-container {
+  background-color: #fff;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.28);
   position: relative;
-  width: 100%;
-  max-width: 350px;
-  height: 160px;
-  overflow: visible;
-  flex-shrink: 0;
-}
-
-/* ── Walking character (SVG) ── */
-#ls-char-svg {
-  position: absolute;
-  bottom: 0;
-  left: -180px;
-  width: 90px;
-  animation: lsWalk 2.0s cubic-bezier(0.42,0,0.45,1) forwards;
-  animation-delay: 0.2s;
-  filter: drop-shadow(2px 6px 8px rgba(0,0,0,0.30));
-}
-@keyframes lsWalk {
-  0%   { left: -180px; }
-  75%  { left: calc(50% - 45px); }
-  88%  { left: calc(50% - 38px); }
-  100% { left: calc(50% - 45px); opacity:1; }
-}
-
-/* leg walk cycle on the SVG legs */
-#ls-leg-l { transform-origin: 32px 72px; animation: lsLegSwingL 0.38s ease-in-out infinite alternate; }
-#ls-leg-r { transform-origin: 52px 72px; animation: lsLegSwingR 0.38s ease-in-out infinite alternate; }
-#ls-arm-l { transform-origin: 22px 38px; animation: lsArmSwingL 0.38s ease-in-out infinite alternate; }
-#ls-arm-r { transform-origin: 62px 38px; animation: lsArmSwingR 0.38s ease-in-out infinite alternate; }
-#ls-case  { transform-origin: 62px 58px; animation: lsArmSwingR 0.38s ease-in-out infinite alternate; }
-
-@keyframes lsLegSwingL { from{transform:rotate(-18deg)} to{transform:rotate(12deg)} }
-@keyframes lsLegSwingR { from{transform:rotate(12deg)}  to{transform:rotate(-18deg)} }
-@keyframes lsArmSwingL { from{transform:rotate(16deg)}  to{transform:rotate(-12deg)} }
-@keyframes lsArmSwingR { from{transform:rotate(-16deg)} to{transform:rotate(12deg)} }
-
-/* Stop walking when arrived */
-#ls-char-svg.ls-stopped #ls-leg-l,
-#ls-char-svg.ls-stopped #ls-leg-r,
-#ls-char-svg.ls-stopped #ls-arm-l,
-#ls-char-svg.ls-stopped #ls-arm-r,
-#ls-char-svg.ls-stopped #ls-case {
-  animation: none;
-  transform: rotate(0deg);
-}
-/* After drop: arm goes down */
-#ls-char-svg.ls-dropped #ls-arm-r,
-#ls-char-svg.ls-dropped #ls-case {
-  animation: lsDropArm 0.3s ease-out forwards;
-}
-@keyframes lsDropArm {
-  to { transform: rotate(30deg); }
-}
-/* After drop: char steps back */
-#ls-char-svg.ls-stepback {
-  animation: lsStepBack 0.4s ease-in-out forwards;
-}
-@keyframes lsStepBack {
-  to { left: calc(50% - 110px); opacity:0.0; }
-}
-
-/* ── Dropped suitcase ── */
-#ls-dropped-case {
-  position: absolute;
-  bottom: 2px;
-  left: 50%;
-  transform: translateX(-50%) scaleY(0);
-  transform-origin: bottom center;
-  animation: lsCasePop 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
-  animation-delay: 2.55s;
-}
-@keyframes lsCasePop {
-  to { transform: translateX(-50%) scaleY(1); }
-}
-
-/* ── Card ── */
-@keyframes lsCardUp {
-  0%   { opacity:0; transform:translateY(50px) scale(0.88); }
-  65%  { opacity:1; transform:translateY(-6px) scale(1.01); }
-  100% { opacity:1; transform:translateY(0) scale(1); }
-}
-#ls-card {
-  position: relative; z-index: 10;
-  background: #fff;
-  border-radius: 20px;
-  padding: 24px 22px 20px;
-  width: 100%; max-width: 350px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.28), 0 4px 14px rgba(0,0,0,0.12);
-  opacity: 0;
-  animation: lsCardUp 0.55s cubic-bezier(0.22,1,0.36,1) forwards;
-  animation-delay: 2.85s;
-  margin-top: -10px;
-}
-
-/* ── Tabs ── */
-#ls-tab-wrap {
-  display: flex;
-  border-radius: 8px;
   overflow: hidden;
-  border: 1.5px solid #E8D5A0;
-  margin-bottom: 16px;
-}
-.ls-tab-btn {
-  flex: 1; padding: 10px 0;
-  text-align: center;
-  font-size: 13px; font-weight: 700;
-  cursor: pointer; border: none;
-  background: transparent;
-  color: #8B6914;
-  font-family: 'DM Sans', sans-serif;
-  transition: background 0.25s, color 0.25s;
-}
-.ls-tab-btn.ls-active {
-  background: linear-gradient(135deg,#D4A017,#B8860B);
-  color: #fff;
+  width: min(768px, 96vw);
+  min-height: 460px;
+  max-height: 96vh;
 }
 
-/* ── Inputs ── */
-.ls-field { margin-bottom: 14px; }
-.ls-field-label {
-  font-size: 10px; font-weight: 700;
-  color: #7A5C00; text-transform: uppercase;
-  letter-spacing: 0.6px; margin-bottom: 5px;
-  font-family: 'DM Sans', sans-serif; display: block;
+/* ── Forms ── */
+.ls-form-container {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  transition: all 0.6s ease-in-out;
 }
-.ls-field input {
-  width: 100%; padding: 11px 14px;
-  font-size: 14px; font-family: 'DM Sans', sans-serif;
-  border: 1.5px solid #E8D5A0; border-radius: 10px;
-  background: #FDFAF2; color: #2D1E00;
-  outline: none; box-sizing: border-box;
-  transition: border-color 0.2s, box-shadow 0.2s;
+
+/* Sign-In panel */
+#ls-sign-in {
+  left: 0;
+  width: 50%;
+  z-index: 2;
 }
-.ls-field input::placeholder { color: #C4A96A; }
-.ls-field input:focus {
-  border-color: #D4A017;
-  box-shadow: 0 0 0 3px rgba(212,160,23,0.15);
+#ls-container.active #ls-sign-in {
+  transform: translateX(100%);
+}
+
+/* Sign-Up panel */
+#ls-sign-up {
+  left: 0;
+  width: 50%;
+  opacity: 0;
+  z-index: 1;
+}
+#ls-container.active #ls-sign-up {
+  transform: translateX(100%);
+  opacity: 1;
+  z-index: 5;
+  animation: lsPanelReveal 0.6s;
+}
+@keyframes lsPanelReveal {
+  0%,49.99%  { opacity:0; z-index:1; }
+  50%,100%   { opacity:1; z-index:5; }
+}
+
+/* Inner form layout */
+.ls-form-inner {
   background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 28px 32px;
+  height: 100%;
+  gap: 0;
+}
+.ls-form-inner h1 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #7A5800;
+  margin-bottom: 6px;
 }
 
-/* ── Gold button ── */
-.ls-btn-gold {
-  width: 100%; padding: 13px; border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg,#E8B838,#C8900A);
-  color: #fff; font-size: 15px; font-weight: 700;
-  font-family: 'DM Sans', sans-serif; cursor: pointer;
+/* Gold Google button */
+.ls-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: 1.5px solid #E0CC80;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5A3E00;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  margin: 14px 0 6px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.ls-google-btn:hover { background:#FDFAF2; border-color:#D4A017; }
+
+.ls-or-text {
+  font-size: 11px;
+  color: #B09050;
+  font-family: 'DM Sans', sans-serif;
+  margin: 6px 0;
   letter-spacing: 0.3px;
+}
+
+/* Inputs */
+#ls-container input {
+  background: #f5f0e0;
+  border: none;
+  margin: 6px 0;
+  padding: 11px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  width: 100%;
+  outline: none;
+  font-family: 'DM Sans', sans-serif;
+  color: #2D1E00;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+#ls-container input::placeholder { color: #C4A060; }
+#ls-container input:focus {
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(212,160,23,0.35);
+}
+
+/* Forgot */
+.ls-forgot {
+  font-size: 12px;
+  color: #8B6914;
+  margin: 8px 0 4px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-decoration: none;
+}
+.ls-forgot:hover { text-decoration: underline; }
+
+/* Submit button */
+#ls-container .ls-submit-btn {
+  background: linear-gradient(135deg,#D4A017,#A07200);
+  color: #fff;
+  font-size: 12px;
+  padding: 11px 40px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 12px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
   box-shadow: 0 4px 14px rgba(184,134,11,0.35);
   transition: box-shadow 0.2s, transform 0.15s;
-  position: relative; overflow: hidden;
 }
-.ls-btn-gold:active { transform: scale(0.97); }
-.ls-btn-gold::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
+#ls-container .ls-submit-btn:hover {
+  box-shadow: 0 6px 20px rgba(184,134,11,0.55);
+}
+#ls-container .ls-submit-btn:active { transform: scale(0.97); }
+
+/* Error */
+.ls-err {
+  display: none;
+  width: 100%;
+  background: #FEF2F2;
+  border: 1.5px solid #FCA5A5;
+  color: #B91C1C;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-top: 8px;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ── Toggle sliding panel (mirrors .toggle-container) ── */
+#ls-toggle-container {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 50%;
+  height: 100%;
+  overflow: hidden;
+  transition: all 0.6s ease-in-out;
+  border-radius: 120px 0 0 80px;
+  z-index: 1000;
+}
+#ls-container.active #ls-toggle-container {
   transform: translateX(-100%);
+  border-radius: 0 120px 80px 0;
 }
-.ls-btn-gold:hover { box-shadow: 0 6px 20px rgba(184,134,11,0.50); }
-.ls-btn-gold:hover::after { transform:translateX(100%); transition:transform 0.5s; }
 
-/* ── Google button ── */
-.ls-btn-google {
-  width: 100%; padding: 11px;
-  border: 1.5px solid #E8D5A0; border-radius: 10px;
-  background: #fff; color: #2D1E00;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  font-size: 13px; font-weight: 600; cursor: pointer;
+#ls-toggle {
+  background: linear-gradient(135deg, #D4A017 0%, #8B5E00 100%);
+  height: 100%;
+  color: #fff;
+  position: relative;
+  left: -100%;
+  width: 200%;
+  transform: translateX(0);
+  transition: all 0.6s ease-in-out;
+}
+#ls-container.active #ls-toggle {
+  transform: translateX(50%);
+}
+
+.ls-toggle-panel {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 0 24px;
+  text-align: center;
+  top: 0;
+  transition: all 0.6s ease-in-out;
+}
+.ls-toggle-panel h1 {
   font-family: 'DM Sans', sans-serif;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 10px;
 }
-.ls-btn-google:hover { background:#FDFAF2; border-color:#D4A017; }
-
-/* ── Divider ── */
-.ls-divider {
-  display: flex; align-items: center; gap: 10px;
-  margin: 12px 0; font-size: 12px; color: #B0944A;
-  font-family: 'DM Sans', sans-serif;
-}
-.ls-divider::before,.ls-divider::after {
-  content:''; flex:1; height:1px; background:#E8D5A0;
-}
-
-/* ── Error ── */
-#ls-error {
-  background: #FEF2F2 !important;
-  border: 1.5px solid #FCA5A5 !important;
-  color: #B91C1C !important;
-  border-radius: 8px; padding: 9px 12px;
-  font-size: 13px; margin-top: 10px;
+.ls-toggle-panel p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.6;
+  margin-bottom: 18px;
   font-family: 'DM Sans', sans-serif;
 }
 
-/* ── Form slide ── */
-@keyframes lsSlideInRight { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:translateX(0)} }
-@keyframes lsSlideInLeft  { from{opacity:0;transform:translateX(-18px)} to{opacity:1;transform:translateX(0)} }
-.ls-anim-r { animation: lsSlideInRight 0.28s cubic-bezier(0.22,1,0.36,1) both; }
-.ls-anim-l { animation: lsSlideInLeft  0.28s cubic-bezier(0.22,1,0.36,1) both; }
+/* Logo in toggle panel */
+.ls-logo-wrap {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  border: 2px solid rgba(255,255,255,0.55);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  margin: 0 auto 14px;
+  position: relative;
+}
+.ls-logo-wrap img {
+  width: 56px; height: 56px;
+  border-radius: 50%; object-fit: cover;
+  position: absolute; inset: 0;
+}
+
+.ls-toggle-left {
+  transform: translateX(-200%);
+}
+#ls-container.active .ls-toggle-left {
+  transform: translateX(0);
+}
+.ls-toggle-right {
+  right: 0;
+  transform: translateX(0);
+}
+#ls-container.active .ls-toggle-right {
+  transform: translateX(200%);
+}
+
+/* Ghost button on toggle panel */
+.ls-ghost-btn {
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+  font-size: 11px;
+  padding: 10px 36px;
+  border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s;
+}
+.ls-ghost-btn:hover { background: rgba(255,255,255,0.15); }
+
+/* ── Responsive: stack vertically on small screens ── */
+@media (max-width: 520px) {
+  #ls-container {
+    width: 100%;
+    min-height: 100svh;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  #ls-toggle-container {
+    display: none !important;
+  }
+  #ls-sign-in,
+  #ls-sign-up {
+    position: relative !important;
+    width: 100% !important;
+    transform: none !important;
+    opacity: 1 !important;
+    z-index: 2 !important;
+  }
+  #ls-sign-up {
+    display: none;
+  }
+  #ls-container.active #ls-sign-in { display: none; }
+  #ls-container.active #ls-sign-up { display: flex; }
+  .ls-form-inner { padding: 28px 24px; min-height: 100svh; }
+  /* Mobile tab bar instead of sliding panel */
+  #ls-mobile-tabs {
+    display: flex !important;
+  }
+}
+
+/* Mobile tab bar (hidden on desktop) */
+#ls-mobile-tabs {
+  display: none;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 1.5px solid #E8D5A0;
+}
+.ls-mob-tab {
+  flex: 1; padding: 13px;
+  text-align: center;
+  font-size: 13px; font-weight: 700;
+  border: none; background: transparent;
+  color: #8B6914; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.2s;
+}
+.ls-mob-tab.active {
+  color: #D4A017;
+  border-bottom: 2.5px solid #D4A017;
+}
 </style>
 
-<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:20px 20px 16px;flex-direction:column;gap:0">
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:16px">
 
-  <!-- Character scene -->
-  <div id="ls-scene">
-    <svg id="ls-char-svg" viewBox="0 0 84 140" xmlns="http://www.w3.org/2000/svg">
-  <!-- Shadow -->
-  <ellipse cx="42" cy="138" rx="24" ry="5" fill="rgba(0,0,0,0.18)"/>
-  <!-- LEFT LEG -->
-  <g id="ls-leg-l">
-    <rect x="24" y="92" width="14" height="34" rx="5" fill="#1E2333"/>
-    <!-- left shoe -->
-    <ellipse cx="29" cy="127" rx="10" ry="5" fill="#111"/>
-    <rect x="19" y="123" width="20" height="8" rx="4" fill="#111"/>
-  </g>
-  <!-- RIGHT LEG -->
-  <g id="ls-leg-r">
-    <rect x="46" y="92" width="14" height="34" rx="5" fill="#1E2333"/>
-    <!-- right shoe -->
-    <ellipse cx="55" cy="127" rx="10" ry="5" fill="#111"/>
-    <rect x="45" y="123" width="20" height="8" rx="4" fill="#111"/>
-  </g>
-  <!-- BODY / JACKET -->
-  <rect x="20" y="42" width="44" height="54" rx="8" fill="#2D3550"/>
-  <!-- shirt white V -->
-  <polygon points="37,42 47,42 43,68 41,68" fill="#F8F8F8"/>
-  <!-- Gold tie -->
-  <polygon points="40,44 44,44 43,64 41,64" fill="#D4A017"/>
-  <!-- Jacket lapels -->
-  <polygon points="20,42 37,42 28,62" fill="#232840"/>
-  <polygon points="64,42 47,42 56,62" fill="#232840"/>
-  <!-- LEFT ARM -->
-  <g id="ls-arm-l">
-    <rect x="8" y="40" width="14" height="36" rx="6" fill="#2D3550"/>
-    <!-- left hand -->
-    <ellipse cx="15" cy="78" rx="7" ry="6" fill="#F5C27A"/>
-  </g>
-  <!-- RIGHT ARM + BRIEFCASE -->
-  <g id="ls-arm-r">
-    <rect x="62" y="40" width="14" height="36" rx="6" fill="#2D3550"/>
-    <!-- right hand -->
-    <ellipse cx="69" cy="78" rx="7" ry="6" fill="#F5C27A"/>
-    <!-- BRIEFCASE -->
-    <g id="ls-case">
-      <!-- case body -->
-      <rect x="55" y="80" width="30" height="22" rx="4" fill="#7B3F00"/>
-      <rect x="56" y="81" width="28" height="20" rx="3" fill="#8B4800"/>
-      <!-- handle -->
-      <rect x="64" y="74" width="12" height="8" rx="3" fill="none" stroke="#5C2E00" stroke-width="2.5"/>
-      <!-- clasp -->
-      <rect x="67" y="88" width="6" height="5" rx="2" fill="#D4A017"/>
-      <!-- horizontal line -->
-      <line x1="56" y1="91" x2="84" y2="91" stroke="#5C2E00" stroke-width="1.5"/>
-    </g>
-  </g>
-  <!-- NECK -->
-  <rect x="36" y="34" width="12" height="12" rx="3" fill="#F5C27A"/>
-  <!-- HEAD -->
-  <ellipse cx="42" cy="22" rx="18" ry="20" fill="#F5C27A"/>
-  <!-- HAIR — swept blonde -->
-  <path d="M24,14 Q26,2 42,2 Q58,2 60,14 Q55,6 42,7 Q30,6 24,14Z" fill="#C8860A"/>
-  <path d="M24,14 Q22,8 28,5 Q24,10 24,14Z" fill="#B07208"/>
-  <path d="M60,14 Q62,8 57,4 Q60,10 60,14Z" fill="#B07208"/>
-  <!-- EARS -->
-  <ellipse cx="24" cy="22" rx="4" ry="5" fill="#EAB56A"/>
-  <ellipse cx="60" cy="22" rx="4" ry="5" fill="#EAB56A"/>
-  <!-- EYES -->
-  <ellipse cx="35" cy="19" rx="4" ry="4.5" fill="#fff"/>
-  <ellipse cx="49" cy="19" rx="4" ry="4.5" fill="#fff"/>
-  <ellipse cx="36" cy="20" rx="2.5" ry="2.8" fill="#3D2200"/>
-  <ellipse cx="50" cy="20" rx="2.5" ry="2.8" fill="#3D2200"/>
-  <!-- pupils -->
-  <circle cx="37" cy="20" r="1" fill="#000"/>
-  <circle cx="51" cy="20" r="1" fill="#000"/>
-  <!-- eye shine -->
-  <circle cx="37.5" cy="18.5" r="0.8" fill="#fff" opacity="0.8"/>
-  <circle cx="51.5" cy="18.5" r="0.8" fill="#fff" opacity="0.8"/>
-  <!-- EYEBROWS -->
-  <path d="M31,15 Q35,13 39,15" stroke="#7A5000" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-  <path d="M45,15 Q49,13 53,15" stroke="#7A5000" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-  <!-- NOSE -->
-  <path d="M40,23 Q42,27 44,23" stroke="#D4956A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <!-- MOUTH / smile -->
-  <path d="M36,30 Q42,35 48,30" stroke="#C07050" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <!-- BEARD stubble -->
-  <path d="M35,31 Q42,36 49,31 Q49,34 42,35 Q35,34 35,31Z" fill="#D4956A" opacity="0.4"/>
-</svg>
-    <svg id="ls-dropped-case" width="54" height="40" viewBox="0 0 54 40" xmlns="http://www.w3.org/2000/svg">
-  <rect x="2" y="10" width="50" height="28" rx="5" fill="#7B3F00"/>
-  <rect x="3" y="11" width="48" height="26" rx="4" fill="#8B4800"/>
-  <rect x="19" y="2" width="16" height="12" rx="4" fill="none" stroke="#5C2E00" stroke-width="3"/>
-  <rect x="22" y="22" width="10" height="7" rx="2" fill="#D4A017"/>
-  <line x1="3" y1="25" x2="51" y2="25" stroke="#5C2E00" stroke-width="2"/>
-  <ellipse cx="27" cy="38" rx="20" ry="4" fill="rgba(0,0,0,0.15)"/>
-</svg>
-  </div>
+  <div id="ls-container">
 
-  <!-- Card emerges from suitcase -->
-  <div id="ls-card">
-    <!-- Logo + title -->
-    <div style="text-align:center;margin-bottom:16px">
-      <div id="ls-logo-wrap" style="width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#B8860B,#7A5800);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 9px;border:3px solid #D4A017;box-shadow:0 4px 14px rgba(184,134,11,0.30);position:relative">
-        <img src="icons/logo.png?v=2" style="width:54px;height:54px;border-radius:50%;object-fit:cover;position:absolute;inset:0" onerror="this.style.display='none'">
-        <span style="position:relative;z-index:1">⚖️</span>
-      </div>
-      <div style="font-size:19px;font-weight:800;color:#7A5800;font-family:'DM Sans',sans-serif;letter-spacing:-0.3px">Gold Ledger</div>
-      <div style="font-size:12px;color:#A07820;margin-top:3px;font-family:'DM Sans',sans-serif">Sign in to access <span style="color:#C8900A;font-weight:600">all</span> your data across devices.</div>
+    <!-- ── Mobile tab bar (small screens only) ── -->
+    <div id="ls-mobile-tabs">
+      <button class="ls-mob-tab active" onclick="lsSwitchTab('signin')">Sign In</button>
+      <button class="ls-mob-tab"        onclick="lsSwitchTab('register')">Register</button>
     </div>
 
-    <!-- Tabs -->
-    <div id="ls-tab-wrap">
-      <button class="ls-tab-btn ls-active" id="ls-tab-signin"   onclick="lsSwitchTab('signin')">Sign In</button>
-      <button class="ls-tab-btn"            id="ls-tab-register" onclick="lsSwitchTab('register')">Register</button>
+    <!-- ══ SIGN-UP PANEL ══ -->
+    <div class="ls-form-container" id="ls-sign-up">
+      <div class="ls-form-inner" style="padding-top:60px">
+        <h1>Create Account</h1>
+        <button class="ls-google-btn" onclick="window.authSignInGoogle()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <span class="ls-or-text">— or use your email —</span>
+        <input type="text"     id="ls-reg-name"  placeholder="Your Name">
+        <input type="email"    id="ls-reg-email" placeholder="Email">
+        <input type="password" id="ls-reg-pass"  placeholder="Password (min 6 chars)">
+        <button class="ls-submit-btn" onclick="lsRegister()">Sign Up</button>
+        <div class="ls-err" id="ls-err-reg"></div>
+      </div>
     </div>
 
-    <!-- Sign In -->
-    <div id="ls-form-signin" class="ls-anim-l">
-      <div class="ls-field">
-        <label class="ls-field-label">Email Address</label>
-        <input type="email" id="ls-si-email" placeholder="name@example.com" autocomplete="email">
+    <!-- ══ SIGN-IN PANEL ══ -->
+    <div class="ls-form-container" id="ls-sign-in">
+      <div class="ls-form-inner" style="padding-top:60px">
+        <h1>Sign In</h1>
+        <button class="ls-google-btn" onclick="window.authSignInGoogle()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <span class="ls-or-text">— or use your email —</span>
+        <input type="email"    id="ls-si-email" placeholder="Email">
+        <input type="password" id="ls-si-pass"  placeholder="Password">
+        <a class="ls-forgot" href="#">Forgot your password?</a>
+        <button class="ls-submit-btn" onclick="lsSignIn()">Sign In</button>
+        <div class="ls-err" id="ls-err-si"></div>
       </div>
-      <div class="ls-field">
-        <label class="ls-field-label">Password</label>
-        <input type="password" id="ls-si-pass" placeholder="••••••••" autocomplete="current-password">
-      </div>
-      <button class="ls-btn-gold" onclick="lsSignIn()" style="margin-bottom:4px">Sign In</button>
-      <div class="ls-divider">or continue with</div>
-      <button class="ls-btn-google" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
     </div>
 
-    <!-- Register -->
-    <div id="ls-form-register" style="display:none">
-      <div class="ls-field">
-        <label class="ls-field-label">Your Name</label>
-        <input type="text" id="ls-reg-name" placeholder="e.g. Ramesh Jewellers" autocomplete="name">
+    <!-- ══ SLIDING TOGGLE PANEL ══ -->
+    <div id="ls-toggle-container">
+      <div id="ls-toggle">
+
+        <!-- Left panel: shown when Register is active → go back to Sign In -->
+        <div class="ls-toggle-panel ls-toggle-left">
+          <div class="ls-logo-wrap">
+            <img src="icons/logo.png?v=2" onerror="this.style.display='none'">
+            ⚖️
+          </div>
+          <h1>Welcome Back!</h1>
+          <p>Already have an account? Sign in to access all your gold records.</p>
+          <button class="ls-ghost-btn" id="ls-goto-signin" onclick="lsSwitchTab('signin')">Sign In</button>
+        </div>
+
+        <!-- Right panel: shown when Sign In is active → go to Register -->
+        <div class="ls-toggle-panel ls-toggle-right">
+          <div class="ls-logo-wrap">
+            <img src="icons/logo.png?v=2" onerror="this.style.display='none'">
+            ⚖️
+          </div>
+          <h1>Gold Ledger</h1>
+          <p>New here? Register to keep all your gold records safe across every device.</p>
+          <button class="ls-ghost-btn" id="ls-goto-register" onclick="lsSwitchTab('register')">Register</button>
+        </div>
+
       </div>
-      <div class="ls-field">
-        <label class="ls-field-label">Email Address</label>
-        <input type="email" id="ls-reg-email" placeholder="name@example.com" autocomplete="email">
-      </div>
-      <div class="ls-field">
-        <label class="ls-field-label">Password</label>
-        <input type="password" id="ls-reg-pass" placeholder="Min 6 characters" autocomplete="new-password">
-      </div>
-      <button class="ls-btn-gold" onclick="lsRegister()" style="margin-bottom:4px">Create Account</button>
-      <div class="ls-divider">or continue with</div>
-      <button class="ls-btn-google" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
     </div>
 
-    <div class="auth-error" id="ls-error" style="display:none"></div>
-  </div>
+  </div><!-- /#ls-container -->
+
+  <!-- shared error (used by lsShowError) -->
+  <div class="auth-error" id="ls-error" style="display:none;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);max-width:320px;width:90%;z-index:6000"></div>
+
 </div>
 <div id="vault-entry-overlay" onclick="closeVaultEntry()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
 <div id="vault-entry-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
@@ -3399,22 +3451,7 @@ function renderVault(){
       let typeLabel;
       if(v.manual) typeLabel=isAdd?'Manual Add':'Manual Withdrawal';
       else typeLabel=v.type==='delivered'?'Casting':'Metal';
-      return `<div class="txn-item" style="cursor:default;margin-bottom:6px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div style="flex:1;min-width:0">
-            <div class="txn-label">${esc(v.clientName)}</div>
-            <div class="txn-meta">${typeLabel}${v.note?' · '+esc(v.note):''}</div>
-            <div class="txn-meta" style="margin-top:2px;color:var(--hint)">Balance after: ${v.balanceAfter.toFixed(3)}g</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
-            <div class="txn-grams" style="color:${color}">${sign}${Math.abs(v.delta).toFixed(3)}g</div>
-            <div class="txn-gram-mg">${fmtGramMg(Math.abs(v.delta))}</div>
-          </div>
-        </div>
-      </div>`;
-    }).join('');
-
-    return `<div style="margin-bottom:16px">
+      return `<div class="txn-item" style="cursor:default;margintom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:13px;font-weight:700;color:var(--text)">📅 ${fmtDate(date)}</div>
         <div style="font-size:12px;font-weight:600;color:${netColor}">${netSign}${netDay.toFixed(3)}g net</div>
@@ -3461,10 +3498,8 @@ function clearDaybookView(){
 /* ── LOGIN SCREEN (shown on first open for new users) ── */
 function lsSwitchTab(tab){
   const isSignIn = tab==='signin';
-  const btnSI  = document.getElementById('ls-tab-signin');
-  const btnReg = document.getElementById('ls-tab-register');
-  if(btnSI)  btnSI.classList.toggle('ls-active', isSignIn);
-  if(btnReg) btnReg.classList.toggle('ls-active', !isSignIn);
+  document.getElementById('ls-tab-signin').classList.toggle('ls-active', isSignIn);
+  document.getElementById('ls-tab-register').classList.toggle('ls-active', !isSignIn);
   const fSI  = document.getElementById('ls-form-signin');
   const fReg = document.getElementById('ls-form-register');
   if(isSignIn){
@@ -3480,7 +3515,7 @@ function lsSwitchTab(tab){
     void fReg.offsetWidth;
     fReg.classList.add('ls-anim-r');
   }
-  const err = document.getElementById('ls-error');
+  const err=document.getElementById('ls-error');
   if(err) err.style.display='none';
 }
 function lsShowError(msg){
@@ -3516,7 +3551,7 @@ function lsRegister(){
 function showLoginScreen(){
   // Show login screen whenever the user is not signed in
   if(!window.currentUser){
-    document.getElementById('login-screen').style.display='flex'; setTimeout(runLoginAnimation,100);
+    document.getElementById('login-screen').style.display='flex';
   } else {
     document.getElementById('login-screen').style.display='none';
   }
@@ -4072,17 +4107,6 @@ setTimeout(()=>{
 updateAuthButton(); // will confirm/correct once Firebase resolves
 // Show login screen on first open if not signed in and not a guest yet
 
-// ── Login screen character animation stages ──────────────────
-function runLoginAnimation(){
-  const char = document.getElementById('ls-char-svg');
-  if(!char) return;
-  // 2.2s: character arrived — stop walking
-  setTimeout(()=>{ if(char) char.classList.add('ls-stopped'); }, 2200);
-  // 2.55s: dropped case appears (CSS handles it), arm drops
-  setTimeout(()=>{ if(char) char.classList.add('ls-dropped'); }, 2550);
-  // 3.1s: character walks off screen left
-  setTimeout(()=>{ if(char) char.classList.add('ls-stepback'); }, 3100);
-}
 
 </script>
 </body>
