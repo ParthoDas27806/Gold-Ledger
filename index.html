@@ -106,7 +106,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   background: var(--gold-mid);
   display: flex;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  height: 70px;
+  height: 72px;
   border-radius: 16px 16px 0 0;
   overflow: visible;
   box-shadow: 0 -4px 24px rgba(184,134,11,0.25);
@@ -130,7 +130,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   position: relative;
   list-style: none;
   flex: 1;
-  height: 70px;
+  height: 72px;
   z-index: 1;
 }
 
@@ -141,7 +141,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  width: 100%; height: 100%;
+  width: 100%; height: 72px;
   background: none; border: none;
   cursor: pointer;
   font-family: 'DM Sans', sans-serif;
@@ -154,7 +154,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   position: relative;
   display: block;
   font-size: 1.4rem;
-  line-height: 70px;
+  line-height: 72px;
   text-align: center;
   transition: 0.5s cubic-bezier(0.22,1,0.36,1);
   color: rgba(255,255,255,0.75);
@@ -165,34 +165,37 @@ body { overflow-x: hidden; overflow-y: auto; }
 /* Label */
 .nav-label {
   position: absolute;
-  color: rgba(255,255,255,0.85);
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  transition: 0.5s;
+  color: rgba(255,255,255,0.90);
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: 0.5s cubic-bezier(0.22,1,0.36,1);
   opacity: 0;
-  transform: translateY(20px);
-  bottom: 6px;
+  transform: translateY(8px);
+  bottom: 4px;
   white-space: nowrap;
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1;
 }
-[data-theme="dark"] .nav-label { color: rgba(255,220,100,0.85); }
+[data-theme="dark"] .nav-label { color: rgba(255,220,100,0.90); }
 
 /* Active — icon floats up */
 .bottom-nav ul li.active .nav-icon {
-  transform: translateY(-30px);
+  transform: translateY(-28px);
   color: #7A5800;
   filter: none;
 }
 .bottom-nav ul li.active .nav-label {
   opacity: 1;
   transform: translateY(0px);
-  color: rgba(255,255,255,0.95);
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.20);
 }
 
 /* ── Sliding bubble indicator ── */
 .nav-indicator {
   position: absolute;
-  top: -38px;
+  top: -36px;
   width: calc(100% / 6);
   height: 70px;
   background: #fff;
@@ -242,7 +245,7 @@ body { overflow-x: hidden; overflow-y: auto; }
 .bottom-nav ul li:nth-child(6).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 5)); }
 
 /* scroll-area padding to account for taller nav */
-.scroll-area { margin-bottom: 70px; }
+.scroll-area { margin-bottom: 72px; }
 
 /* ══════════════════════════════
    DESKTOP (≥768px) — sidebar layout
@@ -1753,27 +1756,132 @@ select {
   cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.2s;
 }
 .ls-ghost-btn:hover { background:rgba(255,255,255,0.15); }
-@media (max-width:520px) {
-  #ls-container { width:100%; min-height:100svh; border-radius:0; display:flex; flex-direction:column; }
-  #ls-toggle-container { display:none !important; }
-  #ls-sign-in,#ls-sign-up { position:relative !important; width:100% !important; transform:none !important; opacity:1 !important; z-index:2 !important; }
-  #ls-sign-up { display:none; }
-  #ls-container.active #ls-sign-in { display:none; }
-  #ls-container.active #ls-sign-up { display:flex; }
-  .ls-form-inner { padding:28px 24px; min-height:100svh; }
-  #ls-mobile-tabs { display:flex !important; }
-}
+/* ── Mobile tab bar ── */
 #ls-mobile-tabs {
-  display:none; position:absolute; top:0; left:0; right:0;
-  z-index:20; background:#fff; border-bottom:1.5px solid #E8D5A0;
+  display: none;
+  width: 100%;
+  z-index: 20;
+  background: #fff;
+  border-bottom: 1.5px solid #E8D5A0;
+  flex-shrink: 0;
 }
 .ls-mob-tab {
-  flex:1; padding:13px; text-align:center; font-size:13px;
-  font-weight:700; border:none; background:transparent;
-  color:#8B6914; cursor:pointer; font-family:'DM Sans',sans-serif;
-  transition:color 0.2s;
+  flex: 1; padding: 14px; text-align: center;
+  font-size: 14px; font-weight: 700;
+  border: none; background: transparent;
+  color: #8B6914; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.2s;
 }
-.ls-mob-tab.active { color:#D4A017; border-bottom:2.5px solid #D4A017; }
+.ls-mob-tab.active {
+  color: #D4A017;
+  border-bottom: 2.5px solid #D4A017;
+}
+
+@media (max-width:600px) {
+  /* login-screen is full screen flex column */
+  #login-screen {
+    padding: 0 !important;
+    background: #fff !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+  }
+
+  /* gold strip at very top (status bar area) */
+  #login-screen::before {
+    content: '';
+    display: block;
+    height: env(safe-area-inset-top, 0px);
+    background: linear-gradient(to right,#c9b87a,#D4A017);
+    flex-shrink: 0;
+  }
+
+  /* Container fills full screen as a flex column */
+  #ls-container {
+    width: 100% !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    flex: 1 !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden;
+  }
+
+  /* Hide the desktop sliding toggle */
+  #ls-toggle-container { display: none !important; }
+
+  /* Show mobile tabs */
+  #ls-mobile-tabs { display: flex !important; }
+
+  /* Panels: fill remaining vertical space */
+  #ls-sign-in, #ls-sign-up {
+    position: relative !important;
+    width: 100% !important;
+    height: auto !important;
+    flex: 1 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    z-index: 2 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  #ls-sign-up { display: none !important; }
+  #ls-container.active #ls-sign-in { display: none !important; }
+  #ls-container.active #ls-sign-up { display: flex !important; }
+
+  /* Form inner: center content vertically in the remaining space */
+  .ls-form-inner {
+    flex: 1;
+    height: auto !important;
+    padding: 32px 28px 40px !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
+  }
+  .ls-form-inner h1 {
+    font-size: 26px !important;
+    margin-bottom: 20px !important;
+    color: #7A5800;
+  }
+
+  /* Inputs: full width */
+  #ls-container input {
+    width: 100% !important;
+    padding: 13px 16px !important;
+    font-size: 15px !important;
+    margin: 7px 0 !important;
+    border-radius: 10px !important;
+  }
+
+  /* Google btn: full width */
+  .ls-google-btn {
+    width: 100% !important;
+    padding: 13px !important;
+    font-size: 14px !important;
+    margin: 0 0 16px !important;
+    border-radius: 10px !important;
+  }
+
+  .ls-or-text { font-size: 12px !important; margin: 0 0 4px !important; }
+
+  /* Submit btn */
+  #ls-container .ls-submit-btn {
+    width: 100% !important;
+    padding: 14px !important;
+    font-size: 14px !important;
+    border-radius: 10px !important;
+    margin-top: 16px !important;
+    letter-spacing: 1.5px !important;
+  }
+
+  .ls-forgot {
+    font-size: 13px !important;
+    margin: 10px 0 4px !important;
+  }
+
+  .ls-err { font-size: 13px !important; margin-top: 10px !important; }
+}
 </style>
 
 <div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:16px">
@@ -1783,7 +1891,7 @@ select {
       <button class="ls-mob-tab"        onclick="lsSwitchTab('register')">Register</button>
     </div>
     <div class="ls-form-container" id="ls-sign-up">
-      <div class="ls-form-inner" style="padding-top:60px">
+      <div class="ls-form-inner">
         <h1>Create Account</h1>
         <button class="ls-google-btn" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
         <span class="ls-or-text">— or use your email —</span>
@@ -1795,7 +1903,7 @@ select {
       </div>
     </div>
     <div class="ls-form-container" id="ls-sign-in">
-      <div class="ls-form-inner" style="padding-top:60px">
+      <div class="ls-form-inner">
         <h1>Sign In</h1>
         <button class="ls-google-btn" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
         <span class="ls-or-text">— or use your email —</span>
