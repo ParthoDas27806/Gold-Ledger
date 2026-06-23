@@ -98,29 +98,151 @@ body { overflow-x: hidden; overflow-y: auto; }
 .page.active { display: block; animation: pageIn 0.25s var(--ease); }
 @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-/* ── BOTTOM NAV — fixed to bottom of viewport ── */
+/* ── BOTTOM NAV — Magic Indicator Style ── */
+:root { --nav-item-w: calc(100vw / 6); }
+
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: var(--card);
-  border-top: 1.5px solid var(--border);
-  display: grid; grid-template-columns: repeat(6, 1fr);
+  background: var(--gold-mid);
+  display: flex;
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  height: 64px;
+  height: 70px;
+  border-radius: 16px 16px 0 0;
+  overflow: visible;
+  box-shadow: 0 -4px 24px rgba(184,134,11,0.25);
 }
-.bottom-nav { box-shadow: 0 -2px 12px rgba(122,90,0,0.08); }
-.nav-btn {
-  background: none; border: none;
-  padding: 8px 4px 6px;
-  cursor: pointer;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  color: var(--hint); font-size: 11px; font-weight: 500;
-  font-family: 'DM Sans', sans-serif;
+[data-theme="dark"] .bottom-nav {
+  background: #3A2A00;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.40);
+}
+
+/* Nav list */
+.bottom-nav ul {
+  display: flex;
+  width: 100%;
+  list-style: none;
+  margin: 0; padding: 0;
   position: relative;
 }
-.nav-icon { font-size: 22px; line-height: 1; display: block; transition: transform 0.2s var(--ease); }
-.nav-btn.active { color: var(--gold-dark); }
-.nav-btn.active .nav-icon { transform: translateY(-2px) scale(1.08); }
-.nav-btn:active .nav-icon { transform: scale(0.9); }
+
+/* Each nav item */
+.bottom-nav ul li {
+  position: relative;
+  list-style: none;
+  flex: 1;
+  height: 70px;
+  z-index: 1;
+}
+
+/* The clickable button inside li */
+.nav-btn {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  width: 100%; height: 100%;
+  background: none; border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Icon */
+.nav-icon {
+  position: relative;
+  display: block;
+  font-size: 1.4rem;
+  line-height: 70px;
+  text-align: center;
+  transition: 0.5s cubic-bezier(0.22,1,0.36,1);
+  color: rgba(255,255,255,0.75);
+  filter: none;
+}
+[data-theme="dark"] .nav-icon { color: rgba(255,220,100,0.70); }
+
+/* Label */
+.nav-label {
+  position: absolute;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: 0.5s;
+  opacity: 0;
+  transform: translateY(20px);
+  bottom: 6px;
+  white-space: nowrap;
+}
+[data-theme="dark"] .nav-label { color: rgba(255,220,100,0.85); }
+
+/* Active — icon floats up */
+.bottom-nav ul li.active .nav-icon {
+  transform: translateY(-30px);
+  color: #7A5800;
+  filter: none;
+}
+.bottom-nav ul li.active .nav-label {
+  opacity: 1;
+  transform: translateY(0px);
+  color: rgba(255,255,255,0.95);
+}
+
+/* ── Sliding bubble indicator ── */
+.nav-indicator {
+  position: absolute;
+  top: -38px;
+  width: calc(100% / 6);
+  height: 70px;
+  background: #fff;
+  border-radius: 50%;
+  border: 5px solid var(--gold-mid);
+  transition: 0.5s cubic-bezier(0.22,1,0.36,1);
+  pointer-events: none;
+  z-index: 0;
+}
+[data-theme="dark"] .nav-indicator {
+  background: #FFF8DC;
+  border-color: #3A2A00;
+}
+
+/* Curved shoulders — left */
+.nav-indicator::before {
+  content: '';
+  position: absolute;
+  top: 46%;
+  left: -26px;
+  width: 22px; height: 22px;
+  background: transparent;
+  border-top-right-radius: 22px;
+  box-shadow: 3px -10px 0 0 var(--gold-mid);
+}
+[data-theme="dark"] .nav-indicator::before { box-shadow: 3px -10px 0 0 #3A2A00; }
+
+/* Curved shoulders — right */
+.nav-indicator::after {
+  content: '';
+  position: absolute;
+  top: 46%;
+  right: -26px;
+  width: 22px; height: 22px;
+  background: transparent;
+  border-top-left-radius: 22px;
+  box-shadow: -3px -10px 0 0 var(--gold-mid);
+}
+[data-theme="dark"] .nav-indicator::after { box-shadow: -3px -10px 0 0 #3A2A00; }
+
+/* Indicator positions for 6 tabs */
+.bottom-nav ul li:nth-child(1).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 0)); }
+.bottom-nav ul li:nth-child(2).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 1)); }
+.bottom-nav ul li:nth-child(3).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 2)); }
+.bottom-nav ul li:nth-child(4).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 3)); }
+.bottom-nav ul li:nth-child(5).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 4)); }
+.bottom-nav ul li:nth-child(6).active ~ .nav-indicator { transform: translateX(calc(var(--nav-item-w) * 5)); }
+
+/* scroll-area padding to account for taller nav */
+.scroll-area { margin-bottom: 70px; }
 
 /* ══════════════════════════════
    DESKTOP (≥768px) — sidebar layout
@@ -1412,12 +1534,45 @@ select {
 
     <!-- Bottom nav (mobile only) -->
     <nav class="bottom-nav">
-      <button class="nav-btn active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</button>
-      <button class="nav-btn" id="nav-clients" onclick="showPage('clients')"><span class="nav-icon">👥</span>Clients</button>
-      <button class="nav-btn" id="nav-add" onclick="showPage('add')"><span class="nav-icon" style="font-size:26px">➕</span>Add</button>
-      <button class="nav-btn" id="nav-history" onclick="showPage('history')"><span class="nav-icon">🗂️</span>History</button>
-      <button class="nav-btn" id="nav-daybook" onclick="showPage('daybook')"><span class="nav-icon">📒</span>Daybook</button>
-      <button class="nav-btn" id="nav-vault" onclick="showPage('vault')"><span class="nav-icon">🔒</span>Vault</button>
+      <ul id="bottom-nav-list">
+        <li class="active" id="nav-li-dashboard">
+          <button class="nav-btn" id="nav-dashboard" onclick="showPage('dashboard')">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Dashboard</span>
+          </button>
+        </li>
+        <li id="nav-li-clients">
+          <button class="nav-btn" id="nav-clients" onclick="showPage('clients')">
+            <span class="nav-icon">👥</span>
+            <span class="nav-label">Clients</span>
+          </button>
+        </li>
+        <li id="nav-li-add">
+          <button class="nav-btn" id="nav-add" onclick="showPage('add')">
+            <span class="nav-icon">➕</span>
+            <span class="nav-label">Add</span>
+          </button>
+        </li>
+        <li id="nav-li-history">
+          <button class="nav-btn" id="nav-history" onclick="showPage('history')">
+            <span class="nav-icon">🗂️</span>
+            <span class="nav-label">History</span>
+          </button>
+        </li>
+        <li id="nav-li-daybook">
+          <button class="nav-btn" id="nav-daybook" onclick="showPage('daybook')">
+            <span class="nav-icon">📒</span>
+            <span class="nav-label">Daybook</span>
+          </button>
+        </li>
+        <li id="nav-li-vault">
+          <button class="nav-btn" id="nav-vault" onclick="showPage('vault')">
+            <span class="nav-icon">🔒</span>
+            <span class="nav-label">Vault</span>
+          </button>
+        </li>
+        <div class="nav-indicator"></div>
+      </ul>
     </nav>
 
   </div><!-- /main-col -->
@@ -1876,6 +2031,11 @@ function showPage(p){
   resetUnsavedInputs();
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-btn,.side-btn').forEach(b=>b.classList.remove('active'));
+  // Magic indicator — activate the li
+  document.querySelectorAll('#bottom-nav-list > li').forEach(li=>li.classList.remove('active'));
+  const liMap={dashboard:'nav-li-dashboard',clients:'nav-li-clients',add:'nav-li-add',history:'nav-li-history',daybook:'nav-li-daybook',vault:'nav-li-vault',settings:'nav-li-settings'};
+  const activeLi=document.getElementById(liMap[p]);
+  if(activeLi) activeLi.classList.add('active');
   document.getElementById('page-'+p).classList.add('active');
   const nb=document.getElementById('nav-'+p); if(nb)nb.classList.add('active');
   const sb=document.getElementById('snav-'+p); if(sb)sb.classList.add('active');
