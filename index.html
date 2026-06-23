@@ -129,10 +129,12 @@ body { overflow-x: hidden; overflow-y: auto; }
   body { overflow: auto; }
 
   #app {
-    display: flex;
-    flex-direction: row;
-    height: 100vh;
-    min-height: 100vh;
+    display: flex; flex-direction: row;
+    height: 100vh; min-height: 100vh;
+    background: linear-gradient(160deg,#f5e6b0 0%,#fffdf5 40%,#f0e8c8 100%);
+  }
+  [data-theme="dark"] #app {
+    background: linear-gradient(160deg,#1A1408 0%,#221C0A 50%,#1A1408 100%);
   }
 
   /* Hide mobile elements on desktop */
@@ -141,50 +143,99 @@ body { overflow-x: hidden; overflow-y: auto; }
   .scroll-area { margin-top: 0; margin-bottom: 0; }
 
   /* Sidebar */
+  /* ── LIQUID GLASS SIDEBAR ── */
   .sidebar {
-    width: 240px;
-    flex: 0 0 240px;
-    background: var(--card);
-    border-right: 1.5px solid var(--border);
-    display: flex !important;
-    flex-direction: column;
-    height: 100vh;
-    overflow-y: auto;
+    width: 240px; flex: 0 0 240px;
+    display: flex !important; flex-direction: column;
+    height: 100vh; overflow-y: auto; overflow-x: hidden;
+    position: relative;
+    background: rgba(255,248,220,0.38);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    border-right: 1px solid rgba(212,160,23,0.22);
+    box-shadow: inset 1px 0 0 rgba(255,255,255,0.55), 4px 0 32px rgba(184,134,11,0.10);
+  }
+  [data-theme="dark"] .sidebar {
+    background: rgba(30,24,10,0.52);
+    border-right-color: rgba(212,160,23,0.18);
+    box-shadow: inset 1px 0 0 rgba(255,255,255,0.06), 4px 0 32px rgba(0,0,0,0.30);
+  }
+  .sidebar::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(180deg,rgba(255,255,255,0.18) 0%,rgba(255,255,255,0.04) 40%,transparent 100%);
+    pointer-events: none; z-index: 0;
+  }
+  [data-theme="dark"] .sidebar::before {
+    background: linear-gradient(180deg,rgba(255,255,255,0.07) 0%,rgba(255,255,255,0.02) 40%,transparent 100%);
   }
   .sidebar-logo {
     display: flex; align-items: center; gap: 10px;
     padding: 20px 16px 16px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid rgba(212,160,23,0.18);
+    position: relative; z-index: 1;
   }
+  [data-theme="dark"] .sidebar-logo { border-bottom-color: rgba(212,160,23,0.12); }
   .sidebar-logo-icon {
     width: 40px; height: 40px; border-radius: 50%;
     background: linear-gradient(135deg,#D4A017,#B8860B);
     display: flex; align-items: center; justify-content: center;
     color: #fff; font-size: 20px; flex-shrink: 0;
+    box-shadow: 0 2px 12px rgba(212,160,23,0.40), inset 0 1px 0 rgba(255,255,255,0.30);
   }
-  .sidebar-title { font-size: 17px; font-family: 'DM Sans',sans-serif; }
+  .sidebar-title { font-size: 17px; font-family: 'DM Sans',sans-serif; font-weight: 700; color: var(--text); }
   .sidebar-sub { font-size: 11px; color: var(--muted); }
-  .sidebar-nav { padding: 12px 10px; flex: 1; }
+  .sidebar-nav { padding: 12px 10px; flex: 1; position: relative; z-index: 1; }
   .side-btn {
-    width: 100%; background: none; border: none;
-    border-radius: var(--rs); padding: 11px 14px;
-    cursor: pointer; display: flex; align-items: center; gap: 10px;
+    width: 100%; background: transparent;
+    border: 1px solid transparent; border-radius: 14px;
+    padding: 11px 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
     color: var(--muted); font-size: 14px;
-    font-family: 'DM Sans',sans-serif; font-weight: 400;
-    text-align: left; margin-bottom: 3px; transition: all 0.15s;
+    font-family: 'DM Sans',sans-serif; font-weight: 500;
+    text-align: left; margin-bottom: 5px;
+    transition: all 0.22s cubic-bezier(0.22,1,0.36,1);
+    position: relative; overflow: hidden;
   }
-  .side-btn .sb-icon { font-size: 18px; }
-  .side-btn:hover { background: var(--surface); color: var(--text); }
+  .side-btn:hover {
+    background: rgba(212,160,23,0.10);
+    border-color: rgba(212,160,23,0.18); color: var(--text);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.40), 0 2px 10px rgba(184,134,11,0.08);
+    transform: translateX(2px);
+  }
+  [data-theme="dark"] .side-btn:hover {
+    background: rgba(212,160,23,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 2px 10px rgba(0,0,0,0.20);
+  }
   .side-btn.active {
-    background: var(--gold-bg); color: var(--gold-dark);
-    font-weight: 600; border: 1px solid var(--gold-border);
+    background: linear-gradient(135deg,rgba(212,160,23,0.28) 0%,rgba(212,160,23,0.14) 100%);
+    border-color: rgba(212,160,23,0.45); color: var(--gold-dark); font-weight: 700;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(184,134,11,0.12),
+                0 4px 16px rgba(212,160,23,0.20), 0 1px 4px rgba(184,134,11,0.15);
   }
+  [data-theme="dark"] .side-btn.active {
+    background: linear-gradient(135deg,rgba(212,160,23,0.22) 0%,rgba(212,160,23,0.10) 100%);
+    border-color: rgba(212,160,23,0.35);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 4px 16px rgba(212,160,23,0.15);
+  }
+  .side-btn.active::after {
+    content: ''; position: absolute;
+    top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg,transparent,rgba(255,255,255,0.30),transparent);
+    animation: sbShimmer 3s ease-in-out infinite;
+  }
+  @keyframes sbShimmer {
+    0%   { left:-100%; opacity:0; }
+    30%  { opacity:1; }
+    60%  { left:130%; opacity:0; }
+    100% { left:130%; opacity:0; }
+  }
+  .side-btn .sb-icon { font-size: 18px; flex-shrink: 0; }
   .sidebar-stats {
-    padding: 14px; border-top: 1px solid var(--border); font-size: 13px;
+    padding: 14px; border-top: 1px solid rgba(212,160,23,0.15);
+    font-size: 13px; position: relative; z-index: 1;
+    background: rgba(212,160,23,0.04);
   }
-  .stat-mini-row {
-    display: flex; justify-content: space-between; padding: 4px 0;
-  }
+  .stat-mini-row { display: flex; justify-content: space-between; padding: 4px 0; }
 
   /* Main content column */
   .main-col {
@@ -939,7 +990,7 @@ select {
     </nav>
     <div class="sidebar-stats" id="sidebar-stats"></div>
     <div style="padding:12px 10px">
-      <button id="auth-btn-desktop" onclick="openAuthModal()" style="width:100%;background:var(--gold-mid);color:#fff;border:none;border-radius:var(--rs);padding:9px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Sign In</button>
+      <button id="auth-btn-desktop" onclick="openAuthModal()" style="width:100%;background:linear-gradient(135deg,rgba(212,160,23,0.85),rgba(184,134,11,0.90));color:#fff;border:1px solid rgba(212,160,23,0.50);border-radius:14px;padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;box-shadow:inset 0 1px 0 rgba(255,255,255,0.35),0 4px 14px rgba(184,134,11,0.30);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:all 0.2s;">Sign In</button>
     </div>
   </aside>
 
@@ -1417,357 +1468,169 @@ select {
 
 <!-- ═══════════════ ANIMATED LOGIN SCREEN ═══════════════ -->
 <style>
-/* ════ LOGIN SCREEN — SLIDING PANEL (Gold Ledger) ════ */
-
+/* ════ LOGIN SCREEN — SLIDING PANEL ════ */
 #login-screen {
-  background: linear-gradient(to right, #c9b87a, #f5e6b0);
+  background: linear-gradient(to right,#c9b87a,#f5e6b0);
   overflow: hidden;
 }
-
-/* ── Outer container (mirrors .container from uploaded CSS) ── */
 #ls-container {
-  background-color: #fff;
-  border-radius: 24px;
+  background-color: #fff; border-radius: 24px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.28);
-  position: relative;
-  overflow: hidden;
-  width: min(768px, 96vw);
-  min-height: 460px;
-  max-height: 96vh;
+  position: relative; overflow: hidden;
+  width: min(768px,96vw); min-height: 460px; max-height: 96vh;
 }
-
-/* ── Forms ── */
 .ls-form-container {
-  position: absolute;
-  top: 0;
-  height: 100%;
+  position: absolute; top: 0; height: 100%;
   transition: all 0.6s ease-in-out;
 }
-
-/* Sign-In panel */
-#ls-sign-in {
-  left: 0;
-  width: 50%;
-  z-index: 2;
-}
-#ls-container.active #ls-sign-in {
-  transform: translateX(100%);
-}
-
-/* Sign-Up panel */
-#ls-sign-up {
-  left: 0;
-  width: 50%;
-  opacity: 0;
-  z-index: 1;
-}
+#ls-sign-in { left:0; width:50%; z-index:2; }
+#ls-container.active #ls-sign-in { transform: translateX(100%); }
+#ls-sign-up { left:0; width:50%; opacity:0; z-index:1; }
 #ls-container.active #ls-sign-up {
-  transform: translateX(100%);
-  opacity: 1;
-  z-index: 5;
+  transform: translateX(100%); opacity:1; z-index:5;
   animation: lsPanelReveal 0.6s;
 }
 @keyframes lsPanelReveal {
-  0%,49.99%  { opacity:0; z-index:1; }
-  50%,100%   { opacity:1; z-index:5; }
+  0%,49.99% { opacity:0; z-index:1; }
+  50%,100%  { opacity:1; z-index:5; }
 }
-
-/* Inner form layout */
 .ls-form-inner {
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 28px 32px;
-  height: 100%;
-  gap: 0;
+  background:#fff; display:flex; align-items:center;
+  justify-content:center; flex-direction:column;
+  padding:28px 32px; height:100%; gap:0;
 }
 .ls-form-inner h1 {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
-  color: #7A5800;
-  margin-bottom: 6px;
+  font-family:'DM Sans',sans-serif; font-size:22px;
+  font-weight:800; color:#7A5800; margin-bottom:6px;
 }
-
-/* Gold Google button */
 .ls-google-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  padding: 10px;
-  border: 1.5px solid #E0CC80;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  color: #5A3E00;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  margin: 14px 0 6px;
-  transition: background 0.2s, border-color 0.2s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%; padding:10px; border:1.5px solid #E0CC80;
+  border-radius:8px; background:#fff; font-size:12px;
+  font-weight:600; color:#5A3E00; cursor:pointer;
+  font-family:'DM Sans',sans-serif; margin:14px 0 6px;
+  transition:background 0.2s,border-color 0.2s;
 }
 .ls-google-btn:hover { background:#FDFAF2; border-color:#D4A017; }
-
 .ls-or-text {
-  font-size: 11px;
-  color: #B09050;
-  font-family: 'DM Sans', sans-serif;
-  margin: 6px 0;
-  letter-spacing: 0.3px;
+  font-size:11px; color:#B09050; font-family:'DM Sans',sans-serif;
+  margin:6px 0; letter-spacing:0.3px;
 }
-
-/* Inputs */
 #ls-container input {
-  background: #f5f0e0;
-  border: none;
-  margin: 6px 0;
-  padding: 11px 14px;
-  font-size: 13px;
-  border-radius: 8px;
-  width: 100%;
-  outline: none;
-  font-family: 'DM Sans', sans-serif;
-  color: #2D1E00;
-  transition: background 0.2s, box-shadow 0.2s;
+  background:#f5f0e0; border:none; margin:6px 0;
+  padding:11px 14px; font-size:13px; border-radius:8px;
+  width:100%; outline:none; font-family:'DM Sans',sans-serif;
+  color:#2D1E00; transition:background 0.2s,box-shadow 0.2s;
 }
-#ls-container input::placeholder { color: #C4A060; }
+#ls-container input::placeholder { color:#C4A060; }
 #ls-container input:focus {
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(212,160,23,0.35);
+  background:#fff; box-shadow:0 0 0 2px rgba(212,160,23,0.35);
 }
-
-/* Forgot */
 .ls-forgot {
-  font-size: 12px;
-  color: #8B6914;
-  margin: 8px 0 4px;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  text-decoration: none;
+  font-size:12px; color:#8B6914; margin:8px 0 4px;
+  cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none;
 }
-.ls-forgot:hover { text-decoration: underline; }
-
-/* Submit button */
+.ls-forgot:hover { text-decoration:underline; }
 #ls-container .ls-submit-btn {
-  background: linear-gradient(135deg,#D4A017,#A07200);
-  color: #fff;
-  font-size: 12px;
-  padding: 11px 40px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-top: 12px;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  box-shadow: 0 4px 14px rgba(184,134,11,0.35);
-  transition: box-shadow 0.2s, transform 0.15s;
+  background:linear-gradient(135deg,#D4A017,#A07200);
+  color:#fff; font-size:12px; padding:11px 40px; border:none;
+  border-radius:8px; font-weight:700; letter-spacing:1px;
+  text-transform:uppercase; margin-top:12px; cursor:pointer;
+  font-family:'DM Sans',sans-serif;
+  box-shadow:0 4px 14px rgba(184,134,11,0.35);
+  transition:box-shadow 0.2s,transform 0.15s;
 }
-#ls-container .ls-submit-btn:hover {
-  box-shadow: 0 6px 20px rgba(184,134,11,0.55);
-}
-#ls-container .ls-submit-btn:active { transform: scale(0.97); }
-
-/* Error */
+#ls-container .ls-submit-btn:hover { box-shadow:0 6px 20px rgba(184,134,11,0.55); }
+#ls-container .ls-submit-btn:active { transform:scale(0.97); }
 .ls-err {
-  display: none;
-  width: 100%;
-  background: #FEF2F2;
-  border: 1.5px solid #FCA5A5;
-  color: #B91C1C;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  margin-top: 8px;
-  font-family: 'DM Sans', sans-serif;
+  display:none; width:100%; background:#FEF2F2;
+  border:1.5px solid #FCA5A5; color:#B91C1C;
+  border-radius:8px; padding:8px 12px; font-size:12px;
+  margin-top:8px; font-family:'DM Sans',sans-serif;
 }
-
-/* ── Toggle sliding panel (mirrors .toggle-container) ── */
 #ls-toggle-container {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  transition: all 0.6s ease-in-out;
-  border-radius: 120px 0 0 80px;
-  z-index: 1000;
+  position:absolute; top:0; left:50%; width:50%; height:100%;
+  overflow:hidden; transition:all 0.6s ease-in-out;
+  border-radius:120px 0 0 80px; z-index:1000;
 }
 #ls-container.active #ls-toggle-container {
-  transform: translateX(-100%);
-  border-radius: 0 120px 80px 0;
+  transform:translateX(-100%); border-radius:0 120px 80px 0;
 }
-
 #ls-toggle {
-  background: linear-gradient(135deg, #D4A017 0%, #8B5E00 100%);
-  height: 100%;
-  color: #fff;
-  position: relative;
-  left: -100%;
-  width: 200%;
-  transform: translateX(0);
-  transition: all 0.6s ease-in-out;
+  background:linear-gradient(135deg,#D4A017 0%,#8B5E00 100%);
+  height:100%; color:#fff; position:relative;
+  left:-100%; width:200%;
+  transform:translateX(0); transition:all 0.6s ease-in-out;
 }
-#ls-container.active #ls-toggle {
-  transform: translateX(50%);
-}
-
+#ls-container.active #ls-toggle { transform:translateX(50%); }
 .ls-toggle-panel {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  padding: 0 24px;
-  text-align: center;
-  top: 0;
-  transition: all 0.6s ease-in-out;
+  position:absolute; width:50%; height:100%;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; padding:0 24px; text-align:center;
+  top:0; transition:all 0.6s ease-in-out;
 }
 .ls-toggle-panel h1 {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 20px;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 10px;
+  font-family:'DM Sans',sans-serif; font-size:20px;
+  font-weight:800; color:#fff; margin-bottom:10px;
 }
 .ls-toggle-panel p {
-  font-size: 13px;
-  color: rgba(255,255,255,0.85);
-  line-height: 1.6;
-  margin-bottom: 18px;
-  font-family: 'DM Sans', sans-serif;
+  font-size:13px; color:rgba(255,255,255,0.85);
+  line-height:1.6; margin-bottom:18px; font-family:'DM Sans',sans-serif;
 }
-
-/* Logo in toggle panel */
 .ls-logo-wrap {
-  width: 56px; height: 56px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.22);
-  border: 2px solid rgba(255,255,255,0.55);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px;
-  margin: 0 auto 14px;
-  position: relative;
+  width:56px; height:56px; border-radius:50%;
+  background:rgba(255,255,255,0.22); border:2px solid rgba(255,255,255,0.55);
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px; margin:0 auto 14px; position:relative;
 }
 .ls-logo-wrap img {
-  width: 56px; height: 56px;
-  border-radius: 50%; object-fit: cover;
-  position: absolute; inset: 0;
+  width:56px; height:56px; border-radius:50%;
+  object-fit:cover; position:absolute; inset:0;
 }
-
-.ls-toggle-left {
-  transform: translateX(-200%);
-}
-#ls-container.active .ls-toggle-left {
-  transform: translateX(0);
-}
-.ls-toggle-right {
-  right: 0;
-  transform: translateX(0);
-}
-#ls-container.active .ls-toggle-right {
-  transform: translateX(200%);
-}
-
-/* Ghost button on toggle panel */
+.ls-toggle-left { transform:translateX(-200%); }
+#ls-container.active .ls-toggle-left { transform:translateX(0); }
+.ls-toggle-right { right:0; transform:translateX(0); }
+#ls-container.active .ls-toggle-right { transform:translateX(200%); }
 .ls-ghost-btn {
-  background: transparent;
-  border: 2px solid #fff;
-  color: #fff;
-  font-size: 11px;
-  padding: 10px 36px;
-  border-radius: 8px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: background 0.2s;
+  background:transparent; border:2px solid #fff; color:#fff;
+  font-size:11px; padding:10px 36px; border-radius:8px;
+  font-weight:700; letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.2s;
 }
-.ls-ghost-btn:hover { background: rgba(255,255,255,0.15); }
-
-/* ── Responsive: stack vertically on small screens ── */
-@media (max-width: 520px) {
-  #ls-container {
-    width: 100%;
-    min-height: 100svh;
-    border-radius: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  #ls-toggle-container {
-    display: none !important;
-  }
-  #ls-sign-in,
-  #ls-sign-up {
-    position: relative !important;
-    width: 100% !important;
-    transform: none !important;
-    opacity: 1 !important;
-    z-index: 2 !important;
-  }
-  #ls-sign-up {
-    display: none;
-  }
-  #ls-container.active #ls-sign-in { display: none; }
-  #ls-container.active #ls-sign-up { display: flex; }
-  .ls-form-inner { padding: 28px 24px; min-height: 100svh; }
-  /* Mobile tab bar instead of sliding panel */
-  #ls-mobile-tabs {
-    display: flex !important;
-  }
+.ls-ghost-btn:hover { background:rgba(255,255,255,0.15); }
+@media (max-width:520px) {
+  #ls-container { width:100%; min-height:100svh; border-radius:0; display:flex; flex-direction:column; }
+  #ls-toggle-container { display:none !important; }
+  #ls-sign-in,#ls-sign-up { position:relative !important; width:100% !important; transform:none !important; opacity:1 !important; z-index:2 !important; }
+  #ls-sign-up { display:none; }
+  #ls-container.active #ls-sign-in { display:none; }
+  #ls-container.active #ls-sign-up { display:flex; }
+  .ls-form-inner { padding:28px 24px; min-height:100svh; }
+  #ls-mobile-tabs { display:flex !important; }
 }
-
-/* Mobile tab bar (hidden on desktop) */
 #ls-mobile-tabs {
-  display: none;
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  z-index: 20;
-  background: #fff;
-  border-bottom: 1.5px solid #E8D5A0;
+  display:none; position:absolute; top:0; left:0; right:0;
+  z-index:20; background:#fff; border-bottom:1.5px solid #E8D5A0;
 }
 .ls-mob-tab {
-  flex: 1; padding: 13px;
-  text-align: center;
-  font-size: 13px; font-weight: 700;
-  border: none; background: transparent;
-  color: #8B6914; cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: color 0.2s;
+  flex:1; padding:13px; text-align:center; font-size:13px;
+  font-weight:700; border:none; background:transparent;
+  color:#8B6914; cursor:pointer; font-family:'DM Sans',sans-serif;
+  transition:color 0.2s;
 }
-.ls-mob-tab.active {
-  color: #D4A017;
-  border-bottom: 2.5px solid #D4A017;
-}
+.ls-mob-tab.active { color:#D4A017; border-bottom:2.5px solid #D4A017; }
 </style>
 
 <div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:16px">
-
   <div id="ls-container">
-
-    <!-- ── Mobile tab bar (small screens only) ── -->
     <div id="ls-mobile-tabs">
       <button class="ls-mob-tab active" onclick="lsSwitchTab('signin')">Sign In</button>
       <button class="ls-mob-tab"        onclick="lsSwitchTab('register')">Register</button>
     </div>
-
-    <!-- ══ SIGN-UP PANEL ══ -->
     <div class="ls-form-container" id="ls-sign-up">
       <div class="ls-form-inner" style="padding-top:60px">
         <h1>Create Account</h1>
-        <button class="ls-google-btn" onclick="window.authSignInGoogle()">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Continue with Google
-        </button>
+        <button class="ls-google-btn" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
         <span class="ls-or-text">— or use your email —</span>
         <input type="text"     id="ls-reg-name"  placeholder="Your Name">
         <input type="email"    id="ls-reg-email" placeholder="Email">
@@ -1776,15 +1639,10 @@ select {
         <div class="ls-err" id="ls-err-reg"></div>
       </div>
     </div>
-
-    <!-- ══ SIGN-IN PANEL ══ -->
     <div class="ls-form-container" id="ls-sign-in">
       <div class="ls-form-inner" style="padding-top:60px">
         <h1>Sign In</h1>
-        <button class="ls-google-btn" onclick="window.authSignInGoogle()">
-          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-          Continue with Google
-        </button>
+        <button class="ls-google-btn" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
         <span class="ls-or-text">— or use your email —</span>
         <input type="email"    id="ls-si-email" placeholder="Email">
         <input type="password" id="ls-si-pass"  placeholder="Password">
@@ -1793,41 +1651,24 @@ select {
         <div class="ls-err" id="ls-err-si"></div>
       </div>
     </div>
-
-    <!-- ══ SLIDING TOGGLE PANEL ══ -->
     <div id="ls-toggle-container">
       <div id="ls-toggle">
-
-        <!-- Left panel: shown when Register is active → go back to Sign In -->
         <div class="ls-toggle-panel ls-toggle-left">
-          <div class="ls-logo-wrap">
-            <img src="icons/logo.png?v=2" onerror="this.style.display='none'">
-            ⚖️
-          </div>
+          <div class="ls-logo-wrap"><img src="icons/logo.png?v=2" onerror="this.style.display='none'">⚖️</div>
           <h1>Welcome Back!</h1>
           <p>Already have an account? Sign in to access all your gold records.</p>
-          <button class="ls-ghost-btn" id="ls-goto-signin" onclick="lsSwitchTab('signin')">Sign In</button>
+          <button class="ls-ghost-btn" onclick="lsSwitchTab('signin')">Sign In</button>
         </div>
-
-        <!-- Right panel: shown when Sign In is active → go to Register -->
         <div class="ls-toggle-panel ls-toggle-right">
-          <div class="ls-logo-wrap">
-            <img src="icons/logo.png?v=2" onerror="this.style.display='none'">
-            ⚖️
-          </div>
+          <div class="ls-logo-wrap"><img src="icons/logo.png?v=2" onerror="this.style.display='none'">⚖️</div>
           <h1>Gold Ledger</h1>
           <p>New here? Register to keep all your gold records safe across every device.</p>
-          <button class="ls-ghost-btn" id="ls-goto-register" onclick="lsSwitchTab('register')">Register</button>
+          <button class="ls-ghost-btn" onclick="lsSwitchTab('register')">Register</button>
         </div>
-
       </div>
     </div>
-
-  </div><!-- /#ls-container -->
-
-  <!-- shared error (used by lsShowError) -->
+  </div>
   <div class="auth-error" id="ls-error" style="display:none;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);max-width:320px;width:90%;z-index:6000"></div>
-
 </div>
 <div id="vault-entry-overlay" onclick="closeVaultEntry()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
 <div id="vault-entry-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
@@ -3451,7 +3292,22 @@ function renderVault(){
       let typeLabel;
       if(v.manual) typeLabel=isAdd?'Manual Add':'Manual Withdrawal';
       else typeLabel=v.type==='delivered'?'Casting':'Metal';
-      return `<div class="txn-item" style="cursor:default;margintom:16px">
+      return `<div class="txn-item" style="cursor:default;margin-bottom:6px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div class="txn-label">${esc(v.clientName)}</div>
+            <div class="txn-meta">${typeLabel}${v.note?' · '+esc(v.note):''}</div>
+            <div class="txn-meta" style="margin-top:2px;color:var(--hint)">Balance after: ${v.balanceAfter.toFixed(3)}g</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+            <div class="txn-grams" style="color:${color}">${sign}${Math.abs(v.delta).toFixed(3)}g</div>
+            <div class="txn-gram-mg">${fmtGramMg(Math.abs(v.delta))}</div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    return `<div style="margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <div style="font-size:13px;font-weight:700;color:var(--text)">📅 ${fmtDate(date)}</div>
         <div style="font-size:12px;font-weight:600;color:${netColor}">${netSign}${netDay.toFixed(3)}g net</div>
@@ -3497,26 +3353,18 @@ function clearDaybookView(){
 
 /* ── LOGIN SCREEN (shown on first open for new users) ── */
 function lsSwitchTab(tab){
-  const isSignIn = tab==='signin';
-  document.getElementById('ls-tab-signin').classList.toggle('ls-active', isSignIn);
-  document.getElementById('ls-tab-register').classList.toggle('ls-active', !isSignIn);
-  const fSI  = document.getElementById('ls-form-signin');
-  const fReg = document.getElementById('ls-form-register');
-  if(isSignIn){
-    fReg.style.display='none';
-    fSI.style.display='block';
-    fSI.classList.remove('ls-anim-r','ls-anim-l');
-    void fSI.offsetWidth;
-    fSI.classList.add('ls-anim-l');
-  } else {
-    fSI.style.display='none';
-    fReg.style.display='block';
-    fReg.classList.remove('ls-anim-r','ls-anim-l');
-    void fReg.offsetWidth;
-    fReg.classList.add('ls-anim-r');
+  const c=document.getElementById('ls-container'); if(!c)return;
+  const isReg=tab==='register';
+  if(isReg) c.classList.add('active');
+  else      c.classList.remove('active');
+  const tabs=document.querySelectorAll('.ls-mob-tab');
+  if(tabs.length){ tabs[0].classList.toggle('active',!isReg); tabs[1].classList.toggle('active',isReg); }
+  if(window.innerWidth<=520){
+    const su=document.getElementById('ls-sign-up'), si=document.getElementById('ls-sign-in');
+    if(isReg){ if(su)su.style.display='flex'; if(si)si.style.display='none'; }
+    else     { if(si)si.style.display='flex'; if(su)su.style.display='none'; }
   }
-  const err=document.getElementById('ls-error');
-  if(err) err.style.display='none';
+  ['ls-err-si','ls-err-reg','ls-error'].forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });
 }
 function lsShowError(msg){
   const el=document.getElementById('ls-error');
