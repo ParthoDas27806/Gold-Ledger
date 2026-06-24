@@ -119,16 +119,21 @@ body { overflow-x: hidden; overflow-y: auto; }
 .nav-indicator {
   position: absolute;
   top: calc(-1 * var(--bubble) / 2 - 4px);
+  left: 0;
   width: var(--bubble);
   height: var(--bubble);
-  margin-left: calc((100% / 6 - var(--bubble)) / 2); /* center in slot */
+  margin-left: calc((100vw / 6 - var(--bubble)) / 2); /* center in first slot */
   background: #FFFBEF;
   border-radius: 50%;
   border: 4px solid #C8900A;
   box-shadow: 0 4px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.8);
   transition: transform 0.45s cubic-bezier(0.22,1,0.36,1);
   pointer-events: none;
-  z-index: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
 }
 [data-theme="dark"] .nav-indicator {
   background: #FFF3C0;
@@ -170,8 +175,85 @@ body { overflow-x: hidden; overflow-y: auto; }
 .bottom-nav ul li:nth-child(5).active ~ .nav-indicator { transform: translateX(calc(100vw / 6 * 4)); }
 .bottom-nav ul li:nth-child(6).active ~ .nav-indicator { transform: translateX(calc(100vw / 6 * 5)); }
 
+/* ── MOBILE BOTTOM NAV ── */
+:root {
+  --bubble: 50px;
+}
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: #B8860B;
+  z-index: 200;
+  border-top: 1px solid rgba(0,0,0,0.12);
+  box-shadow: 0 -2px 16px rgba(0,0,0,0.14);
+}
+[data-theme="dark"] .bottom-nav {
+  background: #7A5A00;
+  border-top-color: rgba(255,255,255,0.06);
+}
+.bottom-nav ul {
+  list-style: none;
+  display: flex;
+  height: 100%;
+  margin: 0; padding: 0;
+  position: relative;
+  overflow: visible;
+}
+.bottom-nav ul li {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  padding: 0 0 6px;
+  color: rgba(255,255,255,0.70);
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+  display: block;
+}
+.nav-label {
+  font-size: 10px;
+  font-weight: 500;
+  font-family: 'DM Sans', sans-serif;
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  white-space: nowrap;
+  color: rgba(255,255,255,0.80);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.bottom-nav ul li.active .nav-label {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.bottom-nav ul li.active .nav-btn {
+  color: #fff;
+}
+.bottom-nav ul li.active .nav-icon {
+  opacity: 0; /* hidden under bubble */
+}
+
 /* scroll area breathing room */
 .scroll-area { margin-bottom: calc(var(--nav-h) + 4px); }
+.scroll-area { margin-top: 58px; } /* topbar height */
 
 /* ─── DESKTOP — show bottom nav AND sidebar ─── */
 @media (min-width: 768px) {
@@ -1383,7 +1465,7 @@ select {
         <!-- Add/Take out — inline entry panel -->
         <div style="display:flex;gap:8px;margin-bottom:10px">
           <button id="vault-add-tab" onclick="openInlineVault('add')" style="flex:1;padding:11px;border:2px solid var(--green);border-radius:var(--rs);background:var(--green);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">+ Add Gold</button>
-          <button id="vault-out-tab" onclick="openInlineVault('out')" style="flex:1;padding:11px;border:2px solid var(--red);border-radius:var(--rs);background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">− Take Out</button>
+          <button id="vault-out-tab" onclick="openInlineVault('out')" style="flex:1;padding:11px;border:2px solid var(--red);border-radius:var(--rs);background:var(--red);color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">− Take Out Gold</button>
         </div>
 
         <!-- Inline input panel -->
@@ -1516,6 +1598,7 @@ select {
             <span class="nav-label">Vault</span>
           </button>
         </li>
+        <div class="nav-indicator" id="nav-indicator"></div>
       </ul>
     </nav>
 
@@ -2085,6 +2168,13 @@ function showPage(p){
   const liMap={dashboard:'nav-li-dashboard',clients:'nav-li-clients',add:'nav-li-add',history:'nav-li-history',daybook:'nav-li-daybook',vault:'nav-li-vault',settings:'nav-li-settings'};
   const activeLi=document.getElementById(liMap[p]);
   if(activeLi) activeLi.classList.add('active');
+  // Update bubble icon
+  const activeBtn=document.getElementById('nav-'+p);
+  const indicator=document.getElementById('nav-indicator');
+  if(activeBtn&&indicator){
+    const icon=activeBtn.querySelector('.nav-icon');
+    if(icon) indicator.textContent=icon.textContent;
+  }
   document.getElementById('page-'+p).classList.add('active');
   const nb=document.getElementById('nav-'+p); if(nb)nb.classList.add('active');
   const sb=document.getElementById('snav-'+p); if(sb)sb.classList.add('active');
@@ -4141,6 +4231,11 @@ applyResolvedTheme();
 // Load saved language preference
 try{const sl=localStorage.getItem('gold_ledger_lang');if(sl&&LANGS[sl])currentLang=sl;}catch(e){}
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+// Initialize nav indicator with dashboard icon
+setTimeout(()=>{
+  const ind=document.getElementById('nav-indicator');
+  if(ind) ind.textContent='🏠';
+},0);
 // Apply language and theme buttons after DOM ready
 setTimeout(()=>{
   applyLang();
