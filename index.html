@@ -68,113 +68,47 @@ html, body {
 body { overflow-x: hidden; overflow-y: auto; }
 #app { width: 100%; min-height: 100%; background: var(--bg); }
 
-/* ── TOP BAR — fixed to top of viewport ── */
+/* ── TOP BAR — LIQUID GLASS ── */
 .topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  background: var(--card);
-  border-bottom: 1.5px solid var(--border);
+  /* Liquid glass */
+  background: rgba(255, 248, 220, 0.45);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 1px solid rgba(212,160,23,0.22);
+  box-shadow: 0 2px 16px rgba(184,134,11,0.12),
+              inset 0 -1px 0 rgba(255,255,255,0.40);
   padding: 10px 16px;
   height: 58px;
-  box-shadow: var(--shadow-sm);
 }
-.topbar-inner { display: flex; align-items: center; gap: 10px; height: 100%; }
+/* Glass shimmer overlay */
+.topbar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.04) 100%);
+  pointer-events: none;
+}
+[data-theme="dark"] .topbar {
+  background: rgba(26,20,8,0.60);
+  border-bottom-color: rgba(212,160,23,0.15);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.35),
+              inset 0 -1px 0 rgba(255,255,255,0.06);
+}
+[data-theme="dark"] .topbar::before {
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.06) 0%,
+    transparent 100%);
+}
+.topbar-inner {
+  display: flex; align-items: center; gap: 10px;
+  height: 100%; position: relative; z-index: 1;
+}
 .topbar-logo {
   width: 38px; height: 38px; border-radius: 50%;
-  background: linear-gradient(135deg,#D4A017,#B8860B);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 20px; flex-shrink: 0; overflow: hidden;
-  box-shadow: 0 2px 8px rgba(184,134,11,0.35);
-}
-.topbar-title { font-size: 17px; font-family: 'DM Sans',sans-serif; }
-.topbar-sub { font-size: 11px; color: var(--muted); }
-
-/* ── SCROLL CONTENT — normal block flow, Android scrolls body ── */
-.scroll-area {
-  margin-top: 58px;   /* below fixed topbar */
-  margin-bottom: 64px; /* above fixed bottom nav */
-  background: var(--bg);
-}
-.page { display: none; padding: 14px 14px 90px; }
-.page.active { display: block; animation: pageIn 0.25s var(--ease); }
-@keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ── BOTTOM NAV — Magic Indicator (Mobile + Desktop) ── */
-:root {
-  --nav-h: 62px;          /* nav bar height */
-  --bubble: 52px;         /* circle diameter — smaller on mobile */
-  --nav-item-w: calc(100vw / 6);
-}
-
-/* ─── SHARED — works at all widths ─── */
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: linear-gradient(135deg,#C8900A,#A07200);
-  display: flex;
-  padding-bottom: env(safe-area-inset-bottom,0px);
-  height: var(--nav-h);
-  border-radius: 16px 16px 0 0;
-  overflow: visible;
-  box-shadow: 0 -3px 16px rgba(140,90,0,0.30);
-}
-[data-theme="dark"] .bottom-nav {
-  background: linear-gradient(135deg,#3A2A00,#2A1E00);
-  box-shadow: 0 -3px 16px rgba(0,0,0,0.45);
-}
-
-.bottom-nav ul {
-  display: flex; width: 100%;
-  list-style: none; margin: 0; padding: 0;
-  position: relative;
-}
-.bottom-nav ul li {
-  position: relative; list-style: none;
-  flex: 1; height: var(--nav-h); z-index: 1;
-}
-.nav-btn {
-  position: relative; display: flex;
-  justify-content: center; align-items: center;
-  flex-direction: column;
-  width: 100%; height: var(--nav-h);
-  background: none; border: none; cursor: pointer;
-  font-family: 'DM Sans',sans-serif; text-align: center;
-  -webkit-tap-highlight-color: transparent;
-  padding: 0;
-}
-
-/* Icon */
-.nav-icon {
-  position: relative; display: block;
-  font-size: 1.25rem;
-  line-height: var(--nav-h);
-  text-align: center;
-  transition: transform 0.45s cubic-bezier(0.22,1,0.36,1), color 0.3s;
-  color: rgba(255,255,255,0.78);
-}
-[data-theme="dark"] .nav-icon { color: rgba(255,215,80,0.72); }
-
-/* Label — hidden by default, only appears for active */
-.nav-label {
-  position: absolute;
-  bottom: 5px;
-  left: 50%; transform: translateX(-50%) translateY(6px);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.95);
-  font-family: 'DM Sans',sans-serif;
-  white-space: nowrap;
-  opacity: 0;
-  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.22,1,0.36,1);
-  pointer-events: none;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.30);
   line-height: 1;
-}
-[data-theme="dark"] .nav-label { color: rgba(255,230,110,0.95); }
-
-/* Active state — icon floats up, label appears */
-.bottom-nav ul li.active .nav-icon {
-  transform: translateY(-22px);
-  color: #5A3A00;
 }
 .bottom-nav ul li.active .nav-label {
   opacity: 1;
@@ -246,32 +180,7 @@ body { overflow-x: hidden; overflow-y: auto; }
     --bubble: 56px;       /* slightly bigger on desktop */
     --nav-item-w: calc(100vw / 6);
   }
-  /* Make bottom nav visible on desktop too */
-  .bottom-nav {
-    display: flex !important;
-    position: fixed !important;
-    left: 240px !important;       /* offset by sidebar width */
-    right: 0 !important;
-    bottom: 0 !important;
-    border-radius: 12px 12px 0 0;
-  }
-  /* Indicator positions use remaining width (100vw - 240px sidebar) */
-  .bottom-nav ul li:nth-child(1).active ~ .nav-indicator { transform: translateX(calc((100vw - 240px) / 6 * 0)); }
-  .bottom-nav ul li:nth-child(2).active ~ .nav-indicator { transform: translateX(calc((100vw - 240px) / 6 * 1)); }
-  .bottom-nav ul li:nth-child(3).active ~ .nav-indicator { transform: translateX(calc((100vw - 240px) / 6 * 2)); }
-  .bottom-nav ul li:nth-child(4).active ~ .nav-indicator { transform: translateX(calc((100vw - 240px) / 6 * 3)); }
-  .bottom-nav ul li:nth-child(5).active ~ .nav-indicator { transform: translateX(calc((100vw - 240px) / 6 * 4)); }
-  .bottom-nav ul li:nth-child(6).active ~ .nav-indicator { transform: translateX(calc((100vw - 240px) / 6 * 5)); }
-  .nav-indicator {
-    margin-left: calc(((100vw - 240px) / 6 - var(--bubble)) / 2);
-  }
-  /* scroll area accounts for sidebar and bottom nav */
-  .scroll-area {
-    margin-bottom: calc(var(--nav-h) + 8px) !important;
-    margin-top: 0 !important;
-  }
-  .nav-label { font-size: 0.62rem; }
-  .nav-icon { font-size: 1.4rem; }
+
 }
 
 /* ══════════════════════════════
@@ -291,8 +200,8 @@ body { overflow-x: hidden; overflow-y: auto; }
 
   /* Hide mobile elements on desktop */
   .topbar { display: none; position: static; }
-  /* bottom-nav now visible on desktop — handled in nav CSS above */
-  .scroll-area { margin-top: 0; }
+  .bottom-nav { display: none !important; }
+  .scroll-area { margin-top: 0 !important; margin-bottom: 0 !important; }
 
   /* Sidebar */
   /* ── LIQUID GLASS SIDEBAR ── */
@@ -1601,7 +1510,6 @@ select {
             <span class="nav-label">Vault</span>
           </button>
         </li>
-        <div class="nav-indicator"></div>
       </ul>
     </nav>
 
