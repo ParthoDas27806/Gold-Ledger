@@ -322,6 +322,12 @@ body { overflow-x: hidden; overflow-y: auto; }
 /* ══════════════════════════════
    COMPONENTS
 ══════════════════════════════ */
+
+/* TAB SECTION ISOLATION FIX */
+.page { display:none; padding:28px; max-width:860px; }
+.page.active { display:block; animation: pageIn 0.2s ease; }
+@keyframes pageIn { from {opacity:0; transform:translateY(4px);} to {opacity:1; transform:none;} }
+
 h1,h2,h3 { font-family: 'DM Sans',sans-serif; font-weight: 500; }
 button,input,select,textarea { font-family: 'DM Sans',sans-serif; font-size: 14px; outline: none; }
 input,select,textarea {
