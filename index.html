@@ -1009,6 +1009,182 @@ select {
 }
 [data-theme="dark"] .calc-priv-label { color: var(--gold-mid); }
 
+/* ══════════════════════════════════════════
+   STAR WARS LIGHTSABER THEME TOGGLE
+══════════════════════════════════════════ */
+@layer sw-properties {
+  @property --sw-blur { syntax:"<length>"; inherits:true; initial-value:0vmin; }
+  @property --sw-progress { syntax:"<number>"; inherits:true; initial-value:0; }
+}
+@keyframes sw-checked   { from{--sw-progress:0} to{--sw-progress:1} }
+@keyframes sw-unchecked { from{--sw-progress:1} to{--sw-progress:0} }
+@keyframes sw-pulse {
+  from{--sw-blur:.9vmin} 50%{--sw-blur:1.3vmin} to{--sw-blur:.9vmin}
+}
+
+.sw-scene {
+  display:flex; flex-direction:column; align-items:center; gap:4vmin;
+  --sw-light-primary:#F349A4; --sw-light-pv:#B1437E; --sw-light-pv2:#671086;
+  --sw-light-sec:#2ED9E7; --sw-light-sv:#2C7BA1; --sw-light-ter:#FFE629;
+  --sw-dark-primary:#FFE629; --sw-dark-sec:#F349A4; --sw-dark-sv:#B1437E;
+  --sw-dark-ter:#2ED9E7; --sw-dark-tv:#2C7BA1; --sw-dark-sv2:#671086;
+  --sw-dark-surface:#071F49; --sw-dark-bg:#081226;
+  --sw-color-thumb:#575A0E;
+}
+.sw-scene.sw-is-light { --sw-color-thumb:#671086; }
+.sw-scene.sw-anim-on  { animation: sw-checked   0.45s ease-in-out forwards; }
+.sw-scene.sw-anim-off { animation: sw-unchecked 0.45s ease-in-out forwards; }
+
+.sw-images {
+  position:relative; height:14vmin; width:42vmin; pointer-events:none;
+  max-height:80px; max-width:240px;
+}
+.sw-img { position:absolute; object-fit:contain; width:100%; height:100%; }
+.sw-dark-img { opacity:1; transition:all .3s ease; filter:blur(0); }
+.sw-light-img { opacity:0; filter:blur(2vmin); transition:all .3s ease; }
+.sw-scene.sw-is-light .sw-dark-img { opacity:0; filter:blur(2vmin); }
+.sw-scene.sw-is-light .sw-light-img { opacity:1; filter:blur(0); }
+
+.sw-switch {
+  display:flex; cursor:pointer; flex-direction:column;
+  align-items:center; gap:7vmin;
+}
+
+.sw-track {
+  width:32vmin; height:18vmin;
+  max-width:200px; max-height:112px;
+  background:var(--sw-dark-surface);
+  border-radius:20vmin; position:relative;
+  display:flex; align-items:center; padding:1.5vmin;
+  transition:all .35s ease;
+  box-shadow:inset 0 0 6vmin rgba(0,0,0,0.9);
+}
+.sw-scene.sw-is-light .sw-track {
+  background:rgba(0,0,0,.04);
+  box-shadow:inset 0 0 3vmin rgba(0,0,0,0.3);
+}
+
+.sw-lightsaber {
+  position:absolute; display:flex;
+  height:1.2vmin; width:28vmin; left:2vmin;
+}
+.sw-ls-light {
+  width:12vmin; border-top-left-radius:2vmin; border-bottom-left-radius:2vmin;
+  background:var(--sw-light-sec);
+  box-shadow:0 0 1vmin var(--sw-blur) rgba(255,255,255,.5), 0 0 6vmin var(--sw-blur) var(--sw-light-sec);
+  transition:opacity .6s linear, transform .6s linear;
+  opacity:0; animation:sw-pulse 1s ease-in-out infinite;
+  transform:scaleX(0); transform-origin:right;
+}
+.sw-scene.sw-is-light .sw-ls-light { opacity:1; transform:scaleX(1); }
+.sw-ls-grip { width:3.5vmin; background:#081F48; border-radius:2vmin; transform:scaleX(1.2); }
+.sw-ls-dark {
+  width:12vmin; border-top-right-radius:2vmin; border-bottom-right-radius:2vmin;
+  background:var(--sw-dark-sec);
+  box-shadow:0 0 6vmin var(--sw-blur) var(--sw-dark-sec);
+  transition:opacity .6s linear, transform .6s linear;
+  opacity:1; animation:sw-pulse 1s ease-in-out infinite;
+  transform:scaleX(1); transform-origin:left;
+}
+.sw-scene.sw-is-light .sw-ls-dark { opacity:0; transform:scaleX(0); }
+
+.sw-thumb {
+  height:100%; aspect-ratio:1;
+  transform:translateX(calc(14vmin * var(--sw-progress, 0)));
+  position:relative; transform-style:preserve-3d; border-radius:50%;
+}
+.sw-thumb::after {
+  content:""; position:absolute; inset:0;
+  mask:linear-gradient(black,black) no-repeat, url("https://assets.codepen.io/907471/deathstar-mask.svg") no-repeat;
+  -webkit-mask:linear-gradient(black,black) no-repeat, url("https://assets.codepen.io/907471/deathstar-mask.svg") no-repeat;
+  mask-size:150% 100%, 100% 100%;
+  -webkit-mask-size:150% 100%, 100% 100%;
+  mask-position:calc(-15vmin + (15vmin * var(--sw-progress,0))) 0, calc(0vmin + (15vmin * var(--sw-progress,0))) 0;
+  -webkit-mask-position:calc(-15vmin + (15vmin * var(--sw-progress,0))) 0, calc(0vmin + (15vmin * var(--sw-progress,0))) 0;
+  background:
+    radial-gradient(88% 88% at 55% 50%, var(--sw-dark-sec) 50%, #B1437E 50%, #B1437E 55%, #671086 55%, #671086 60%, transparent 60%) no-repeat,
+    linear-gradient(var(--sw-dark-surface), var(--sw-dark-surface)) no-repeat,
+    radial-gradient(90% 90% at 55% 50%, var(--sw-dark-primary) 50%, var(--sw-color-thumb) 50%, transparent 70%) no-repeat,
+    var(--sw-color-thumb);
+  background-position:calc(-16vmin + (16.5vmin * var(--sw-progress,0))) 0, calc(0px + (16vmin * var(--sw-progress,0))) 50%, calc(0px + (16vmin * var(--sw-progress,0))) 0;
+  border-radius:50%; background-size:100% 100%, 100% 1vmin, 100% 100%;
+}
+
+.sw-side {
+  position:absolute; inset:0; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+.sw-light-side {
+  --sw-size:16vmin; --sw-angle:calc(180deg * var(--sw-progress,0));
+  --sw-radius:calc(var(--sw-size)/2);
+  --sw-y:calc(sin(var(--sw-angle)) * var(--sw-radius) * -1);
+  --sw-x:calc(cos(var(--sw-angle)) * var(--sw-radius) * -1);
+  transform:translateZ(var(--sw-x)) translateX(var(--sw-y)) rotateY(var(--sw-angle));
+  opacity:0; transition:opacity .3s ease;
+}
+.sw-scene.sw-is-light .sw-light-side { opacity:1; }
+
+.sw-light-side .sw-circle {
+  background:var(--sw-light-sec); width:5.2vmin; aspect-ratio:1;
+  border-radius:1.4vmin; position:absolute; top:4vmin; left:2.3vmin; z-index:111;
+}
+.sw-light-side .sw-sub-circle {
+  background:black; aspect-ratio:1; border-radius:50%;
+  position:absolute; inset:0.5vmin; z-index:111;
+}
+.sw-light-side .sw-sub-circle::after {
+  content:""; position:absolute; left:1.8vmin; top:0.9vmin;
+  width:1.4vmin; aspect-ratio:1; border-radius:50%;
+  background:var(--sw-light-ter);
+}
+.sw-top { display:flex; gap:1vmin; transform:translate(2.5vmin,1vmin); }
+.sw-right { background:var(--sw-light-sec); height:2vmin; width:5vmin; mask:radial-gradient(100% 100% at 0% 120%, black 100%, transparent); }
+.sw-left  { background:var(--sw-light-sec); height:2vmin; width:2vmin; mask:radial-gradient(100% 100% at 100% 120%, black 100%, transparent); }
+.sw-center { transform:translateY(7.5vmin); display:flex; flex-direction:row-reverse; height:2vmin; gap:0.8vmin; }
+.sw-i1 { background:var(--sw-light-sec); width:4vmin; mask:radial-gradient(100% 200% at 0% 0%, black 90%, transparent 90%); }
+.sw-i2 { background:var(--sw-light-pv); width:2vmin; }
+.sw-i3 { background:var(--sw-light-sec); width:3.2vmin; height:1.5vmin; margin-top:0.5vmin; position:relative; }
+.sw-i3::after { content:""; position:absolute; border-radius:50%; margin-top:0.25vmin; right:1.5vmin; width:1vmin; aspect-ratio:1; background:var(--sw-light-primary); }
+.sw-i4 { border-radius:50%; width:1.4vmin; height:1.4vmin; background:var(--sw-light-pv2); transform:translateY(0.4vmin); }
+.sw-i5 { background:var(--sw-light-sec); width:1vmin; transform:translateX(0.5vmin); mask:radial-gradient(100% 130% at 110% 0%, black 90%, transparent 90%); }
+.sw-bottom { transform:translateY(8.5vmin); }
+.sw-line { background:var(--sw-light-sec); height:1.5vmin; mask:radial-gradient(35% 80% at 48% 0%, black 100%, transparent); }
+
+.sw-dark-side {
+  --sw-size:15vmin; --sw-angle:calc(180deg * var(--sw-progress,0));
+  --sw-radius:calc(var(--sw-size)/2);
+  --sw-y:calc(sin(var(--sw-angle)) * var(--sw-radius));
+  --sw-x:calc(cos(var(--sw-angle)) * var(--sw-radius));
+  transform:translateZ(var(--sw-x)) translateX(var(--sw-y)) rotateY(var(--sw-angle));
+}
+.sw-dark-side .sw-circle {
+  background:var(--sw-dark-sec); border:0.6vmin solid var(--sw-dark-sv2);
+  width:4.9vmin; aspect-ratio:1; border-radius:50%;
+  position:absolute; top:1.7vmin; left:2vmin; z-index:111;
+}
+.sw-dark-side .sw-sub-circle {
+  background:var(--sw-dark-ter); border:0.2vmin solid var(--sw-dark-tv);
+  width:2.1vmin; aspect-ratio:1; border-radius:50%;
+  position:absolute; top:0; left:0; z-index:111;
+}
+.sw-dark-side .sw-sub-circle::after {
+  content:""; position:absolute; left:1vmin; top:1vmin;
+  width:0.6vmin; aspect-ratio:1; border-radius:50%;
+  background:var(--sw-dark-primary); border:0.3vmin solid #183B79;
+}
+
+/* animate the --sw-progress via the scene's animation */
+.sw-scene.sw-anim-on  { animation: sw-checked   0.45s ease-in-out forwards; }
+.sw-scene.sw-anim-off { animation: sw-unchecked 0.45s ease-in-out forwards; }
+
+/* System pill active state */
+.theme-opt[data-theme-val="system"].sw-active-sys {
+  border-color:var(--gold-mid);
+  background:var(--gold-bg);
+  color:var(--gold-dark);
+  box-shadow:0 0 0 3px rgba(212,160,23,0.18);
+}
+
 </style>
   <!-- Firebase SDK with Authentication -->
   <script type="module">
@@ -1580,22 +1756,61 @@ select {
         </div>
 
         <!-- Appearance -->
-        <div style="margin-bottom:24px">
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">🎨 Appearance</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-            <button class="theme-opt" data-theme-val="light" onclick="setThemeMode('light')" style="padding:16px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--card);cursor:pointer;text-align:center;box-shadow:var(--shadow-sm)">
-              <div style="font-size:26px;margin-bottom:6px">☀️</div>
-              <div style="font-size:12px;font-weight:600;color:var(--text)">Light</div>
-            </button>
-            <button class="theme-opt" data-theme-val="dark" onclick="setThemeMode('dark')" style="padding:16px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--card);cursor:pointer;text-align:center;box-shadow:var(--shadow-sm)">
-              <div style="font-size:26px;margin-bottom:6px">🌙</div>
-              <div style="font-size:12px;font-weight:600;color:var(--text)">Dark</div>
-            </button>
-            <button class="theme-opt" data-theme-val="system" onclick="setThemeMode('system')" style="padding:16px 10px;border:1.5px solid var(--border);border-radius:var(--r);background:var(--card);cursor:pointer;text-align:center;box-shadow:var(--shadow-sm)">
-              <div style="font-size:26px;margin-bottom:6px">🖥️</div>
-              <div style="font-size:12px;font-weight:600;color:var(--text)">System</div>
-            </button>
+        <div style="margin-bottom:28px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">🎨 Appearance</div>
+
+          <!-- Star Wars Lightsaber Toggle Card -->
+          <div id="sw-theme-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:20px 16px 16px;box-shadow:var(--shadow-sm);text-align:center;overflow:hidden;position:relative">
+
+            <!-- Side labels -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:0 4px">
+              <div id="sw-dark-label" style="font-size:13px;font-weight:700;color:#FFE629;letter-spacing:0.5px;transition:opacity .3s">🌑 Dark Side</div>
+              <div id="sw-light-label" style="font-size:13px;font-weight:700;color:#F349A4;letter-spacing:0.5px;opacity:0.35;transition:opacity .3s">☀️ Light Side</div>
+            </div>
+
+            <!-- The scene -->
+            <div class="sw-scene" id="sw-scene">
+              <div class="sw-images">
+                <img src="https://assets.codepen.io/907471/darkside.svg?v42" class="sw-img sw-dark-img">
+                <img src="https://assets.codepen.io/907471/lightside.svg?v42" class="sw-img sw-light-img">
+              </div>
+
+              <label class="sw-switch" id="sw-switch" aria-label="Toggle theme">
+                <input type="checkbox" id="sw-checkbox" onchange="swToggle(this.checked)">
+                <div class="sw-track">
+                  <div class="sw-lightsaber">
+                    <div class="sw-ls-light"></div>
+                    <div class="sw-ls-grip"></div>
+                    <div class="sw-ls-dark"></div>
+                  </div>
+                  <div class="sw-thumb">
+                    <div class="sw-side sw-dark-side">
+                      <div class="sw-circle"><div class="sw-sub-circle"></div></div>
+                    </div>
+                    <div class="sw-side sw-light-side">
+                      <div class="sw-circle"><div class="sw-sub-circle"></div></div>
+                      <div class="sw-top"><div class="sw-left"></div><div class="sw-right"></div></div>
+                      <div class="sw-center">
+                        <div class="sw-item sw-i1"></div><div class="sw-item sw-i2"></div>
+                        <div class="sw-item sw-i3"></div><div class="sw-item sw-i4"></div>
+                        <div class="sw-item sw-i5"></div>
+                      </div>
+                      <div class="sw-bottom"><div class="sw-line"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            <!-- Current mode label -->
+            <div id="sw-mode-label" style="margin-top:14px;font-size:12px;font-weight:600;color:var(--muted)">Dark Mode</div>
           </div>
+
+          <!-- System option pill -->
+          <button class="theme-opt" data-theme-val="system" onclick="setThemeMode('system')"
+            style="margin-top:10px;width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow-sm)">
+            🖥️ Use System Default
+          </button>
         </div>
 
         <!-- Language -->
@@ -2388,7 +2603,7 @@ function showPage(p){
   if(p==='history'){populateHistoryYears();renderHistory();}
   if(p==='daybook'){populateDaybookYears();renderDaybook();}
   if(p==='vault'){renderVault();}
-  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();}
+  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();syncSwToggle();}
 }
 
 /* ── DASHBOARD ──────────────────────────── */
@@ -4556,7 +4771,6 @@ function applyResolvedTheme(){
     resolved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
   }
   document.documentElement.setAttribute('data-theme', resolved);
-  // Update theme-color meta for native browser chrome
   const meta = document.querySelector('meta[name="theme-color"]');
   if(meta) meta.setAttribute('content', resolved==='dark' ? '#16140F' : '#B8860B');
 }
@@ -4566,15 +4780,52 @@ function setThemeMode(mode){
   try{localStorage.setItem('gold_ledger_theme', mode);}catch(e){}
   applyResolvedTheme();
   updateThemeButtons();
+  syncSwToggle();
+}
+
+/* ── Star Wars toggle sync ── */
+function syncSwToggle(){
+  const scene = document.getElementById('sw-scene');
+  const cb    = document.getElementById('sw-checkbox');
+  const lbl   = document.getElementById('sw-mode-label');
+  const dlbl  = document.getElementById('sw-dark-label');
+  const llbl  = document.getElementById('sw-light-label');
+  if(!scene) return;
+
+  let resolved = themeMode;
+  if(themeMode === 'system'){
+    resolved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  }
+  const isLight = resolved === 'light';
+
+  // Animate
+  scene.classList.remove('sw-anim-on','sw-anim-off','sw-is-light');
+  void scene.offsetWidth; // reflow
+  scene.classList.add(isLight ? 'sw-anim-on' : 'sw-anim-off');
+  setTimeout(()=>{ if(isLight) scene.classList.add('sw-is-light'); }, 10);
+
+  if(cb) cb.checked = isLight;
+  if(lbl) lbl.textContent = themeMode === 'system' ? 'System (' + (isLight?'Light':'Dark') + ')' : (isLight ? 'Light Mode' : 'Dark Mode');
+  if(lbl) lbl.style.color = isLight ? '#F349A4' : '#FFE629';
+  if(dlbl){ dlbl.style.opacity = isLight ? '0.35' : '1'; }
+  if(llbl){ llbl.style.opacity = isLight ? '1' : '0.35'; }
+}
+
+/* Called when user clicks the toggle directly */
+function swToggle(checked){
+  setThemeMode(checked ? 'light' : 'dark');
 }
 
 function updateThemeButtons(){
-  document.querySelectorAll('.theme-opt').forEach(btn=>{
-    const active = btn.getAttribute('data-theme-val')===themeMode;
-    btn.style.borderColor = active ? 'var(--gold-mid)' : 'var(--border)';
-    btn.style.background = active ? 'var(--gold-bg)' : 'var(--card)';
-    btn.style.boxShadow = active ? '0 0 0 3px rgba(212,160,23,0.18)' : 'var(--shadow-sm)';
-  });
+  // System pill highlight
+  const sysBtn = document.querySelector('.theme-opt[data-theme-val="system"]');
+  if(sysBtn){
+    const isActive = themeMode === 'system';
+    sysBtn.style.borderColor = isActive ? 'var(--gold-mid)' : 'var(--border)';
+    sysBtn.style.background  = isActive ? 'var(--gold-bg)'  : 'var(--card)';
+    sysBtn.style.color       = isActive ? 'var(--gold-dark)': 'var(--muted)';
+    sysBtn.style.boxShadow   = isActive ? '0 0 0 3px rgba(212,160,23,0.18)' : 'var(--shadow-sm)';
+  }
 }
 
 // React to system theme changes live, only when in 'system' mode
@@ -4597,6 +4848,7 @@ setTimeout(()=>{
   updateLangButtons();
   updateThemeButtons();
   renderSettingsLangGrid();
+  syncSwToggle();
 }, 100);
 // ── Instant auth button from cache (no Firebase delay) ──────
 (function(){
