@@ -117,19 +117,56 @@ body { overflow-x: hidden; overflow-y: auto; }
 .topbar-sub {
   font-size: 10px; color: var(--muted); font-family: 'DM Sans', sans-serif;
 }
-/* ── MOBILE BOTTOM NAV — flat gold bar, always-visible icons & labels ── */
+/* ── MOBILE BOTTOM NAV — liquid glass gold bar ── */
 .bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: var(--nav-h);
-  background: #B8860B;
+  /* Liquid glass */
+  background: rgba(184, 134, 11, 0.55);
+  backdrop-filter: blur(28px) saturate(200%) brightness(1.1);
+  -webkit-backdrop-filter: blur(28px) saturate(200%) brightness(1.1);
   z-index: 200;
-  border-top: 1px solid rgba(0,0,0,0.15);
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.18);
+  border-top: 1px solid rgba(255, 210, 80, 0.35);
+  box-shadow:
+    0 -4px 24px rgba(184,134,11,0.25),
+    0 -1px 0 rgba(255,255,255,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.22);
+}
+/* Glass shimmer overlay */
+.bottom-nav::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.18) 0%,
+    rgba(255,255,255,0.04) 60%,
+    rgba(0,0,0,0.04) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+/* Subtle grain texture */
+.bottom-nav::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
 }
 [data-theme="dark"] .bottom-nav {
-  background: #7A5A00;
-  border-top-color: rgba(255,255,255,0.06);
+  background: rgba(30, 20, 0, 0.62);
+  border-top-color: rgba(212,160,23,0.22);
+  box-shadow:
+    0 -4px 24px rgba(0,0,0,0.40),
+    inset 0 1px 0 rgba(255,255,255,0.08);
+}
+[data-theme="dark"] .bottom-nav::before {
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.07) 0%,
+    rgba(255,255,255,0.02) 60%,
+    transparent 100%);
 }
 .bottom-nav ul {
   list-style: none;
@@ -137,6 +174,8 @@ body { overflow-x: hidden; overflow-y: auto; }
   height: 100%;
   margin: 0; padding: 0;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 .bottom-nav ul li {
   flex: 1;
@@ -178,6 +217,28 @@ body { overflow-x: hidden; overflow-y: auto; }
 }
 .bottom-nav ul li.active .nav-btn { color: #fff; }
 .bottom-nav ul li.active .nav-label { color: #fff; font-weight: 700; }
+/* Active item glass pill */
+.bottom-nav ul li.active {
+  position: relative;
+}
+.bottom-nav ul li.active::before {
+  content: '';
+  position: absolute;
+  top: 6px; left: 50%;
+  transform: translateX(-50%);
+  width: 52px; height: calc(100% - 12px);
+  background: rgba(255,255,255,0.18);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 2px 8px rgba(0,0,0,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+  z-index: 0;
+}
+.bottom-nav ul li.active .nav-btn {
+  position: relative; z-index: 1;
+}
 
 /* scroll area breathing room */
 .scroll-area { margin-bottom: calc(var(--nav-h) + 4px); }
