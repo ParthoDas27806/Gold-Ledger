@@ -1074,21 +1074,26 @@ select {
       await signOut(fireAuth);
     };
 
-    // ── PHONE AUTH ──────────────────────────────
+    // ── PHONE AUTH — no reCAPTCHA (invisible, auto-solved) ──────────
     let _phoneConfirmationResult = null;
+
+    async function getInvisibleVerifier(){
+      if(window._recaptchaVerifier){
+        try{ window._recaptchaVerifier.clear(); }catch(e){}
+        window._recaptchaVerifier = null;
+      }
+      window._recaptchaVerifier = new RecaptchaVerifier(fireAuth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: ()=>{}
+      });
+      await window._recaptchaVerifier.render();
+      return window._recaptchaVerifier;
+    }
 
     window.authSendOTP = async function(phoneNumber){
       try {
-        // Destroy any existing recaptcha
-        if(window._recaptchaVerifier){
-          try{ window._recaptchaVerifier.clear(); }catch(e){}
-          window._recaptchaVerifier = null;
-        }
-        window._recaptchaVerifier = new RecaptchaVerifier(fireAuth, 'recaptcha-container', {
-          size: 'invisible',
-          callback: () => {}
-        });
-        _phoneConfirmationResult = await signInWithPhoneNumber(fireAuth, phoneNumber, window._recaptchaVerifier);
+        const verifier = await getInvisibleVerifier();
+        _phoneConfirmationResult = await signInWithPhoneNumber(fireAuth, phoneNumber, verifier);
         return { success: true };
       } catch(e){
         if(window._recaptchaVerifier){
@@ -1101,12 +1106,18 @@ select {
 
     window.authVerifyOTP = async function(otp){
       try {
-        if(!_phoneConfirmationResult) throw new Error('No OTP request pending. Please resend.');
+        if(!_phoneConfirmationResult) throw new Error('No OTP pending. Please resend.');
         await _phoneConfirmationResult.confirm(otp);
         return { success: true };
       } catch(e){
         return { success: false, error: e.message };
       }
+    };
+
+    window.authUpdateDisplayName = async function(name){
+      try{
+        if(fireAuth.currentUser) await updateProfile(fireAuth.currentUser,{displayName:name});
+      }catch(e){}
     };
 
 
@@ -1960,106 +1971,192 @@ select {
 }
 </style>
 
-<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:16px">
-  <div id="ls-container">
-    <div id="ls-mobile-tabs">
-      <button class="ls-mob-tab active" onclick="lsSwitchTab('signin')">Sign In</button>
-      <button class="ls-mob-tab"        onclick="lsSwitchTab('register')">Register</button>
-    </div>
-    <div class="ls-form-container" id="ls-sign-up">
-      <div class="ls-form-inner">
-        <h1>Create Account</h1>
-        <button class="ls-google-btn" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
-        <span class="ls-or-text">— or use your email —</span>
-        <input type="text"     id="ls-reg-name"  placeholder="Your Name">
-        <input type="email"    id="ls-reg-email" placeholder="Email">
-        <input type="password" id="ls-reg-pass"  placeholder="Password (min 6 chars)">
-        <button class="ls-submit-btn" onclick="lsRegister()">Sign Up</button>
-        <div class="ls-err" id="ls-err-reg"></div>
-      </div>
-    </div>
-    <div class="ls-form-container" id="ls-sign-in">
-      <div class="ls-form-inner">
-        <h1>Sign In</h1>
-        <button class="ls-google-btn" onclick="window.authSignInGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg> Continue with Google</button>
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;background:#fff;flex-direction:column;overflow-y:auto">
 
-        <!-- Email / Phone toggle tabs -->
-        <div style="display:flex;width:100%;border:1.5px solid #E0CC80;border-radius:8px;overflow:hidden;margin:10px 0 6px">
-          <button id="ls-tab-email" onclick="lsSetLoginMethod('email')"
-            style="flex:1;padding:9px;border:none;background:#D4A017;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
-            ✉️ Email
-          </button>
-          <button id="ls-tab-phone" onclick="lsSetLoginMethod('phone')"
-            style="flex:1;padding:9px;border:none;background:transparent;color:#8B6914;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
-            📱 Phone
-          </button>
-        </div>
-
-        <!-- Email login -->
-        <div id="ls-email-form" style="width:100%">
-          <input type="email"    id="ls-si-email" placeholder="Email">
-          <input type="password" id="ls-si-pass"  placeholder="Password">
-          <a class="ls-forgot" href="#">Forgot your password?</a>
-          <button class="ls-submit-btn" onclick="lsSignIn()">Sign In</button>
-        </div>
-
-        <!-- Phone login -->
-        <div id="ls-phone-form" style="display:none;width:100%">
-          <!-- Step 1: enter phone -->
-          <div id="ls-phone-step1">
-            <div style="display:flex;gap:6px;margin:6px 0">
-              <input id="ls-phone-cc" value="+91"
-                style="width:58px;flex-shrink:0;text-align:center;background:#f5f0e0;border:none;border-radius:8px;padding:11px 6px;font-size:14px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none">
-              <input id="ls-phone-num" type="tel" placeholder="Mobile number" maxlength="10"
-                oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
-                style="flex:1;background:#f5f0e0;border:none;border-radius:8px;padding:11px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none">
-            </div>
-            <div id="ls-phone-hint" style="font-size:11px;color:#B09050;margin-bottom:6px;font-family:'DM Sans',sans-serif">Enter your 10-digit Indian mobile number</div>
-            <button class="ls-submit-btn" id="ls-send-otp-btn" onclick="lsSendOTP()">Send OTP</button>
-          </div>
-
-          <!-- Step 2: enter OTP -->
-          <div id="ls-phone-step2" style="display:none">
-            <div id="ls-otp-sent-msg" style="font-size:12px;color:#5A3E00;background:#FFF8DC;border:1px solid #E0CC80;border-radius:8px;padding:9px 12px;margin:6px 0;font-family:'DM Sans',sans-serif;text-align:center"></div>
-            <!-- OTP boxes -->
-            <div style="display:flex;gap:8px;justify-content:center;margin:12px 0">
-              <input class="otp-box" id="otp0" maxlength="1" type="tel" oninput="otpInput(this,0)" onkeydown="otpKey(event,0)">
-              <input class="otp-box" id="otp1" maxlength="1" type="tel" oninput="otpInput(this,1)" onkeydown="otpKey(event,1)">
-              <input class="otp-box" id="otp2" maxlength="1" type="tel" oninput="otpInput(this,2)" onkeydown="otpKey(event,2)">
-              <input class="otp-box" id="otp3" maxlength="1" type="tel" oninput="otpInput(this,3)" onkeydown="otpKey(event,3)">
-              <input class="otp-box" id="otp4" maxlength="1" type="tel" oninput="otpInput(this,4)" onkeydown="otpKey(event,4)">
-              <input class="otp-box" id="otp5" maxlength="1" type="tel" oninput="otpInput(this,5)" onkeydown="otpKey(event,5)">
-            </div>
-            <button class="ls-submit-btn" onclick="lsVerifyOTP()">Verify OTP</button>
-            <div style="text-align:center;margin-top:10px">
-              <span id="ls-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
-              <button id="ls-resend-btn" onclick="lsResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
-            </div>
-            <button onclick="lsPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;width:100%;text-align:center">← Change Number</button>
-          </div>
-        </div>
-
-        <div class="ls-err" id="ls-err-si"></div>
-      </div>
-    </div>
-    <div id="ls-toggle-container">
-      <div id="ls-toggle">
-        <div class="ls-toggle-panel ls-toggle-left">
-          <div class="ls-logo-wrap"><img src="icons/logo.png?v=2" onerror="this.style.display='none'">⚖️</div>
-          <h1>Welcome Back!</h1>
-          <p>Already have an account? Sign in to access all your gold records.</p>
-          <button class="ls-ghost-btn" onclick="lsSwitchTab('signin')">Sign In</button>
-        </div>
-        <div class="ls-toggle-panel ls-toggle-right">
-          <div class="ls-logo-wrap"><img src="icons/logo.png?v=2" onerror="this.style.display='none'">⚖️</div>
-          <h1>Gold Ledger</h1>
-          <p>New here? Register to keep all your gold records safe across every device.</p>
-          <button class="ls-ghost-btn" onclick="lsSwitchTab('register')">Register</button>
-        </div>
-      </div>
-    </div>
+  <!-- Gold header strip -->
+  <div style="background:linear-gradient(135deg,#C8900A,#B8860B);padding:36px 24px 28px;text-align:center;flex-shrink:0">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.55);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">⚖️</div>
+    <div style="font-size:22px;font-weight:800;color:#fff;font-family:'DM Sans',sans-serif;letter-spacing:-0.3px">Gold Ledger</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.80);font-family:'DM Sans',sans-serif;margin-top:3px">Sone Ka Hisaab</div>
   </div>
-  <div class="auth-error" id="ls-error" style="display:none;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);max-width:320px;width:90%;z-index:6000"></div>
+
+  <!-- Tab bar -->
+  <div style="display:flex;border-bottom:2px solid #F0E4B8;background:#fff;flex-shrink:0">
+    <button id="ls-tab-signin" onclick="lsSwitchTab('signin')"
+      style="flex:1;padding:14px;border:none;background:transparent;font-size:14px;font-weight:700;color:#D4A017;cursor:pointer;font-family:'DM Sans',sans-serif;border-bottom:2.5px solid #D4A017;margin-bottom:-2px">
+      Sign In
+    </button>
+    <button id="ls-tab-register" onclick="lsSwitchTab('register')"
+      style="flex:1;padding:14px;border:none;background:transparent;font-size:14px;font-weight:600;color:#B09050;cursor:pointer;font-family:'DM Sans',sans-serif;border-bottom:2.5px solid transparent;margin-bottom:-2px">
+      Register
+    </button>
+  </div>
+
+  <!-- SIGN IN PANEL -->
+  <div id="ls-sign-in" style="padding:24px 24px 40px;flex:1">
+
+    <!-- Google -->
+    <button class="ls-google-btn" onclick="window.authSignInGoogle()" style="margin-bottom:20px">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="flex:1;height:1px;background:#F0E4B8"></div>
+      <span style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;white-space:nowrap">or continue with</span>
+      <div style="flex:1;height:1px;background:#F0E4B8"></div>
+    </div>
+
+    <!-- Email / Phone method toggle -->
+    <div style="display:flex;border:1.5px solid #E0CC80;border-radius:10px;overflow:hidden;margin-bottom:16px">
+      <button id="si-method-email" onclick="siSetMethod('email')"
+        style="flex:1;padding:10px;border:none;background:#D4A017;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
+        ✉️ Email
+      </button>
+      <button id="si-method-phone" onclick="siSetMethod('phone')"
+        style="flex:1;padding:10px;border:none;background:transparent;color:#8B6914;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
+        📱 Phone
+      </button>
+    </div>
+
+    <!-- Email form -->
+    <div id="si-email-form">
+      <div style="margin-bottom:12px">
+        <input id="ls-si-email" type="email" placeholder="Email address"
+          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:8px">
+        <input id="ls-si-pass" type="password" placeholder="Password"
+          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+      </div>
+      <a class="ls-forgot" href="#" style="display:block;margin-bottom:14px">Forgot password?</a>
+      <button class="ls-submit-btn" onclick="lsSignIn()" style="width:100%">Sign In</button>
+    </div>
+
+    <!-- Phone form -->
+    <div id="si-phone-form" style="display:none">
+      <!-- Step 1: number entry -->
+      <div id="si-phone-step1">
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="si-phone-cc" value="+91"
+            style="width:64px;flex-shrink:0;text-align:center;padding:13px 6px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+          <input id="si-phone-num" type="tel" placeholder="10-digit mobile number" maxlength="10"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
+            style="flex:1;min-width:0;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+        </div>
+        <div style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;margin-bottom:14px">📍 Indian numbers only (+91). OTP will be sent via SMS.</div>
+        <button class="ls-submit-btn" id="si-send-otp-btn" onclick="siSendOTP()" style="width:100%">Send OTP</button>
+      </div>
+      <!-- Step 2: OTP verification -->
+      <div id="si-phone-step2" style="display:none">
+        <div id="si-otp-msg" style="background:#FFF8DC;border:1px solid #E0CC80;border-radius:10px;padding:10px 14px;font-size:13px;color:#5A3E00;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px"></div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+          <input class="otp-box" id="si-otp0" maxlength="1" type="tel" oninput="otpInput(this,0,'si')" onkeydown="otpKey(event,0,'si')">
+          <input class="otp-box" id="si-otp1" maxlength="1" type="tel" oninput="otpInput(this,1,'si')" onkeydown="otpKey(event,1,'si')">
+          <input class="otp-box" id="si-otp2" maxlength="1" type="tel" oninput="otpInput(this,2,'si')" onkeydown="otpKey(event,2,'si')">
+          <input class="otp-box" id="si-otp3" maxlength="1" type="tel" oninput="otpInput(this,3,'si')" onkeydown="otpKey(event,3,'si')">
+          <input class="otp-box" id="si-otp4" maxlength="1" type="tel" oninput="otpInput(this,4,'si')" onkeydown="otpKey(event,4,'si')">
+          <input class="otp-box" id="si-otp5" maxlength="1" type="tel" oninput="otpInput(this,5,'si')" onkeydown="otpKey(event,5,'si')">
+        </div>
+        <button class="ls-submit-btn" onclick="siVerifyOTP()" style="width:100%;margin-bottom:12px">Verify &amp; Sign In</button>
+        <div style="text-align:center">
+          <span id="si-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
+          <button id="si-resend-btn" onclick="siResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
+        </div>
+        <button onclick="siPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;width:100%;text-align:center">← Change Number</button>
+      </div>
+    </div>
+
+    <div class="ls-err" id="ls-err-si" style="margin-top:12px"></div>
+  </div>
+
+  <!-- REGISTER PANEL -->
+  <div id="ls-sign-up" style="display:none;padding:24px 24px 40px;flex:1">
+
+    <!-- Google -->
+    <button class="ls-google-btn" onclick="window.authSignInGoogle()" style="margin-bottom:20px">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+
+    <!-- Divider -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="flex:1;height:1px;background:#F0E4B8"></div>
+      <span style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;white-space:nowrap">or continue with</span>
+      <div style="flex:1;height:1px;background:#F0E4B8"></div>
+    </div>
+
+    <!-- Email / Phone method toggle -->
+    <div style="display:flex;border:1.5px solid #E0CC80;border-radius:10px;overflow:hidden;margin-bottom:16px">
+      <button id="reg-method-email" onclick="regSetMethod('email')"
+        style="flex:1;padding:10px;border:none;background:#D4A017;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
+        ✉️ Email
+      </button>
+      <button id="reg-method-phone" onclick="regSetMethod('phone')"
+        style="flex:1;padding:10px;border:none;background:transparent;color:#8B6914;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
+        📱 Phone
+      </button>
+    </div>
+
+    <!-- Email register form -->
+    <div id="reg-email-form">
+      <div style="margin-bottom:12px">
+        <input id="ls-reg-name" type="text" placeholder="Your Name"
+          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:12px">
+        <input id="ls-reg-email" type="email" placeholder="Email address"
+          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+      </div>
+      <div style="margin-bottom:16px">
+        <input id="ls-reg-pass" type="password" placeholder="Password (min 6 chars)"
+          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+      </div>
+      <button class="ls-submit-btn" onclick="lsRegister()" style="width:100%">Create Account</button>
+    </div>
+
+    <!-- Phone register form -->
+    <div id="reg-phone-form" style="display:none">
+      <!-- Step 1 -->
+      <div id="reg-phone-step1">
+        <div style="margin-bottom:8px">
+          <input id="reg-phone-name" type="text" placeholder="Your Name"
+            style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="reg-phone-cc" value="+91"
+            style="width:64px;flex-shrink:0;text-align:center;padding:13px 6px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+          <input id="reg-phone-num" type="tel" placeholder="10-digit mobile number" maxlength="10"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
+            style="flex:1;min-width:0;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+        </div>
+        <div style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;margin-bottom:14px">📍 OTP will be sent to this number via SMS.</div>
+        <button class="ls-submit-btn" id="reg-send-otp-btn" onclick="regSendOTP()" style="width:100%">Send OTP</button>
+      </div>
+      <!-- Step 2 -->
+      <div id="reg-phone-step2" style="display:none">
+        <div id="reg-otp-msg" style="background:#FFF8DC;border:1px solid #E0CC80;border-radius:10px;padding:10px 14px;font-size:13px;color:#5A3E00;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px"></div>
+        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
+          <input class="otp-box" id="reg-otp0" maxlength="1" type="tel" oninput="otpInput(this,0,'reg')" onkeydown="otpKey(event,0,'reg')">
+          <input class="otp-box" id="reg-otp1" maxlength="1" type="tel" oninput="otpInput(this,1,'reg')" onkeydown="otpKey(event,1,'reg')">
+          <input class="otp-box" id="reg-otp2" maxlength="1" type="tel" oninput="otpInput(this,2,'reg')" onkeydown="otpKey(event,2,'reg')">
+          <input class="otp-box" id="reg-otp3" maxlength="1" type="tel" oninput="otpInput(this,3,'reg')" onkeydown="otpKey(event,3,'reg')">
+          <input class="otp-box" id="reg-otp4" maxlength="1" type="tel" oninput="otpInput(this,4,'reg')" onkeydown="otpKey(event,4,'reg')">
+          <input class="otp-box" id="reg-otp5" maxlength="1" type="tel" oninput="otpInput(this,5,'reg')" onkeydown="otpKey(event,5,'reg')">
+        </div>
+        <button class="ls-submit-btn" onclick="regVerifyOTP()" style="width:100%;margin-bottom:12px">Verify &amp; Register</button>
+        <div style="text-align:center">
+          <span id="reg-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
+          <button id="reg-resend-btn" onclick="regResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
+        </div>
+        <button onclick="regPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;width:100%;text-align:center">← Change Number</button>
+      </div>
+    </div>
+
+    <div class="ls-err" id="ls-err-reg" style="margin-top:12px"></div>
+  </div>
+
 </div>
 <!-- Invisible reCAPTCHA container for phone auth -->
 <div id="recaptcha-container"></div>
@@ -3413,19 +3510,9 @@ function switchAuthTab(tab){
   document.getElementById('auth-error').style.display='none';
 }
 window.showAuthError=function(msg){
-  if(window._lsErrorTarget==='ls'){ window._lsErrorTarget=null; lsShowError(msg); return; }
-  const el=document.getElementById('auth-error');
-  let clean=msg.replace('Firebase: ','').replace(/\(auth\/[^)]+\)/,'').trim();
-  if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential')) clean='Incorrect email or password.';
-  if(msg.includes('email-already-in-use')) clean='This email is already registered. Please sign in instead.';
-  if(msg.includes('weak-password')) clean='Password must be at least 6 characters.';
-  if(msg.includes('invalid-email')) clean='Please enter a valid email address.';
-  if(msg.includes('unauthorized-domain')) clean='This domain is not authorized. Add "'+window.location.hostname+'" in Firebase Console → Authentication → Settings → Authorized domains.';
-  if(msg.includes('operation-not-allowed')) clean='Sign-in method not enabled. Go to Firebase Console → Authentication → Sign-in method, and enable Email/Password and Google.';
-  if(msg.includes('network-request-failed')) clean='Network error. Check your internet connection.';
-  // Always show the raw error too for debugging
-  el.innerHTML=clean+'<br><span style="font-size:10px;color:#999">('+msg+')</span>';
-  el.style.display='block';
+  const target=document.getElementById("ls-err-si")||document.getElementById("auth-error");
+  if(!target)return;
+  lsShowErr(target.id, msg);
 };
 function doSignIn(){
   const email=(document.getElementById('si-email').value||'').trim();
@@ -3749,154 +3836,223 @@ function clearDaybookView(){
 }
 
 /* ── LOGIN SCREEN (shown on first open for new users) ── */
+/* ══════════════════════════════════════════
+   LOGIN SCREEN — tab switching
+══════════════════════════════════════════ */
 function lsSwitchTab(tab){
-  const c=document.getElementById('ls-container'); if(!c)return;
-  const isReg=tab==='register';
-  if(isReg) c.classList.add('active');
-  else      c.classList.remove('active');
-  const tabs=document.querySelectorAll('.ls-mob-tab');
-  if(tabs.length){ tabs[0].classList.toggle('active',!isReg); tabs[1].classList.toggle('active',isReg); }
-  if(window.innerWidth<=520){
-    const su=document.getElementById('ls-sign-up'), si=document.getElementById('ls-sign-in');
-    if(isReg){ if(su)su.style.display='flex'; if(si)si.style.display='none'; }
-    else     { if(si)si.style.display='flex'; if(su)su.style.display='none'; }
+  const isSignin = tab === 'signin';
+  document.getElementById('ls-sign-in').style.display  = isSignin ? 'block' : 'none';
+  document.getElementById('ls-sign-up').style.display  = isSignin ? 'none'  : 'block';
+  const tSI = document.getElementById('ls-tab-signin');
+  const tReg = document.getElementById('ls-tab-register');
+  if(tSI){
+    tSI.style.color        = isSignin ? '#D4A017' : '#B09050';
+    tSI.style.borderBottomColor = isSignin ? '#D4A017' : 'transparent';
+    tSI.style.fontWeight   = isSignin ? '700' : '600';
   }
-  ['ls-err-si','ls-err-reg','ls-error'].forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });
-}
-function lsShowError(msg){
-  const el=document.getElementById('ls-error');
-  let clean=msg.replace('Firebase: ','').replace(/\(auth\/[^)]+\)/,'').trim();
-  if(msg.includes('user-not-found')||msg.includes('wrong-password')||msg.includes('invalid-credential')) clean='Incorrect email or password.';
-  if(msg.includes('email-already-in-use')) clean='This email is already registered. Please sign in instead.';
-  if(msg.includes('weak-password')) clean='Password must be at least 6 characters.';
-  if(msg.includes('invalid-email')) clean='Please enter a valid email address.';
-  if(msg.includes('unauthorized-domain')) clean='This domain is not authorized. Add "'+window.location.hostname+'" in Firebase Console → Authentication → Settings → Authorized domains.';
-  if(msg.includes('operation-not-allowed')) clean='Sign-in method not enabled in Firebase Console → Authentication → Sign-in method.';
-  if(msg.includes('network-request-failed')) clean='Network error. Check your internet connection.';
-  el.innerHTML=clean+'<br><span style="font-size:10px;color:#999">('+msg+')</span>';
-  el.style.display='block';
-}
-function lsSetLoginMethod(method){
-  const emailForm = document.getElementById('ls-email-form');
-  const phoneForm = document.getElementById('ls-phone-form');
-  const tabEmail  = document.getElementById('ls-tab-email');
-  const tabPhone  = document.getElementById('ls-tab-phone');
-  const isEmail   = method === 'email';
-  if(emailForm) emailForm.style.display = isEmail ? 'block' : 'none';
-  if(phoneForm) phoneForm.style.display = isEmail ? 'none'  : 'block';
-  if(tabEmail){ tabEmail.style.background = isEmail ? '#D4A017' : 'transparent'; tabEmail.style.color = isEmail ? '#fff' : '#8B6914'; }
-  if(tabPhone){ tabPhone.style.background = isEmail ? 'transparent' : '#D4A017'; tabPhone.style.color = isEmail ? '#8B6914' : '#fff'; }
-  const err = document.getElementById('ls-err-si'); if(err) err.style.display='none';
+  if(tReg){
+    tReg.style.color       = isSignin ? '#B09050' : '#D4A017';
+    tReg.style.borderBottomColor = isSignin ? 'transparent' : '#D4A017';
+    tReg.style.fontWeight  = isSignin ? '600' : '700';
+  }
+  // clear errors
+  ['ls-err-si','ls-err-reg'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
 }
 
-let _otpResendTimer = null;
-
-function lsSendOTP(){
-  const cc  = (document.getElementById('ls-phone-cc').value||'+91').trim();
-  const num = (document.getElementById('ls-phone-num').value||'').trim();
-  if(!/^[0-9]{10}$/.test(num)){ lsPhoneErr('Enter a valid 10-digit mobile number.'); return; }
-  const fullPhone = cc + num;
-  const btn = document.getElementById('ls-send-otp-btn');
-  if(btn){ btn.textContent = 'Sending…'; btn.disabled = true; }
-  window.authSendOTP(fullPhone).then(res => {
-    if(btn){ btn.textContent = 'Send OTP'; btn.disabled = false; }
-    if(res.success){
-      document.getElementById('ls-phone-step1').style.display = 'none';
-      document.getElementById('ls-phone-step2').style.display = 'block';
-      const msg = document.getElementById('ls-otp-sent-msg');
-      if(msg) msg.textContent = 'OTP sent to ' + fullPhone;
-      document.getElementById('otp0').focus();
-      lsStartResendTimer(30);
-    } else {
-      lsPhoneErr(lsCleanPhoneErr(res.error));
-    }
-  });
+/* ── Sign In — method toggle ── */
+function siSetMethod(m){
+  const isEmail = m==='email';
+  document.getElementById('si-email-form').style.display = isEmail ? 'block' : 'none';
+  document.getElementById('si-phone-form').style.display = isEmail ? 'none'  : 'block';
+  const btnE = document.getElementById('si-method-email');
+  const btnP = document.getElementById('si-method-phone');
+  if(btnE){ btnE.style.background=isEmail?'#D4A017':'transparent'; btnE.style.color=isEmail?'#fff':'#8B6914'; }
+  if(btnP){ btnP.style.background=isEmail?'transparent':'#D4A017'; btnP.style.color=isEmail?'#8B6914':'#fff'; }
 }
 
-function lsResendOTP(){
-  document.getElementById('ls-phone-step1').style.display = 'block';
-  document.getElementById('ls-phone-step2').style.display = 'none';
-  [0,1,2,3,4,5].forEach(i=>{ const b=document.getElementById('otp'+i); if(b){b.value='';b.classList.remove('filled');} });
-  lsSendOTP();
+/* ── Register — method toggle ── */
+function regSetMethod(m){
+  const isEmail = m==='email';
+  document.getElementById('reg-email-form').style.display = isEmail ? 'block' : 'none';
+  document.getElementById('reg-phone-form').style.display = isEmail ? 'none'  : 'block';
+  const btnE = document.getElementById('reg-method-email');
+  const btnP = document.getElementById('reg-method-phone');
+  if(btnE){ btnE.style.background=isEmail?'#D4A017':'transparent'; btnE.style.color=isEmail?'#fff':'#8B6914'; }
+  if(btnP){ btnP.style.background=isEmail?'transparent':'#D4A017'; btnP.style.color=isEmail?'#8B6914':'#fff'; }
 }
 
-function lsPhoneBack(){
-  document.getElementById('ls-phone-step1').style.display = 'block';
-  document.getElementById('ls-phone-step2').style.display = 'none';
-  [0,1,2,3,4,5].forEach(i=>{ const b=document.getElementById('otp'+i); if(b){b.value='';b.classList.remove('filled');} });
-  clearInterval(_otpResendTimer);
-}
-
-function lsStartResendTimer(seconds){
-  const timerEl   = document.getElementById('ls-resend-timer');
-  const resendBtn = document.getElementById('ls-resend-btn');
-  if(resendBtn) resendBtn.style.display = 'none';
-  let remaining = seconds;
-  if(timerEl) timerEl.textContent = 'Resend in ' + remaining + 's';
-  clearInterval(_otpResendTimer);
-  _otpResendTimer = setInterval(()=>{
-    remaining--;
-    if(remaining <= 0){
-      clearInterval(_otpResendTimer);
-      if(timerEl) timerEl.textContent = '';
-      if(resendBtn) resendBtn.style.display = 'inline';
-    } else {
-      if(timerEl) timerEl.textContent = 'Resend in ' + remaining + 's';
-    }
-  }, 1000);
-}
-
-function otpInput(el, idx){
+/* ── OTP shared helpers ── */
+function otpInput(el, idx, prefix){
   el.value = el.value.replace(/[^0-9]/g,'').slice(0,1);
-  el.classList.toggle('filled', el.value.length === 1);
-  if(el.value && idx < 5) document.getElementById('otp'+(idx+1)).focus();
-}
-function otpKey(e, idx){
-  if(e.key === 'Backspace' && !document.getElementById('otp'+idx).value && idx > 0){
-    const prev = document.getElementById('otp'+(idx-1));
-    prev.value = ''; prev.classList.remove('filled'); prev.focus();
+  el.classList.toggle('filled', el.value.length===1);
+  if(el.value && idx < 5){
+    const next = document.getElementById(prefix+'-otp'+(idx+1));
+    if(next) next.focus();
   }
 }
+function otpKey(e, idx, prefix){
+  if(e.key==='Backspace'){
+    const cur = document.getElementById(prefix+'-otp'+idx);
+    if(cur && !cur.value && idx > 0){
+      const prev = document.getElementById(prefix+'-otp'+(idx-1));
+      if(prev){ prev.value=''; prev.classList.remove('filled'); prev.focus(); }
+    }
+  }
+}
+function otpClear(prefix){
+  for(let i=0;i<6;i++){
+    const b=document.getElementById(prefix+'-otp'+i);
+    if(b){ b.value=''; b.classList.remove('filled'); }
+  }
+}
+function otpGet(prefix){
+  return [0,1,2,3,4,5].map(i=>(document.getElementById(prefix+'-otp'+i)||{value:''}).value).join('');
+}
 
-function lsVerifyOTP(){
-  const otp = [0,1,2,3,4,5].map(i=>(document.getElementById('otp'+i)||{value:''}).value).join('');
-  if(otp.length < 6){ lsPhoneErr('Please enter the complete 6-digit OTP.'); return; }
-  window.authVerifyOTP(otp).then(res => {
-    if(!res.success) lsPhoneErr(lsCleanPhoneErr(res.error));
+let _siResendTimer=null, _regResendTimer=null;
+function startResendTimer(prefix, sec){
+  const tEl=document.getElementById(prefix+'-resend-timer');
+  const bEl=document.getElementById(prefix+'-resend-btn');
+  if(bEl) bEl.style.display='none';
+  let r=sec;
+  if(tEl) tEl.textContent='Resend in '+r+'s';
+  const interval = setInterval(()=>{
+    r--;
+    if(r<=0){ clearInterval(interval); if(tEl)tEl.textContent=''; if(bEl)bEl.style.display='inline'; }
+    else { if(tEl)tEl.textContent='Resend in '+r+'s'; }
+  },1000);
+  if(prefix==='si') _siResendTimer=interval;
+  else _regResendTimer=interval;
+}
+
+function lsShowErr(id, msg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  let clean=msg||'Something went wrong.';
+  if(msg&&msg.includes('invalid-phone-number')) clean='Invalid phone number.';
+  if(msg&&msg.includes('too-many-requests'))    clean='Too many attempts. Wait a few minutes.';
+  if(msg&&msg.includes('invalid-verification-code')) clean='Incorrect OTP. Try again.';
+  if(msg&&msg.includes('code-expired'))         clean='OTP expired. Tap Resend.';
+  if(msg&&msg.includes('network-request-failed')) clean='Network error. Check your connection.';
+  if(msg&&(msg.includes('billing-not-enabled')||msg.includes('BILLING_NOT_ENABLED'))) clean='Phone auth needs Firebase Blaze plan. Please upgrade.';
+  if(msg&&msg.includes('user-not-found'))       clean='No account found. Please register.';
+  if(msg&&msg.includes('wrong-password')||msg&&msg.includes('invalid-credential')) clean='Incorrect email or password.';
+  if(msg&&msg.includes('email-already-in-use')) clean='Email already registered. Sign in instead.';
+  if(msg&&msg.includes('weak-password'))        clean='Password must be at least 6 characters.';
+  el.textContent=clean; el.style.display='block';
+}
+
+/* ════════════════ SIGN IN ════════════════ */
+function siSendOTP(){
+  const cc  = (document.getElementById('si-phone-cc').value||'+91').trim();
+  const num = (document.getElementById('si-phone-num').value||'').trim();
+  if(!/^[0-9]{10}$/.test(num)){ lsShowErr('ls-err-si','invalid-phone-number'); return; }
+  const fullPhone = cc + num;
+  const btn = document.getElementById('si-send-otp-btn');
+  if(btn){ btn.textContent='Sending…'; btn.disabled=true; }
+  window.authSendOTP(fullPhone).then(res=>{
+    if(btn){ btn.textContent='Send OTP'; btn.disabled=false; }
+    if(res.success){
+      document.getElementById('si-phone-step1').style.display='none';
+      document.getElementById('si-phone-step2').style.display='block';
+      const m=document.getElementById('si-otp-msg');
+      if(m) m.textContent='OTP sent to '+fullPhone+'. Check your SMS.';
+      const first=document.getElementById('si-otp0'); if(first)first.focus();
+      startResendTimer('si',30);
+      document.getElementById('ls-err-si').style.display='none';
+    } else { lsShowErr('ls-err-si', res.error); }
+  });
+}
+function siResendOTP(){
+  otpClear('si');
+  document.getElementById('si-phone-step1').style.display='block';
+  document.getElementById('si-phone-step2').style.display='none';
+  siSendOTP();
+}
+function siPhoneBack(){
+  otpClear('si');
+  document.getElementById('si-phone-step1').style.display='block';
+  document.getElementById('si-phone-step2').style.display='none';
+  clearInterval(_siResendTimer);
+}
+function siVerifyOTP(){
+  const otp=otpGet('si');
+  if(otp.length<6){ lsShowErr('ls-err-si','Please enter the complete 6-digit OTP.'); return; }
+  window.authVerifyOTP(otp).then(res=>{
+    if(!res.success) lsShowErr('ls-err-si', res.error);
   });
 }
 
-function lsPhoneErr(msg){
-  const err = document.getElementById('ls-err-si');
-  if(err){ err.textContent = msg; err.style.display = 'block'; }
+/* ════════════════ REGISTER ════════════════ */
+function regSendOTP(){
+  const name = (document.getElementById('reg-phone-name').value||'').trim();
+  const cc   = (document.getElementById('reg-phone-cc').value||'+91').trim();
+  const num  = (document.getElementById('reg-phone-num').value||'').trim();
+  if(!name){ lsShowErr('ls-err-reg','Please enter your name.'); return; }
+  if(!/^[0-9]{10}$/.test(num)){ lsShowErr('ls-err-reg','invalid-phone-number'); return; }
+  const fullPhone = cc + num;
+  const btn = document.getElementById('reg-send-otp-btn');
+  if(btn){ btn.textContent='Sending…'; btn.disabled=true; }
+  // Store name for after verification
+  window._regPhoneName = name;
+  window.authSendOTP(fullPhone).then(res=>{
+    if(btn){ btn.textContent='Send OTP'; btn.disabled=false; }
+    if(res.success){
+      document.getElementById('reg-phone-step1').style.display='none';
+      document.getElementById('reg-phone-step2').style.display='block';
+      const m=document.getElementById('reg-otp-msg');
+      if(m) m.textContent='OTP sent to '+fullPhone+'. Check your SMS.';
+      const first=document.getElementById('reg-otp0'); if(first)first.focus();
+      startResendTimer('reg',30);
+      document.getElementById('ls-err-reg').style.display='none';
+    } else { lsShowErr('ls-err-reg', res.error); }
+  });
 }
-
-function lsCleanPhoneErr(msg){
-  if(!msg) return 'Something went wrong. Try again.';
-  if(msg.includes('invalid-phone-number')) return 'Invalid phone number. Use format +91XXXXXXXXXX.';
-  if(msg.includes('too-many-requests'))    return 'Too many attempts. Please wait a few minutes and try again.';
-  if(msg.includes('invalid-verification-code')) return 'Incorrect OTP. Please check and try again.';
-  if(msg.includes('code-expired'))         return 'OTP has expired. Please resend.';
-  if(msg.includes('network-request-failed')) return 'Network error. Check your internet connection.';
-  if(msg.includes('billing-not-enabled') || msg.includes('BILLING_NOT_ENABLED')) return 'Phone auth requires Firebase Blaze plan. Please upgrade in Firebase Console.';
-  return msg.replace('Firebase: ','').replace(/\(auth\/[^)]+\)/,'').trim();
+function regResendOTP(){
+  otpClear('reg');
+  document.getElementById('reg-phone-step1').style.display='block';
+  document.getElementById('reg-phone-step2').style.display='none';
+  regSendOTP();
+}
+function regPhoneBack(){
+  otpClear('reg');
+  document.getElementById('reg-phone-step1').style.display='block';
+  document.getElementById('reg-phone-step2').style.display='none';
+  clearInterval(_regResendTimer);
+}
+function regVerifyOTP(){
+  const otp=otpGet('reg');
+  if(otp.length<6){ lsShowErr('ls-err-reg','Please enter the complete 6-digit OTP.'); return; }
+  window.authVerifyOTP(otp).then(async res=>{
+    if(res.success){
+      // Set display name after phone sign-in
+      if(window._regPhoneName && window.currentUser){
+        try{
+          const { updateProfile } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+          // updateProfile is already imported in the module — call via auth module
+        }catch(e){}
+        // Use the existing authRegisterUpdateName if available
+        if(window.authUpdateDisplayName) window.authUpdateDisplayName(window._regPhoneName);
+      }
+    } else {
+      lsShowErr('ls-err-reg', res.error);
+    }
+  });
 }
 
 function lsSignIn(){
   const email=(document.getElementById('ls-si-email').value||'').trim();
   const pass=document.getElementById('ls-si-pass').value||'';
-  if(!email||!pass){lsShowError('Please enter email and password.');return;}
-  window._lsErrorTarget='ls';
+  if(!email||!pass){lsShowErr('ls-err-si','Please enter email and password.');return;}
   window.authSignInEmail(email,pass);
 }
 function lsRegister(){
   const name=(document.getElementById('ls-reg-name').value||'').trim();
   const email=(document.getElementById('ls-reg-email').value||'').trim();
   const pass=document.getElementById('ls-reg-pass').value||'';
-  if(!name){lsShowError('Please enter your name.');return;}
-  if(!email){lsShowError('Please enter your email.');return;}
-  if(pass.length<6){lsShowError('Password must be at least 6 characters.');return;}
-  window._lsErrorTarget='ls';
+  if(!name){lsShowErr('ls-err-reg','Please enter your name.');return;}
+  if(!email){lsShowErr('ls-err-reg','Please enter your email.');return;}
+  if(pass.length<6){lsShowErr('ls-err-reg','Password must be at least 6 characters.');return;}
   window.authRegister(name,email,pass);
 }
 function showLoginScreen(){
