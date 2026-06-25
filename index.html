@@ -254,7 +254,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   .big-stat-grid { gap: 8px; }
   .big-stat-card { padding: 18px 14px; }
   .big-stat-val { font-size: 26px; }
-  #dash-vault-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  #dash-vault-row { grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; width: 100%; }
 }
 
 /* ─── DESKTOP — show bottom nav AND sidebar ─── */
@@ -1188,7 +1188,7 @@ select {
           </div>
         </div>
         <!-- Vault + Vault++ side by side on desktop -->
-        <div id="dash-vault-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div id="dash-vault-row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;width:100%">
           <div id="dash-vault-card"></div>
           <div id="dash-vaultpp-card"></div>
         </div>
@@ -2208,7 +2208,7 @@ function renderDashboard(){
     const vb=db.vaultBalance||0;
     const vbColor=vb>0?'linear-gradient(145deg,#1B5E30,#2D8A42)':vb<0?'linear-gradient(145deg,#7A1A1A,#B83232)':'linear-gradient(145deg,#5A3E00,#C49010)';
     const vbSign=vb>0?'+':'';
-    vaultCard.innerHTML=`<div style="background:${vbColor};border-radius:14px;padding:18px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;height:100%">
+    vaultCard.innerHTML=`<div style="background:${vbColor};border-radius:14px;padding:20px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;width:100%;box-sizing:border-box">
       <div style="position:absolute;right:-14px;bottom:-14px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.10)"></div>
       <div>
         <div style="font-size:10px;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.6px;font-weight:700;margin-bottom:4px">🔒 Vault Balance</div>
@@ -2226,7 +2226,7 @@ function renderDashboard(){
     const vpp=Math.round((vb+net)*1000)/1000;
     const vppColor=vpp>0?'linear-gradient(145deg,#1B5E30,#2D8A42)':vpp<0?'linear-gradient(145deg,#7A1A1A,#B83232)':'linear-gradient(145deg,#5A3E00,#C49010)';
     const vppSign=vpp>0?'+':'';
-    vaultPPCard.innerHTML=`<div style="background:${vppColor};border-radius:14px;padding:18px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;height:100%">
+    vaultPPCard.innerHTML=`<div style="background:${vppColor};border-radius:14px;padding:20px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(0,0,0,0.12);position:relative;overflow:hidden;width:100%;box-sizing:border-box">
       <div style="position:absolute;right:-14px;bottom:-14px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,0.10)"></div>
       <div>
         <div style="font-size:10px;color:rgba(255,255,255,0.75);text-transform:uppercase;letter-spacing:0.6px;font-weight:700;margin-bottom:4px">🔒 Vault++</div>
