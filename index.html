@@ -1009,181 +1009,8 @@ select {
 }
 [data-theme="dark"] .calc-priv-label { color: var(--gold-mid); }
 
-/* ══════════════════════════════════════════
-   STAR WARS LIGHTSABER THEME TOGGLE
-══════════════════════════════════════════ */
-@layer sw-properties {
-  @property --sw-blur { syntax:"<length>"; inherits:true; initial-value:0vmin; }
-  @property --sw-progress { syntax:"<number>"; inherits:true; initial-value:0; }
-}
-@keyframes sw-checked   { from{--sw-progress:0} to{--sw-progress:1} }
-@keyframes sw-unchecked { from{--sw-progress:1} to{--sw-progress:0} }
-@keyframes sw-pulse {
-  from{--sw-blur:.9vmin} 50%{--sw-blur:1.3vmin} to{--sw-blur:.9vmin}
-}
-
-.sw-scene {
-  display:flex; flex-direction:column; align-items:center; gap:4vmin;
-  --sw-light-primary:#F349A4; --sw-light-pv:#B1437E; --sw-light-pv2:#671086;
-  --sw-light-sec:#2ED9E7; --sw-light-sv:#2C7BA1; --sw-light-ter:#FFE629;
-  --sw-dark-primary:#FFE629; --sw-dark-sec:#F349A4; --sw-dark-sv:#B1437E;
-  --sw-dark-ter:#2ED9E7; --sw-dark-tv:#2C7BA1; --sw-dark-sv2:#671086;
-  --sw-dark-surface:#071F49; --sw-dark-bg:#081226;
-  --sw-color-thumb:#575A0E;
-}
-.sw-scene.sw-is-light { --sw-color-thumb:#671086; }
-.sw-scene.sw-anim-on  { animation: sw-checked   0.45s ease-in-out forwards; }
-.sw-scene.sw-anim-off { animation: sw-unchecked 0.45s ease-in-out forwards; }
-
-.sw-images {
-  position:relative; height:14vmin; width:42vmin; pointer-events:none;
-  max-height:80px; max-width:240px;
-}
-.sw-img { position:absolute; object-fit:contain; width:100%; height:100%; }
-.sw-dark-img { opacity:1; transition:all .3s ease; filter:blur(0); }
-.sw-light-img { opacity:0; filter:blur(2vmin); transition:all .3s ease; }
-.sw-scene.sw-is-light .sw-dark-img { opacity:0; filter:blur(2vmin); }
-.sw-scene.sw-is-light .sw-light-img { opacity:1; filter:blur(0); }
-
-.sw-switch {
-  display:flex; cursor:pointer; flex-direction:column;
-  align-items:center; gap:7vmin;
-}
-
-.sw-track {
-  width:32vmin; height:18vmin;
-  max-width:200px; max-height:112px;
-  background:var(--sw-dark-surface);
-  border-radius:20vmin; position:relative;
-  display:flex; align-items:center; padding:1.5vmin;
-  transition:all .35s ease;
-  box-shadow:inset 0 0 6vmin rgba(0,0,0,0.9);
-}
-.sw-scene.sw-is-light .sw-track {
-  background:rgba(0,0,0,.04);
-  box-shadow:inset 0 0 3vmin rgba(0,0,0,0.3);
-}
-
-.sw-lightsaber {
-  position:absolute; display:flex;
-  height:1.2vmin; width:28vmin; left:2vmin;
-}
-.sw-ls-light {
-  width:12vmin; border-top-left-radius:2vmin; border-bottom-left-radius:2vmin;
-  background:var(--sw-light-sec);
-  box-shadow:0 0 1vmin var(--sw-blur) rgba(255,255,255,.5), 0 0 6vmin var(--sw-blur) var(--sw-light-sec);
-  transition:opacity .6s linear, transform .6s linear;
-  opacity:0; animation:sw-pulse 1s ease-in-out infinite;
-  transform:scaleX(0); transform-origin:right;
-}
-.sw-scene.sw-is-light .sw-ls-light { opacity:1; transform:scaleX(1); }
-.sw-ls-grip { width:3.5vmin; background:#081F48; border-radius:2vmin; transform:scaleX(1.2); }
-.sw-ls-dark {
-  width:12vmin; border-top-right-radius:2vmin; border-bottom-right-radius:2vmin;
-  background:var(--sw-dark-sec);
-  box-shadow:0 0 6vmin var(--sw-blur) var(--sw-dark-sec);
-  transition:opacity .6s linear, transform .6s linear;
-  opacity:1; animation:sw-pulse 1s ease-in-out infinite;
-  transform:scaleX(1); transform-origin:left;
-}
-.sw-scene.sw-is-light .sw-ls-dark { opacity:0; transform:scaleX(0); }
-
-.sw-thumb {
-  height:100%; aspect-ratio:1;
-  transform:translateX(calc(14vmin * var(--sw-progress, 0)));
-  position:relative; transform-style:preserve-3d; border-radius:50%;
-}
-.sw-thumb::after {
-  content:""; position:absolute; inset:0;
-  mask:linear-gradient(black,black) no-repeat, url("https://assets.codepen.io/907471/deathstar-mask.svg") no-repeat;
-  -webkit-mask:linear-gradient(black,black) no-repeat, url("https://assets.codepen.io/907471/deathstar-mask.svg") no-repeat;
-  mask-size:150% 100%, 100% 100%;
-  -webkit-mask-size:150% 100%, 100% 100%;
-  mask-position:calc(-15vmin + (15vmin * var(--sw-progress,0))) 0, calc(0vmin + (15vmin * var(--sw-progress,0))) 0;
-  -webkit-mask-position:calc(-15vmin + (15vmin * var(--sw-progress,0))) 0, calc(0vmin + (15vmin * var(--sw-progress,0))) 0;
-  background:
-    radial-gradient(88% 88% at 55% 50%, var(--sw-dark-sec) 50%, #B1437E 50%, #B1437E 55%, #671086 55%, #671086 60%, transparent 60%) no-repeat,
-    linear-gradient(var(--sw-dark-surface), var(--sw-dark-surface)) no-repeat,
-    radial-gradient(90% 90% at 55% 50%, var(--sw-dark-primary) 50%, var(--sw-color-thumb) 50%, transparent 70%) no-repeat,
-    var(--sw-color-thumb);
-  background-position:calc(-16vmin + (16.5vmin * var(--sw-progress,0))) 0, calc(0px + (16vmin * var(--sw-progress,0))) 50%, calc(0px + (16vmin * var(--sw-progress,0))) 0;
-  border-radius:50%; background-size:100% 100%, 100% 1vmin, 100% 100%;
-}
-
-.sw-side {
-  position:absolute; inset:0; border-radius:50%;
-  display:flex; align-items:center; justify-content:center;
-}
-.sw-light-side {
-  --sw-size:16vmin; --sw-angle:calc(180deg * var(--sw-progress,0));
-  --sw-radius:calc(var(--sw-size)/2);
-  --sw-y:calc(sin(var(--sw-angle)) * var(--sw-radius) * -1);
-  --sw-x:calc(cos(var(--sw-angle)) * var(--sw-radius) * -1);
-  transform:translateZ(var(--sw-x)) translateX(var(--sw-y)) rotateY(var(--sw-angle));
-  opacity:0; transition:opacity .3s ease;
-}
-.sw-scene.sw-is-light .sw-light-side { opacity:1; }
-
-.sw-light-side .sw-circle {
-  background:var(--sw-light-sec); width:5.2vmin; aspect-ratio:1;
-  border-radius:1.4vmin; position:absolute; top:4vmin; left:2.3vmin; z-index:111;
-}
-.sw-light-side .sw-sub-circle {
-  background:black; aspect-ratio:1; border-radius:50%;
-  position:absolute; inset:0.5vmin; z-index:111;
-}
-.sw-light-side .sw-sub-circle::after {
-  content:""; position:absolute; left:1.8vmin; top:0.9vmin;
-  width:1.4vmin; aspect-ratio:1; border-radius:50%;
-  background:var(--sw-light-ter);
-}
-.sw-top { display:flex; gap:1vmin; transform:translate(2.5vmin,1vmin); }
-.sw-right { background:var(--sw-light-sec); height:2vmin; width:5vmin; mask:radial-gradient(100% 100% at 0% 120%, black 100%, transparent); }
-.sw-left  { background:var(--sw-light-sec); height:2vmin; width:2vmin; mask:radial-gradient(100% 100% at 100% 120%, black 100%, transparent); }
-.sw-center { transform:translateY(7.5vmin); display:flex; flex-direction:row-reverse; height:2vmin; gap:0.8vmin; }
-.sw-i1 { background:var(--sw-light-sec); width:4vmin; mask:radial-gradient(100% 200% at 0% 0%, black 90%, transparent 90%); }
-.sw-i2 { background:var(--sw-light-pv); width:2vmin; }
-.sw-i3 { background:var(--sw-light-sec); width:3.2vmin; height:1.5vmin; margin-top:0.5vmin; position:relative; }
-.sw-i3::after { content:""; position:absolute; border-radius:50%; margin-top:0.25vmin; right:1.5vmin; width:1vmin; aspect-ratio:1; background:var(--sw-light-primary); }
-.sw-i4 { border-radius:50%; width:1.4vmin; height:1.4vmin; background:var(--sw-light-pv2); transform:translateY(0.4vmin); }
-.sw-i5 { background:var(--sw-light-sec); width:1vmin; transform:translateX(0.5vmin); mask:radial-gradient(100% 130% at 110% 0%, black 90%, transparent 90%); }
-.sw-bottom { transform:translateY(8.5vmin); }
-.sw-line { background:var(--sw-light-sec); height:1.5vmin; mask:radial-gradient(35% 80% at 48% 0%, black 100%, transparent); }
-
-.sw-dark-side {
-  --sw-size:15vmin; --sw-angle:calc(180deg * var(--sw-progress,0));
-  --sw-radius:calc(var(--sw-size)/2);
-  --sw-y:calc(sin(var(--sw-angle)) * var(--sw-radius));
-  --sw-x:calc(cos(var(--sw-angle)) * var(--sw-radius));
-  transform:translateZ(var(--sw-x)) translateX(var(--sw-y)) rotateY(var(--sw-angle));
-}
-.sw-dark-side .sw-circle {
-  background:var(--sw-dark-sec); border:0.6vmin solid var(--sw-dark-sv2);
-  width:4.9vmin; aspect-ratio:1; border-radius:50%;
-  position:absolute; top:1.7vmin; left:2vmin; z-index:111;
-}
-.sw-dark-side .sw-sub-circle {
-  background:var(--sw-dark-ter); border:0.2vmin solid var(--sw-dark-tv);
-  width:2.1vmin; aspect-ratio:1; border-radius:50%;
-  position:absolute; top:0; left:0; z-index:111;
-}
-.sw-dark-side .sw-sub-circle::after {
-  content:""; position:absolute; left:1vmin; top:1vmin;
-  width:0.6vmin; aspect-ratio:1; border-radius:50%;
-  background:var(--sw-dark-primary); border:0.3vmin solid #183B79;
-}
-
-/* animate the --sw-progress via the scene's animation */
-.sw-scene.sw-anim-on  { animation: sw-checked   0.45s ease-in-out forwards; }
-.sw-scene.sw-anim-off { animation: sw-unchecked 0.45s ease-in-out forwards; }
-
-/* System pill active state */
-.theme-opt[data-theme-val="system"].sw-active-sys {
-  border-color:var(--gold-mid);
-  background:var(--gold-bg);
-  color:var(--gold-dark);
-  box-shadow:0 0 0 3px rgba(212,160,23,0.18);
-}
+/* Star Wars toggle — compact futuristic (pure CSS, no vmin scene) */
+#sw-switch input { opacity:0;width:0;height:0;position:absolute; }
 
 </style>
   <!-- Firebase SDK with Authentication -->
@@ -1759,51 +1586,67 @@ select {
         <div style="margin-bottom:28px">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">🎨 Appearance</div>
 
-          <!-- Star Wars Lightsaber Toggle Card -->
-          <div id="sw-theme-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);padding:20px 16px 16px;box-shadow:var(--shadow-sm);text-align:center;overflow:hidden;position:relative">
+          <!-- Futuristic Compact Theme Toggle Card -->
+          <div id="sw-theme-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md);position:relative">
 
-            <!-- Side labels -->
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding:0 4px">
-              <div id="sw-dark-label" style="font-size:13px;font-weight:700;color:#FFE629;letter-spacing:0.5px;transition:opacity .3s">🌑 Dark Side</div>
-              <div id="sw-light-label" style="font-size:13px;font-weight:700;color:#F349A4;letter-spacing:0.5px;opacity:0.35;transition:opacity .3s">☀️ Light Side</div>
-            </div>
+            <!-- Animated background glow -->
+            <div id="sw-bg-glow" style="position:absolute;inset:0;opacity:0.12;transition:all .5s ease;background:radial-gradient(ellipse at 80% 50%, #F349A4 0%, transparent 60%);pointer-events:none"></div>
 
-            <!-- The scene -->
-            <div class="sw-scene" id="sw-scene">
-              <div class="sw-images">
-                <img src="https://assets.codepen.io/907471/darkside.svg?v42" class="sw-img sw-dark-img">
-                <img src="https://assets.codepen.io/907471/lightside.svg?v42" class="sw-img sw-light-img">
+            <!-- Top row: labels + toggle -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;position:relative;z-index:1">
+              <!-- Dark side label -->
+              <div style="display:flex;align-items:center;gap:7px">
+                <div id="sw-dark-dot" style="width:8px;height:8px;border-radius:50%;background:#FFE629;box-shadow:0 0 6px #FFE629;transition:all .4s"></div>
+                <span id="sw-dark-lbl" style="font-size:11px;font-weight:700;color:#FFE629;letter-spacing:1px;text-transform:uppercase;transition:opacity .3s">Dark</span>
               </div>
 
-              <label class="sw-switch" id="sw-switch" aria-label="Toggle theme">
-                <input type="checkbox" id="sw-checkbox" onchange="swToggle(this.checked)">
-                <div class="sw-track">
-                  <div class="sw-lightsaber">
-                    <div class="sw-ls-light"></div>
-                    <div class="sw-ls-grip"></div>
-                    <div class="sw-ls-dark"></div>
-                  </div>
-                  <div class="sw-thumb">
-                    <div class="sw-side sw-dark-side">
-                      <div class="sw-circle"><div class="sw-sub-circle"></div></div>
-                    </div>
-                    <div class="sw-side sw-light-side">
-                      <div class="sw-circle"><div class="sw-sub-circle"></div></div>
-                      <div class="sw-top"><div class="sw-left"></div><div class="sw-right"></div></div>
-                      <div class="sw-center">
-                        <div class="sw-item sw-i1"></div><div class="sw-item sw-i2"></div>
-                        <div class="sw-item sw-i3"></div><div class="sw-item sw-i4"></div>
-                        <div class="sw-item sw-i5"></div>
-                      </div>
-                      <div class="sw-bottom"><div class="sw-line"></div></div>
-                    </div>
+              <!-- The actual compact toggle -->
+              <label id="sw-switch" style="position:relative;display:inline-block;width:68px;height:34px;cursor:pointer;flex-shrink:0">
+                <input type="checkbox" id="sw-checkbox" onchange="swToggle(this.checked)"
+                  style="opacity:0;width:0;height:0;position:absolute">
+                <!-- Track -->
+                <div id="sw-track" style="position:absolute;inset:0;border-radius:34px;background:linear-gradient(135deg,#081226,#0D1F45);border:1.5px solid #FFE629;box-shadow:0 0 12px rgba(255,230,41,0.3),inset 0 0 8px rgba(0,0,0,0.5);transition:all .5s ease;overflow:hidden">
+                  <!-- Lightsaber beam inside track -->
+                  <div id="sw-beam" style="position:absolute;top:50%;left:6px;right:6px;height:2px;transform:translateY(-50%);border-radius:2px;background:linear-gradient(90deg,transparent,#FFE629,#F349A4,transparent);opacity:0.4;transition:all .5s ease"></div>
+                  <!-- Stars (dark mode) -->
+                  <div id="sw-stars" style="position:absolute;inset:0;opacity:1;transition:opacity .4s">
+                    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;top:6px;left:14px;opacity:.8"></div>
+                    <div style="position:absolute;width:1.5px;height:1.5px;background:#fff;border-radius:50%;top:12px;left:28px;opacity:.6"></div>
+                    <div style="position:absolute;width:1px;height:1px;background:#FFE629;border-radius:50%;top:8px;left:42px;opacity:.9"></div>
+                    <div style="position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;top:20px;left:20px;opacity:.5"></div>
+                    <div style="position:absolute;width:1px;height:1px;background:#2ED9E7;border-radius:50%;top:24px;left:36px;opacity:.8"></div>
                   </div>
                 </div>
+                <!-- Thumb -->
+                <div id="sw-thumb" style="position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#FFE629,#C8A000);border:2px solid rgba(255,230,41,0.6);box-shadow:0 0 10px rgba(255,230,41,0.6),0 2px 6px rgba(0,0,0,0.5);transition:all .45s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;justify-content:center;overflow:hidden">
+                  <!-- Death Star crater -->
+                  <div id="sw-thumb-face" style="position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 62% 42%,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 38%,rgba(0,0,0,0.5) 39%,rgba(0,0,0,0) 40%);transition:all .4s"></div>
+                  <!-- Icon -->
+                  <div id="sw-thumb-icon" style="font-size:11px;line-height:1;z-index:1;transition:all .3s">🌑</div>
+                </div>
               </label>
+
+              <!-- Light side label -->
+              <div style="display:flex;align-items:center;gap:7px">
+                <span id="sw-light-lbl" style="font-size:11px;font-weight:700;color:#F349A4;letter-spacing:1px;text-transform:uppercase;transition:opacity .3s;opacity:0.3">Light</span>
+                <div id="sw-light-dot" style="width:8px;height:8px;border-radius:50%;background:#F349A4;transition:all .4s;opacity:0.3"></div>
+              </div>
             </div>
 
-            <!-- Current mode label -->
-            <div id="sw-mode-label" style="margin-top:14px;font-size:12px;font-weight:600;color:var(--muted)">Dark Mode</div>
+            <!-- Artwork row: Dark Side / Light Side images -->
+            <div style="display:flex;align-items:center;justify-content:center;padding:6px 16px 14px;gap:12px;position:relative;z-index:1">
+              <img id="sw-dark-art" src="https://assets.codepen.io/907471/darkside.svg?v42"
+                style="height:44px;width:auto;object-fit:contain;transition:all .4s ease;opacity:1;filter:drop-shadow(0 0 8px rgba(255,230,41,0.5))">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                <div id="sw-mode-label" style="font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#FFE629;text-shadow:0 0 10px rgba(255,230,41,0.7);transition:all .4s">DARK SIDE</div>
+                <div id="sw-mode-sub" style="font-size:9px;color:var(--muted);letter-spacing:0.5px">May the Force be with you</div>
+              </div>
+              <img id="sw-light-art" src="https://assets.codepen.io/907471/lightside.svg?v42"
+                style="height:44px;width:auto;object-fit:contain;transition:all .4s ease;opacity:0.2;filter:blur(2px) drop-shadow(0 0 6px rgba(243,73,164,0.4))">
+            </div>
+
+            <!-- Scan line effect -->
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.012) 3px,rgba(255,255,255,0.012) 4px);pointer-events:none;border-radius:16px"></div>
           </div>
 
           <!-- System option pill -->
@@ -2186,192 +2029,147 @@ select {
 }
 </style>
 
-<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;background:#fff;flex-direction:column;overflow-y:auto">
+<div id="login-screen" style="display:none;position:fixed;inset:0;z-index:5000;align-items:center;justify-content:center;padding:16px">
+  <div id="ls-container">
+    <div id="ls-mobile-tabs">
+      <button class="ls-mob-tab active" onclick="lsSwitchTab('signin')">Sign In</button>
+      <button class="ls-mob-tab"        onclick="lsSwitchTab('register')">Register</button>
+    </div>
 
-  <!-- Gold header strip -->
-  <div style="background:linear-gradient(135deg,#C8900A,#B8860B);padding:36px 24px 28px;text-align:center;flex-shrink:0">
-    <div style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.22);border:2px solid rgba(255,255,255,0.55);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px">⚖️</div>
-    <div style="font-size:22px;font-weight:800;color:#fff;font-family:'DM Sans',sans-serif;letter-spacing:-0.3px">Gold Ledger</div>
-    <div style="font-size:13px;color:rgba(255,255,255,0.80);font-family:'DM Sans',sans-serif;margin-top:3px">Sone Ka Hisaab</div>
+    <!-- REGISTER PANEL -->
+    <div class="ls-form-container" id="ls-sign-up">
+      <div class="ls-form-inner">
+        <h1>Create Account</h1>
+        <button class="ls-google-btn" onclick="window.authSignInGoogle()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <span class="ls-or-text">— or register with —</span>
+
+        <!-- Email / Phone toggle -->
+        <div style="display:flex;width:100%;border:1.5px solid #E0CC80;border-radius:8px;overflow:hidden;margin:6px 0 10px">
+          <button id="reg-method-email" onclick="regSetMethod('email')" style="flex:1;padding:8px;border:none;background:#D4A017;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">✉️ Email</button>
+          <button id="reg-method-phone" onclick="regSetMethod('phone')" style="flex:1;padding:8px;border:none;background:transparent;color:#8B6914;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">📱 Phone</button>
+        </div>
+
+        <!-- Email register -->
+        <div id="reg-email-form" style="width:100%">
+          <input type="text"     id="ls-reg-name"  placeholder="Your Name">
+          <input type="email"    id="ls-reg-email" placeholder="Email">
+          <input type="password" id="ls-reg-pass"  placeholder="Password (min 6 chars)">
+          <button class="ls-submit-btn" onclick="lsRegister()">Sign Up</button>
+        </div>
+
+        <!-- Phone register -->
+        <div id="reg-phone-form" style="display:none;width:100%">
+          <div id="reg-phone-step1">
+            <input type="text" id="reg-phone-name" placeholder="Your Name" style="width:100%;margin:5px 0;background:#f5f0e0;border:none;border-radius:8px;padding:11px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+            <div style="display:flex;gap:6px;margin:5px 0">
+              <input id="reg-phone-cc" value="+91" style="width:58px;flex-shrink:0;text-align:center;background:#f5f0e0;border:none;border-radius:8px;padding:11px 6px;font-size:13px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+              <input id="reg-phone-num" type="tel" placeholder="10-digit number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" style="flex:1;min-width:0;background:#f5f0e0;border:none;border-radius:8px;padding:11px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+            </div>
+            <div style="font-size:11px;color:#B09050;margin-bottom:8px;font-family:'DM Sans',sans-serif">OTP will be sent via SMS</div>
+            <button class="ls-submit-btn" id="reg-send-otp-btn" onclick="regSendOTP()">Send OTP</button>
+          </div>
+          <div id="reg-phone-step2" style="display:none">
+            <div id="reg-otp-msg" style="font-size:12px;color:#5A3E00;background:#FFF8DC;border:1px solid #E0CC80;border-radius:8px;padding:9px 12px;margin:6px 0;font-family:'DM Sans',sans-serif;text-align:center"></div>
+            <div style="display:flex;gap:6px;justify-content:center;margin:10px 0">
+              <input class="otp-box" id="reg-otp0" maxlength="1" type="tel" oninput="otpInput(this,0,'reg')" onkeydown="otpKey(event,0,'reg')">
+              <input class="otp-box" id="reg-otp1" maxlength="1" type="tel" oninput="otpInput(this,1,'reg')" onkeydown="otpKey(event,1,'reg')">
+              <input class="otp-box" id="reg-otp2" maxlength="1" type="tel" oninput="otpInput(this,2,'reg')" onkeydown="otpKey(event,2,'reg')">
+              <input class="otp-box" id="reg-otp3" maxlength="1" type="tel" oninput="otpInput(this,3,'reg')" onkeydown="otpKey(event,3,'reg')">
+              <input class="otp-box" id="reg-otp4" maxlength="1" type="tel" oninput="otpInput(this,4,'reg')" onkeydown="otpKey(event,4,'reg')">
+              <input class="otp-box" id="reg-otp5" maxlength="1" type="tel" oninput="otpInput(this,5,'reg')" onkeydown="otpKey(event,5,'reg')">
+            </div>
+            <button class="ls-submit-btn" onclick="regVerifyOTP()">Verify &amp; Register</button>
+            <div style="text-align:center;margin-top:8px">
+              <span id="reg-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
+              <button id="reg-resend-btn" onclick="regResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
+            </div>
+            <button onclick="regPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;width:100%;text-align:center">← Change Number</button>
+          </div>
+        </div>
+
+        <div class="ls-err" id="ls-err-reg"></div>
+      </div>
+    </div>
+
+    <!-- SIGN IN PANEL -->
+    <div class="ls-form-container" id="ls-sign-in">
+      <div class="ls-form-inner">
+        <h1>Sign In</h1>
+        <button class="ls-google-btn" onclick="window.authSignInGoogle()">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <span class="ls-or-text">— or sign in with —</span>
+
+        <!-- Email / Phone toggle -->
+        <div style="display:flex;width:100%;border:1.5px solid #E0CC80;border-radius:8px;overflow:hidden;margin:6px 0 10px">
+          <button id="si-method-email" onclick="siSetMethod('email')" style="flex:1;padding:8px;border:none;background:#D4A017;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">✉️ Email</button>
+          <button id="si-method-phone" onclick="siSetMethod('phone')" style="flex:1;padding:8px;border:none;background:transparent;color:#8B6914;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">📱 Phone</button>
+        </div>
+
+        <!-- Email sign in -->
+        <div id="si-email-form" style="width:100%">
+          <input type="email"    id="ls-si-email" placeholder="Email">
+          <input type="password" id="ls-si-pass"  placeholder="Password">
+          <a class="ls-forgot" href="#">Forgot your password?</a>
+          <button class="ls-submit-btn" onclick="lsSignIn()">Sign In</button>
+        </div>
+
+        <!-- Phone sign in -->
+        <div id="si-phone-form" style="display:none;width:100%">
+          <div id="si-phone-step1">
+            <div style="display:flex;gap:6px;margin:5px 0">
+              <input id="si-phone-cc" value="+91" style="width:58px;flex-shrink:0;text-align:center;background:#f5f0e0;border:none;border-radius:8px;padding:11px 6px;font-size:13px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+              <input id="si-phone-num" type="tel" placeholder="10-digit number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)" style="flex:1;min-width:0;background:#f5f0e0;border:none;border-radius:8px;padding:11px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
+            </div>
+            <div style="font-size:11px;color:#B09050;margin-bottom:8px;font-family:'DM Sans',sans-serif">OTP will be sent to your number via SMS</div>
+            <button class="ls-submit-btn" id="si-send-otp-btn" onclick="siSendOTP()">Send OTP</button>
+          </div>
+          <div id="si-phone-step2" style="display:none">
+            <div id="si-otp-msg" style="font-size:12px;color:#5A3E00;background:#FFF8DC;border:1px solid #E0CC80;border-radius:8px;padding:9px 12px;margin:6px 0;font-family:'DM Sans',sans-serif;text-align:center"></div>
+            <div style="display:flex;gap:6px;justify-content:center;margin:10px 0">
+              <input class="otp-box" id="si-otp0" maxlength="1" type="tel" oninput="otpInput(this,0,'si')" onkeydown="otpKey(event,0,'si')">
+              <input class="otp-box" id="si-otp1" maxlength="1" type="tel" oninput="otpInput(this,1,'si')" onkeydown="otpKey(event,1,'si')">
+              <input class="otp-box" id="si-otp2" maxlength="1" type="tel" oninput="otpInput(this,2,'si')" onkeydown="otpKey(event,2,'si')">
+              <input class="otp-box" id="si-otp3" maxlength="1" type="tel" oninput="otpInput(this,3,'si')" onkeydown="otpKey(event,3,'si')">
+              <input class="otp-box" id="si-otp4" maxlength="1" type="tel" oninput="otpInput(this,4,'si')" onkeydown="otpKey(event,4,'si')">
+              <input class="otp-box" id="si-otp5" maxlength="1" type="tel" oninput="otpInput(this,5,'si')" onkeydown="otpKey(event,5,'si')">
+            </div>
+            <button class="ls-submit-btn" onclick="siVerifyOTP()">Verify &amp; Sign In</button>
+            <div style="text-align:center;margin-top:8px">
+              <span id="si-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
+              <button id="si-resend-btn" onclick="siResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
+            </div>
+            <button onclick="siPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;width:100%;text-align:center">← Change Number</button>
+          </div>
+        </div>
+
+        <div class="ls-err" id="ls-err-si"></div>
+      </div>
+    </div>
+
+    <!-- SLIDING PANEL -->
+    <div id="ls-toggle-container">
+      <div id="ls-toggle">
+        <div class="ls-toggle-panel ls-toggle-left">
+          <div class="ls-logo-wrap"><img src="icons/logo.png?v=2" onerror="this.style.display='none'">⚖️</div>
+          <h1>Welcome Back!</h1>
+          <p>Already have an account? Sign in to access all your gold records.</p>
+          <button class="ls-ghost-btn" onclick="lsSwitchTab('signin')">Sign In</button>
+        </div>
+        <div class="ls-toggle-panel ls-toggle-right">
+          <div class="ls-logo-wrap"><img src="icons/logo.png?v=2" onerror="this.style.display='none'">⚖️</div>
+          <h1>Gold Ledger</h1>
+          <p>New here? Register to keep all your gold records safe across every device.</p>
+          <button class="ls-ghost-btn" onclick="lsSwitchTab('register')">Register</button>
+        </div>
+      </div>
+    </div>
   </div>
-
-  <!-- Tab bar -->
-  <div style="display:flex;border-bottom:2px solid #F0E4B8;background:#fff;flex-shrink:0">
-    <button id="ls-tab-signin" onclick="lsSwitchTab('signin')"
-      style="flex:1;padding:14px;border:none;background:transparent;font-size:14px;font-weight:700;color:#D4A017;cursor:pointer;font-family:'DM Sans',sans-serif;border-bottom:2.5px solid #D4A017;margin-bottom:-2px">
-      Sign In
-    </button>
-    <button id="ls-tab-register" onclick="lsSwitchTab('register')"
-      style="flex:1;padding:14px;border:none;background:transparent;font-size:14px;font-weight:600;color:#B09050;cursor:pointer;font-family:'DM Sans',sans-serif;border-bottom:2.5px solid transparent;margin-bottom:-2px">
-      Register
-    </button>
-  </div>
-
-  <!-- SIGN IN PANEL -->
-  <div id="ls-sign-in" style="padding:24px 24px 40px;flex:1">
-
-    <!-- Google -->
-    <button class="ls-google-btn" onclick="window.authSignInGoogle()" style="margin-bottom:20px">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Continue with Google
-    </button>
-
-    <!-- Divider -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="flex:1;height:1px;background:#F0E4B8"></div>
-      <span style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;white-space:nowrap">or continue with</span>
-      <div style="flex:1;height:1px;background:#F0E4B8"></div>
-    </div>
-
-    <!-- Email / Phone method toggle -->
-    <div style="display:flex;border:1.5px solid #E0CC80;border-radius:10px;overflow:hidden;margin-bottom:16px">
-      <button id="si-method-email" onclick="siSetMethod('email')"
-        style="flex:1;padding:10px;border:none;background:#D4A017;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
-        ✉️ Email
-      </button>
-      <button id="si-method-phone" onclick="siSetMethod('phone')"
-        style="flex:1;padding:10px;border:none;background:transparent;color:#8B6914;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
-        📱 Phone
-      </button>
-    </div>
-
-    <!-- Email form -->
-    <div id="si-email-form">
-      <div style="margin-bottom:12px">
-        <input id="ls-si-email" type="email" placeholder="Email address"
-          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-      </div>
-      <div style="margin-bottom:8px">
-        <input id="ls-si-pass" type="password" placeholder="Password"
-          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-      </div>
-      <a class="ls-forgot" href="#" style="display:block;margin-bottom:14px">Forgot password?</a>
-      <button class="ls-submit-btn" onclick="lsSignIn()" style="width:100%">Sign In</button>
-    </div>
-
-    <!-- Phone form -->
-    <div id="si-phone-form" style="display:none">
-      <!-- Step 1: number entry -->
-      <div id="si-phone-step1">
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input id="si-phone-cc" value="+91"
-            style="width:64px;flex-shrink:0;text-align:center;padding:13px 6px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-          <input id="si-phone-num" type="tel" placeholder="10-digit mobile number" maxlength="10"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
-            style="flex:1;min-width:0;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-        </div>
-        <div style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;margin-bottom:14px">📍 Indian numbers only (+91). OTP will be sent via SMS.</div>
-        <button class="ls-submit-btn" id="si-send-otp-btn" onclick="siSendOTP()" style="width:100%">Send OTP</button>
-      </div>
-      <!-- Step 2: OTP verification -->
-      <div id="si-phone-step2" style="display:none">
-        <div id="si-otp-msg" style="background:#FFF8DC;border:1px solid #E0CC80;border-radius:10px;padding:10px 14px;font-size:13px;color:#5A3E00;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px"></div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
-          <input class="otp-box" id="si-otp0" maxlength="1" type="tel" oninput="otpInput(this,0,'si')" onkeydown="otpKey(event,0,'si')">
-          <input class="otp-box" id="si-otp1" maxlength="1" type="tel" oninput="otpInput(this,1,'si')" onkeydown="otpKey(event,1,'si')">
-          <input class="otp-box" id="si-otp2" maxlength="1" type="tel" oninput="otpInput(this,2,'si')" onkeydown="otpKey(event,2,'si')">
-          <input class="otp-box" id="si-otp3" maxlength="1" type="tel" oninput="otpInput(this,3,'si')" onkeydown="otpKey(event,3,'si')">
-          <input class="otp-box" id="si-otp4" maxlength="1" type="tel" oninput="otpInput(this,4,'si')" onkeydown="otpKey(event,4,'si')">
-          <input class="otp-box" id="si-otp5" maxlength="1" type="tel" oninput="otpInput(this,5,'si')" onkeydown="otpKey(event,5,'si')">
-        </div>
-        <button class="ls-submit-btn" onclick="siVerifyOTP()" style="width:100%;margin-bottom:12px">Verify &amp; Sign In</button>
-        <div style="text-align:center">
-          <span id="si-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
-          <button id="si-resend-btn" onclick="siResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
-        </div>
-        <button onclick="siPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;width:100%;text-align:center">← Change Number</button>
-      </div>
-    </div>
-
-    <div class="ls-err" id="ls-err-si" style="margin-top:12px"></div>
-  </div>
-
-  <!-- REGISTER PANEL -->
-  <div id="ls-sign-up" style="display:none;padding:24px 24px 40px;flex:1">
-
-    <!-- Google -->
-    <button class="ls-google-btn" onclick="window.authSignInGoogle()" style="margin-bottom:20px">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Continue with Google
-    </button>
-
-    <!-- Divider -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="flex:1;height:1px;background:#F0E4B8"></div>
-      <span style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;white-space:nowrap">or continue with</span>
-      <div style="flex:1;height:1px;background:#F0E4B8"></div>
-    </div>
-
-    <!-- Email / Phone method toggle -->
-    <div style="display:flex;border:1.5px solid #E0CC80;border-radius:10px;overflow:hidden;margin-bottom:16px">
-      <button id="reg-method-email" onclick="regSetMethod('email')"
-        style="flex:1;padding:10px;border:none;background:#D4A017;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
-        ✉️ Email
-      </button>
-      <button id="reg-method-phone" onclick="regSetMethod('phone')"
-        style="flex:1;padding:10px;border:none;background:transparent;color:#8B6914;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s">
-        📱 Phone
-      </button>
-    </div>
-
-    <!-- Email register form -->
-    <div id="reg-email-form">
-      <div style="margin-bottom:12px">
-        <input id="ls-reg-name" type="text" placeholder="Your Name"
-          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-      </div>
-      <div style="margin-bottom:12px">
-        <input id="ls-reg-email" type="email" placeholder="Email address"
-          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-      </div>
-      <div style="margin-bottom:16px">
-        <input id="ls-reg-pass" type="password" placeholder="Password (min 6 chars)"
-          style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-      </div>
-      <button class="ls-submit-btn" onclick="lsRegister()" style="width:100%">Create Account</button>
-    </div>
-
-    <!-- Phone register form -->
-    <div id="reg-phone-form" style="display:none">
-      <!-- Step 1 -->
-      <div id="reg-phone-step1">
-        <div style="margin-bottom:8px">
-          <input id="reg-phone-name" type="text" placeholder="Your Name"
-            style="width:100%;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input id="reg-phone-cc" value="+91"
-            style="width:64px;flex-shrink:0;text-align:center;padding:13px 6px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-          <input id="reg-phone-num" type="tel" placeholder="10-digit mobile number" maxlength="10"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,10)"
-            style="flex:1;min-width:0;padding:13px 16px;background:#F8F3E8;border:1.5px solid #E0CC80;border-radius:10px;font-size:15px;font-family:'DM Sans',sans-serif;color:#2D1E00;outline:none;box-sizing:border-box">
-        </div>
-        <div style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif;margin-bottom:14px">📍 OTP will be sent to this number via SMS.</div>
-        <button class="ls-submit-btn" id="reg-send-otp-btn" onclick="regSendOTP()" style="width:100%">Send OTP</button>
-      </div>
-      <!-- Step 2 -->
-      <div id="reg-phone-step2" style="display:none">
-        <div id="reg-otp-msg" style="background:#FFF8DC;border:1px solid #E0CC80;border-radius:10px;padding:10px 14px;font-size:13px;color:#5A3E00;font-family:'DM Sans',sans-serif;text-align:center;margin-bottom:16px"></div>
-        <div style="display:flex;gap:8px;justify-content:center;margin-bottom:16px">
-          <input class="otp-box" id="reg-otp0" maxlength="1" type="tel" oninput="otpInput(this,0,'reg')" onkeydown="otpKey(event,0,'reg')">
-          <input class="otp-box" id="reg-otp1" maxlength="1" type="tel" oninput="otpInput(this,1,'reg')" onkeydown="otpKey(event,1,'reg')">
-          <input class="otp-box" id="reg-otp2" maxlength="1" type="tel" oninput="otpInput(this,2,'reg')" onkeydown="otpKey(event,2,'reg')">
-          <input class="otp-box" id="reg-otp3" maxlength="1" type="tel" oninput="otpInput(this,3,'reg')" onkeydown="otpKey(event,3,'reg')">
-          <input class="otp-box" id="reg-otp4" maxlength="1" type="tel" oninput="otpInput(this,4,'reg')" onkeydown="otpKey(event,4,'reg')">
-          <input class="otp-box" id="reg-otp5" maxlength="1" type="tel" oninput="otpInput(this,5,'reg')" onkeydown="otpKey(event,5,'reg')">
-        </div>
-        <button class="ls-submit-btn" onclick="regVerifyOTP()" style="width:100%;margin-bottom:12px">Verify &amp; Register</button>
-        <div style="text-align:center">
-          <span id="reg-resend-timer" style="font-size:12px;color:#B09050;font-family:'DM Sans',sans-serif"></span>
-          <button id="reg-resend-btn" onclick="regResendOTP()" style="display:none;background:none;border:none;color:#D4A017;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:underline">Resend OTP</button>
-        </div>
-        <button onclick="regPhoneBack()" style="background:none;border:none;color:#8B6914;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:10px;width:100%;text-align:center">← Change Number</button>
-      </div>
-    </div>
-
-    <div class="ls-err" id="ls-err-reg" style="margin-top:12px"></div>
-  </div>
-
+  <div class="auth-error" id="ls-error" style="display:none;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);max-width:320px;width:90%;z-index:6000"></div>
 </div>
 <!-- Invisible reCAPTCHA container for phone auth -->
 <div id="recaptcha-container"></div>
@@ -4055,23 +3853,18 @@ function clearDaybookView(){
    LOGIN SCREEN — tab switching
 ══════════════════════════════════════════ */
 function lsSwitchTab(tab){
-  const isSignin = tab === 'signin';
-  document.getElementById('ls-sign-in').style.display  = isSignin ? 'block' : 'none';
-  document.getElementById('ls-sign-up').style.display  = isSignin ? 'none'  : 'block';
-  const tSI = document.getElementById('ls-tab-signin');
-  const tReg = document.getElementById('ls-tab-register');
-  if(tSI){
-    tSI.style.color        = isSignin ? '#D4A017' : '#B09050';
-    tSI.style.borderBottomColor = isSignin ? '#D4A017' : 'transparent';
-    tSI.style.fontWeight   = isSignin ? '700' : '600';
+  const isSignin = tab==='signin';
+  const c = document.getElementById('ls-container');
+  if(c){ isSignin ? c.classList.remove('active') : c.classList.add('active'); }
+  const tabs = document.querySelectorAll('.ls-mob-tab');
+  if(tabs.length){ tabs[0].classList.toggle('active',isSignin); tabs[1].classList.toggle('active',!isSignin); }
+  // Mobile: show/hide panels
+  if(window.innerWidth<=600){
+    const su=document.getElementById('ls-sign-up'), si=document.getElementById('ls-sign-in');
+    if(isSignin){ if(si)si.style.display='flex'; if(su)su.style.display='none'; }
+    else        { if(su)su.style.display='flex'; if(si)si.style.display='none'; }
   }
-  if(tReg){
-    tReg.style.color       = isSignin ? '#B09050' : '#D4A017';
-    tReg.style.borderBottomColor = isSignin ? 'transparent' : '#D4A017';
-    tReg.style.fontWeight  = isSignin ? '600' : '700';
-  }
-  // clear errors
-  ['ls-err-si','ls-err-reg'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  ['ls-err-si','ls-err-reg','ls-error'].forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });
 }
 
 /* ── Sign In — method toggle ── */
@@ -4271,7 +4064,6 @@ function lsRegister(){
   window.authRegister(name,email,pass);
 }
 function showLoginScreen(){
-  // Show login screen whenever the user is not signed in
   if(!window.currentUser){
     document.getElementById('login-screen').style.display='flex';
   } else {
@@ -4785,30 +4577,78 @@ function setThemeMode(mode){
 
 /* ── Star Wars toggle sync ── */
 function syncSwToggle(){
-  const scene = document.getElementById('sw-scene');
-  const cb    = document.getElementById('sw-checkbox');
-  const lbl   = document.getElementById('sw-mode-label');
-  const dlbl  = document.getElementById('sw-dark-label');
-  const llbl  = document.getElementById('sw-light-label');
-  if(!scene) return;
+  const cb       = document.getElementById('sw-checkbox');
+  const track    = document.getElementById('sw-track');
+  const thumb    = document.getElementById('sw-thumb');
+  const thumbIcon= document.getElementById('sw-thumb-icon');
+  const modeLbl  = document.getElementById('sw-mode-label');
+  const modeSub  = document.getElementById('sw-mode-sub');
+  const darkLbl  = document.getElementById('sw-dark-lbl');
+  const lightLbl = document.getElementById('sw-light-lbl');
+  const darkDot  = document.getElementById('sw-dark-dot');
+  const lightDot = document.getElementById('sw-light-dot');
+  const darkArt  = document.getElementById('sw-dark-art');
+  const lightArt = document.getElementById('sw-light-art');
+  const beam     = document.getElementById('sw-beam');
+  const stars    = document.getElementById('sw-stars');
+  const glow     = document.getElementById('sw-bg-glow');
+  if(!cb) return;
 
   let resolved = themeMode;
-  if(themeMode === 'system'){
-    resolved = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+  if(themeMode==='system'){
+    resolved=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';
   }
-  const isLight = resolved === 'light';
-
-  // Animate
-  scene.classList.remove('sw-anim-on','sw-anim-off','sw-is-light');
-  void scene.offsetWidth; // reflow
-  scene.classList.add(isLight ? 'sw-anim-on' : 'sw-anim-off');
-  setTimeout(()=>{ if(isLight) scene.classList.add('sw-is-light'); }, 10);
+  const isLight = resolved==='light';
 
   if(cb) cb.checked = isLight;
-  if(lbl) lbl.textContent = themeMode === 'system' ? 'System (' + (isLight?'Light':'Dark') + ')' : (isLight ? 'Light Mode' : 'Dark Mode');
-  if(lbl) lbl.style.color = isLight ? '#F349A4' : '#FFE629';
-  if(dlbl){ dlbl.style.opacity = isLight ? '0.35' : '1'; }
-  if(llbl){ llbl.style.opacity = isLight ? '1' : '0.35'; }
+
+  if(isLight){
+    // Track: light pink/cyan
+    if(track){ track.style.background='linear-gradient(135deg,#FFF0FA,#E0F8FC)'; track.style.borderColor='#F349A4'; track.style.boxShadow='0 0 12px rgba(243,73,164,0.35),inset 0 0 8px rgba(0,0,0,0.08)'; }
+    // Thumb: pink sun
+    if(thumb){ thumb.style.transform='translateX(34px)'; thumb.style.background='radial-gradient(circle at 35% 35%,#FF85CC,#F349A4)'; thumb.style.borderColor='rgba(243,73,164,0.6)'; thumb.style.boxShadow='0 0 14px rgba(243,73,164,0.7),0 2px 6px rgba(0,0,0,0.2)'; }
+    if(thumbIcon) thumbIcon.textContent='☀️';
+    // Beam
+    if(beam){ beam.style.background='linear-gradient(90deg,transparent,#F349A4,#2ED9E7,transparent)'; beam.style.opacity='0.6'; }
+    // Stars hidden
+    if(stars) stars.style.opacity='0';
+    // Labels
+    if(darkLbl){ darkLbl.style.opacity='0.3'; darkLbl.style.color='#888'; }
+    if(lightLbl){ lightLbl.style.opacity='1'; lightLbl.style.color='#F349A4'; }
+    if(darkDot){ darkDot.style.background='#888'; darkDot.style.boxShadow='none'; darkDot.style.opacity='0.3'; }
+    if(lightDot){ lightDot.style.background='#F349A4'; lightDot.style.boxShadow='0 0 6px #F349A4'; lightDot.style.opacity='1'; }
+    // Art
+    if(darkArt){ darkArt.style.opacity='0.15'; darkArt.style.filter='blur(3px) drop-shadow(0 0 4px rgba(255,230,41,0.2))'; }
+    if(lightArt){ lightArt.style.opacity='1'; lightArt.style.filter='drop-shadow(0 0 10px rgba(243,73,164,0.6))'; }
+    // Text
+    if(modeLbl){ modeLbl.textContent='LIGHT SIDE'; modeLbl.style.color='#F349A4'; modeLbl.style.textShadow='0 0 10px rgba(243,73,164,0.7)'; }
+    if(modeSub){ modeSub.textContent=themeMode==='system'?'System • Light':'The Force is strong here'; }
+    // Card glow
+    if(glow){ glow.style.background='radial-gradient(ellipse at 20% 50%, #F349A4 0%, transparent 60%)'; glow.style.opacity='0.1'; }
+  } else {
+    // Track: deep space
+    if(track){ track.style.background='linear-gradient(135deg,#081226,#0D1F45)'; track.style.borderColor='#FFE629'; track.style.boxShadow='0 0 12px rgba(255,230,41,0.3),inset 0 0 8px rgba(0,0,0,0.5)'; }
+    // Thumb: yellow death star
+    if(thumb){ thumb.style.transform='translateX(0)'; thumb.style.background='radial-gradient(circle at 35% 35%,#FFE629,#C8A000)'; thumb.style.borderColor='rgba(255,230,41,0.6)'; thumb.style.boxShadow='0 0 10px rgba(255,230,41,0.6),0 2px 6px rgba(0,0,0,0.5)'; }
+    if(thumbIcon) thumbIcon.textContent='🌑';
+    // Beam
+    if(beam){ beam.style.background='linear-gradient(90deg,transparent,#FFE629,#F349A4,transparent)'; beam.style.opacity='0.4'; }
+    // Stars visible
+    if(stars) stars.style.opacity='1';
+    // Labels
+    if(darkLbl){ darkLbl.style.opacity='1'; darkLbl.style.color='#FFE629'; }
+    if(lightLbl){ lightLbl.style.opacity='0.3'; lightLbl.style.color='#F349A4'; }
+    if(darkDot){ darkDot.style.background='#FFE629'; darkDot.style.boxShadow='0 0 6px #FFE629'; darkDot.style.opacity='1'; }
+    if(lightDot){ lightDot.style.background='#F349A4'; lightDot.style.boxShadow='none'; lightDot.style.opacity='0.3'; }
+    // Art
+    if(darkArt){ darkArt.style.opacity='1'; darkArt.style.filter='drop-shadow(0 0 8px rgba(255,230,41,0.5))'; }
+    if(lightArt){ lightArt.style.opacity='0.15'; lightArt.style.filter='blur(3px) drop-shadow(0 0 4px rgba(243,73,164,0.2))'; }
+    // Text
+    if(modeLbl){ modeLbl.textContent='DARK SIDE'; modeLbl.style.color='#FFE629'; modeLbl.style.textShadow='0 0 10px rgba(255,230,41,0.7)'; }
+    if(modeSub){ modeSub.textContent=themeMode==='system'?'System • Dark':'The Force guides you'; }
+    // Card glow
+    if(glow){ glow.style.background='radial-gradient(ellipse at 80% 50%, #FFE629 0%, transparent 60%)'; glow.style.opacity='0.08'; }
+  }
 }
 
 /* Called when user clicks the toggle directly */
