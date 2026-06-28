@@ -825,6 +825,32 @@ select {
   color: var(--hint);
   text-align: center;
 }
+.client-dropdown-hint {
+  padding: 6px 14px;
+  font-size: 11px;
+  color: var(--hint);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--surface);
+  border-radius: 0 0 var(--rs) var(--rs);
+  user-select: none;
+}
+.client-dropdown-hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px; height: 18px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 10px; font-weight: 700;
+  color: var(--gold-dark);
+  font-family: 'DM Sans', sans-serif;
+  box-shadow: 0 1px 0 var(--border);
+}
 
 .hist-select {
   flex: 1;
@@ -1271,7 +1297,8 @@ select {
               <input type="text" id="f-client" placeholder="e.g. Ramesh Ji" autocomplete="off"
                 oninput="updatePreview(); autoFillClientPhone(); showClientDropdown();"
                 onfocus="showClientDropdown()"
-                onblur="setTimeout(hideClientDropdown,150)">
+                onblur="setTimeout(hideClientDropdown,180)"
+                onkeydown="clientDropdownKeyNav(event)">
               <div id="client-dropdown" class="client-dropdown"></div>
             </div>
             <div class="field">
@@ -2877,33 +2904,116 @@ function getClientNamesList(){
   return Object.keys(db.clients).sort((a,b)=>a.localeCompare(b));
 }
 
+/* ── Client dropdown with keyboard navigation ── */
+let _ddHighlight = -1; // currently highlighted item index
+
 function showClientDropdown(){
-  const dd=document.getElementById('client-dropdown');
-  const input=document.getElementById('f-client');
-  const query=(input.value||'').trim().toLowerCase();
-  const names=getClientNamesList();
-  const filtered=query?names.filter(n=>n.toLowerCase().includes(query)):names;
+  const dd  = document.getElementById('client-dropdown');
+  const input = document.getElementById('f-client');
+  const query = (input.value||'').trim().toLowerCase();
+  const names = getClientNamesList();
+  const filtered = query ? names.filter(n=>n.toLowerCase().includes(query)) : names;
+
+  _ddHighlight = -1; // reset highlight on each rebuild
 
   if(!filtered.length){
-    dd.innerHTML=query?'<div class="client-dropdown-empty">No matching clients</div>':'';
+    dd.innerHTML = query ? '<div class="client-dropdown-empty">No matching clients</div>' : '';
     dd.classList.toggle('show', !!query);
     return;
   }
 
-  dd.innerHTML=filtered.map(n=>`<div class="client-dropdown-item" onmousedown="selectClientFromDropdown('${esc(n)}')">${esc(n)}</div>`).join('');
+  // Highlight the query substring in item text
+  dd.innerHTML = filtered.map((n,i)=>{
+    let display = esc(n);
+    if(query){
+      const idx = n.toLowerCase().indexOf(query);
+      if(idx !== -1){
+        display = esc(n.slice(0,idx))
+          + '<strong style="color:var(--gold-dark)">' + esc(n.slice(idx,idx+query.length)) + '</strong>'
+          + esc(n.slice(idx+query.length));
+      }
+    }
+    return `<div class="client-dropdown-item" data-idx="${i}" data-name="${esc(n)}"
+      onmousedown="selectClientFromDropdown('${esc(n)}')"
+      onmouseover="_ddHighlight=${i};_ddUpdateHighlight()">${display}</div>`;
+  }).join('')
+  + `<div class="client-dropdown-hint">
+      <kbd>↑</kbd><kbd>↓</kbd> navigate &nbsp;·&nbsp; <kbd>↵</kbd> select &nbsp;·&nbsp; <kbd>Esc</kbd> close
+     </div>`;
+
   dd.classList.add('show');
 }
 
+function _ddUpdateHighlight(){
+  const items = document.querySelectorAll('#client-dropdown .client-dropdown-item');
+  items.forEach((el,i)=>{
+    el.classList.toggle('highlight', i === _ddHighlight);
+    if(i === _ddHighlight){
+      // Scroll item into view inside the dropdown
+      el.scrollIntoView({ block:'nearest' });
+    }
+  });
+}
+
+function clientDropdownKeyNav(e){
+  const dd    = document.getElementById('client-dropdown');
+  const items = dd ? [...dd.querySelectorAll('.client-dropdown-item')] : [];
+  const open  = dd && dd.classList.contains('show');
+
+  if(e.key === 'ArrowDown'){
+    e.preventDefault();
+    if(!open){ showClientDropdown(); return; }
+    _ddHighlight = Math.min(_ddHighlight + 1, items.length - 1);
+    _ddUpdateHighlight();
+    return;
+  }
+
+  if(e.key === 'ArrowUp'){
+    e.preventDefault();
+    if(!open) return;
+    _ddHighlight = Math.max(_ddHighlight - 1, 0);
+    _ddUpdateHighlight();
+    return;
+  }
+
+  if(e.key === 'Enter'){
+    if(open && _ddHighlight >= 0 && items[_ddHighlight]){
+      e.preventDefault(); // prevent form submit when picking a client
+      e.stopPropagation();
+      const name = items[_ddHighlight].getAttribute('data-name');
+      selectClientFromDropdown(name);
+      return;
+    }
+    // No highlight — let global Enter handler fire (save transaction)
+  }
+
+  if(e.key === 'Escape'){
+    if(open){ e.preventDefault(); hideClientDropdown(); }
+  }
+
+  if(e.key === 'Tab'){
+    // Tab while dropdown open → select highlighted item or first item, then move focus
+    if(open && items.length){
+      const pick = _ddHighlight >= 0 ? items[_ddHighlight] : items[0];
+      selectClientFromDropdown(pick.getAttribute('data-name'));
+    }
+  }
+}
+
 function hideClientDropdown(){
-  const dd=document.getElementById('client-dropdown');
+  const dd = document.getElementById('client-dropdown');
   if(dd) dd.classList.remove('show');
+  _ddHighlight = -1;
 }
 
 function selectClientFromDropdown(name){
-  document.getElementById('f-client').value=name;
+  document.getElementById('f-client').value = name;
   hideClientDropdown();
   updatePreview();
   autoFillClientPhone();
+  // Move focus to next natural field (gross weight)
+  const next = document.getElementById('f-gross') || document.getElementById('f-phone');
+  if(next) next.focus();
 }
 
 function autoFillClientPhone() {
