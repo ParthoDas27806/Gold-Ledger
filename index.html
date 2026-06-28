@@ -4389,6 +4389,305 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
 // Show login screen on first open if not signed in and not a guest yet
 
 
+/* ══════════════════════════════════════════════
+   ⌨️  KEYBOARD SHORTCUTS
+══════════════════════════════════════════════
+  Navigation
+  ─────────────────────────────────────────────
+  1  →  Dashboard        5  →  Daybook
+  2  →  Clients          6  →  Vault
+  3  →  Add Transaction  7  →  Settings
+  4  →  History
+
+  Actions (context-aware)
+  ─────────────────────────────────────────────
+  N        →  Add Transaction (from any page)
+  Escape   →  Close modal / go back
+  /        →  Focus client search (Clients page)
+  Enter    →  Save transaction (Add page)
+  T        →  Toggle dark / light theme
+  ?        →  Show / hide this cheat-sheet
+══════════════════════════════════════════════ */
+
+(function initKeyboardShortcuts(){
+
+  /* ── Keyboard shortcut cheat-sheet overlay ── */
+  const overlayHtml = `
+  <div id="kb-overlay" style="
+    display:none; position:fixed; inset:0; z-index:99999;
+    background:rgba(0,0,0,0.55); backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+    align-items:center; justify-content:center;
+  " onclick="if(event.target===this)toggleKbHelp()">
+    <div style="
+      background:var(--card); border:1.5px solid var(--border);
+      border-radius:20px; padding:28px 32px; max-width:480px; width:90%;
+      box-shadow:var(--shadow-lg); font-family:'DM Sans',sans-serif;
+      animation:pageIn 0.2s var(--ease);
+    ">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:17px;font-weight:700;color:var(--text)">⌨️ Keyboard Shortcuts</div>
+        <button onclick="toggleKbHelp()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px">
+        ${[
+          ['1','Dashboard'],['2','Clients'],['3','Add Transaction'],
+          ['4','History'],['5','Daybook'],['6','Vault'],['7','Settings'],
+          ['N','New Transaction'],['T','Toggle Theme'],
+          ['/','Search Clients'],['Enter','Save (Add page)'],
+          ['Esc','Close / Back'],['?','This help panel'],
+        ].map(([k,label])=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+            <kbd style="
+              display:inline-flex;align-items:center;justify-content:center;
+              min-width:28px;height:24px;padding:0 7px;border-radius:6px;
+              background:var(--surface);border:1.5px solid var(--border);
+              font-size:12px;font-weight:700;color:var(--gold-dark);
+              font-family:'DM Sans',sans-serif;box-shadow:0 2px 0 var(--border);
+              flex-shrink:0;
+            ">${k}</kbd>
+            <span style="font-size:13px;color:var(--muted)">${label}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:16px;font-size:11px;color:var(--hint);text-align:center">
+        Shortcuts are disabled when typing in an input field
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', overlayHtml);
+
+  /* ── Tooltip badge shown briefly on activation ── */
+  const badgeHtml = `<div id="kb-badge" style="
+    position:fixed; bottom:88px; left:50%;
+    transform:translateX(-50%) translateY(12px);
+    background:var(--text); color:var(--bg);
+    border-radius:10px; padding:7px 16px;
+    font-size:13px; font-weight:600;
+    font-family:'DM Sans',sans-serif;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.2s,transform 0.2s;
+    z-index:99998; white-space:nowrap;
+    box-shadow:var(--shadow-md);
+  "></div>`;
+  document.body.insertAdjacentHTML('beforeend', badgeHtml);
+
+  let badgeTimer;
+  function flashBadge(msg){
+    const el = document.getElementById('kb-badge');
+    if(!el) return;
+    el.textContent = msg;
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+    clearTimeout(badgeTimer);
+    badgeTimer = setTimeout(()=>{
+      el.style.opacity = '0';
+      el.style.transform = 'translateX(-50%) translateY(12px)';
+    }, 1600);
+  }
+
+  window.toggleKbHelp = function(){
+    const ov = document.getElementById('kb-overlay');
+    if(!ov) return;
+    const visible = ov.style.display === 'flex';
+    ov.style.display = visible ? 'none' : 'flex';
+  };
+
+  /* ── Add ? button to topbar ── */
+  function addHelpButton(){
+    // Desktop sidebar
+    const sidebarLogo = document.querySelector('.sidebar-logo');
+    if(sidebarLogo && !document.getElementById('kb-help-btn-sidebar')){
+      const btn = document.createElement('button');
+      btn.id = 'kb-help-btn-sidebar';
+      btn.title = 'Keyboard shortcuts (?)';
+      btn.onclick = toggleKbHelp;
+      btn.innerHTML = '⌨️';
+      btn.style.cssText = 'background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;margin-left:auto;opacity:0.6;transition:opacity 0.15s';
+      btn.onmouseenter = ()=>{ btn.style.opacity='1'; };
+      btn.onmouseleave = ()=>{ btn.style.opacity='0.6'; };
+      sidebarLogo.appendChild(btn);
+    }
+    // Mobile topbar
+    const topbarInner = document.querySelector('.topbar-inner');
+    if(topbarInner && !document.getElementById('kb-help-btn-topbar')){
+      const btn = document.createElement('button');
+      btn.id = 'kb-help-btn-topbar';
+      btn.title = 'Keyboard shortcuts (?)';
+      btn.onclick = toggleKbHelp;
+      btn.innerHTML = '⌨️';
+      btn.style.cssText = 'background:none;border:none;font-size:18px;cursor:pointer;padding:4px 6px;line-height:1;margin-left:auto;opacity:0.7;transition:opacity 0.15s';
+      topbarInner.appendChild(btn);
+    }
+  }
+  setTimeout(addHelpButton, 200);
+
+  /* ── Determine whether focus is inside a text input ── */
+  function isTyping(){
+    const tag = document.activeElement && document.activeElement.tagName;
+    const type = document.activeElement && document.activeElement.type;
+    if(['INPUT','TEXTAREA','SELECT'].includes(tag)) return true;
+    if(document.activeElement && document.activeElement.isContentEditable) return true;
+    return false;
+  }
+
+  /* ── Determine current active page ── */
+  function currentPage(){
+    const pages = ['dashboard','clients','add','history','daybook','vault','settings'];
+    for(const p of pages){
+      const el = document.getElementById('page-'+p);
+      if(el && el.classList.contains('active')) return p;
+    }
+    return null;
+  }
+
+  /* ── Close the top-most open modal ── */
+  function closeTopModal(){
+    // Keyboard shortcut help
+    const kbOv = document.getElementById('kb-overlay');
+    if(kbOv && kbOv.style.display === 'flex'){ kbOv.style.display='none'; return true; }
+    // Generic modal overlay
+    const mo = document.getElementById('modal-overlay');
+    if(mo && mo.style.display==='block'){
+      mo.style.display='none';
+      document.querySelectorAll('[id^="modal-"]').forEach(m=>{ if(m!==mo) m.style.display='none'; });
+      return true;
+    }
+    // Auth modal
+    const am = document.getElementById('auth-modal');
+    if(am && am.style.display==='block'){
+      if(typeof closeAuthModal==='function') closeAuthModal();
+      return true;
+    }
+    // Vault balance overlay
+    const vbo = document.getElementById('vault-bal-overlay');
+    if(vbo && vbo.style.display==='block'){
+      if(typeof closeSetVaultBalance==='function') closeSetVaultBalance();
+      return true;
+    }
+    return false;
+  }
+
+  /* ── Main keydown handler ── */
+  document.addEventListener('keydown', function(e){
+
+    // Always handle Escape (close modal)
+    if(e.key === 'Escape'){
+      if(closeTopModal()) return;
+      // If on a sub-page (client detail), go back
+      const clientDetail = document.getElementById('client-detail');
+      if(clientDetail && clientDetail.style.display !== 'none'){
+        if(typeof showClientList==='function') showClientList();
+        return;
+      }
+    }
+
+    // Allow ? to open help even while typing
+    if(e.key === '?' && !isTyping()){
+      e.preventDefault();
+      toggleKbHelp();
+      return;
+    }
+
+    // Skip all other shortcuts when typing
+    if(isTyping()) return;
+
+    // Skip if modifier keys (Ctrl/Cmd/Alt) are held — don't hijack browser shortcuts
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+
+    const page = currentPage();
+
+    switch(e.key){
+      /* ── Navigation ── */
+      case '1':
+        e.preventDefault();
+        showPage('dashboard');
+        flashBadge('🏠 Dashboard');
+        break;
+      case '2':
+        e.preventDefault();
+        showPage('clients');
+        flashBadge('👥 Clients');
+        break;
+      case '3':
+        e.preventDefault();
+        showPage('add');
+        flashBadge('➕ Add Transaction');
+        break;
+      case '4':
+        e.preventDefault();
+        showPage('history');
+        flashBadge('🗂️ History');
+        break;
+      case '5':
+        e.preventDefault();
+        showPage('daybook');
+        flashBadge('📒 Daybook');
+        break;
+      case '6':
+        e.preventDefault();
+        showPage('vault');
+        flashBadge('🔒 Vault');
+        break;
+      case '7':
+        e.preventDefault();
+        showPage('settings');
+        flashBadge('⚙️ Settings');
+        break;
+
+      /* ── New transaction from anywhere ── */
+      case 'n':
+      case 'N':
+        e.preventDefault();
+        if(typeof clearForm==='function') clearForm();
+        showPage('add');
+        flashBadge('➕ New Transaction');
+        // Focus first input after animation
+        setTimeout(()=>{
+          const f = document.getElementById('f-gross') || document.getElementById('f-client');
+          if(f) f.focus();
+        }, 120);
+        break;
+
+      /* ── Toggle theme ── */
+      case 't':
+      case 'T':
+        e.preventDefault();
+        {
+          const next = (themeMode === 'dark' || (themeMode === 'system' && document.documentElement.getAttribute('data-theme')==='dark'))
+            ? 'light' : 'dark';
+          setThemeMode(next);
+          flashBadge(next === 'dark' ? '🌑 Dark Mode' : '☀️ Light Mode');
+        }
+        break;
+
+      /* ── Search clients ── */
+      case '/':
+        e.preventDefault();
+        if(page !== 'clients'){
+          showPage('clients');
+          setTimeout(()=>{
+            const s = document.getElementById('cl-search');
+            if(s){ s.focus(); s.select(); }
+          }, 120);
+        } else {
+          const s = document.getElementById('cl-search');
+          if(s){ s.focus(); s.select(); }
+        }
+        flashBadge('🔍 Search Clients');
+        break;
+
+      /* ── Save transaction on Add page ── */
+      case 'Enter':
+        if(page === 'add'){
+          e.preventDefault();
+          if(typeof saveTransaction==='function') saveTransaction();
+        }
+        break;
+    }
+  });
+
+})();
 </script>
 </body>
 </html>
