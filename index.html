@@ -13,10 +13,11 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-*{transition:background-color 0.15s var(--ease), border-color 0.15s var(--ease), box-shadow 0.15s var(--ease), transform 0.1s var(--ease), color 0.15s var(--ease)}
+html{scroll-behavior:smooth}
+*{transition:background-color 0.18s var(--ease-smooth), border-color 0.18s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth), transform 0.18s var(--ease-out), color 0.18s var(--ease-smooth)}
 button,input,select,textarea{font-family:inherit}
-button{transition:all 0.15s var(--ease)}
-button:active{transform:scale(0.97)}
+button{transition:all 0.18s var(--ease-out)}
+button:active{transform:scale(0.96);transition-duration:0.08s}
 ::selection{background:var(--gold-mid);color:#fff}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:transparent}
@@ -39,6 +40,12 @@ button:active{transform:scale(0.97)}
   --shadow-md: 0 4px 14px rgba(122,90,0,0.10), 0 2px 6px rgba(122,90,0,0.06);
   --shadow-lg: 0 10px 30px rgba(122,90,0,0.14), 0 4px 10px rgba(122,90,0,0.08);
   --ease: cubic-bezier(0.4,0,0.2,1);
+  --ease-smooth: cubic-bezier(0.16,1,0.3,1);
+  --ease-out: cubic-bezier(0.22,1,0.36,1);
+  --ease-spring: cubic-bezier(0.34,1.56,0.64,1);
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:0.001s !important;animation-iteration-count:1 !important;transition-duration:0.001s !important;scroll-behavior:auto !important}
 }
 
 [data-theme="dark"]{
@@ -197,8 +204,9 @@ body { overflow-x: hidden; overflow-y: auto; }
   padding: 6px 2px 8px;
   color: rgba(255,255,255,0.75);
   -webkit-tap-highlight-color: transparent;
-  transition: none;
+  transition: color 0.22s var(--ease-smooth), transform 0.18s var(--ease-spring);
 }
+.bottom-nav ul li.active .nav-btn { transform: translateY(-2px); }
 .nav-icon {
   font-size: 22px;
   line-height: 1;
@@ -225,7 +233,7 @@ body { overflow-x: hidden; overflow-y: auto; }
   content: '';
   position: absolute;
   top: 6px; left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(1);
   width: 52px; height: calc(100% - 12px);
   background: rgba(255,255,255,0.18);
   border-radius: 14px;
@@ -235,6 +243,11 @@ body { overflow-x: hidden; overflow-y: auto; }
   -webkit-backdrop-filter: blur(8px);
   pointer-events: none;
   z-index: 0;
+  animation: navPillIn 0.28s var(--ease-spring);
+}
+@keyframes navPillIn {
+  from { opacity:0; transform: translateX(-50%) scale(0.6); }
+  to   { opacity:1; transform: translateX(-50%) scale(1); }
 }
 .bottom-nav ul li.active .nav-btn {
   position: relative; z-index: 1;
@@ -409,8 +422,18 @@ body { overflow-x: hidden; overflow-y: auto; }
 
 /* TAB SECTION ISOLATION FIX */
 .page { display:none; padding:14px 14px; max-width:100%; }
-.page.active { display:block; animation: pageIn 0.2s ease; }
-@keyframes pageIn { from {opacity:0; transform:translateY(4px);} to {opacity:1; transform:none;} }
+.page.active { display:block; animation: pageIn 0.32s var(--ease-smooth); }
+.page.page-leaving { display:block; animation: pageOut 0.16s var(--ease-out) forwards; }
+@keyframes pageIn { from {opacity:0; transform:translateY(10px) scale(0.99);} to {opacity:1; transform:none;} }
+@keyframes pageOut { from {opacity:1; transform:none;} to {opacity:0; transform:translateY(-6px) scale(0.99);} }
+/* gentle stagger for cards/items entering a freshly-shown page */
+.page.active > *{animation:itemRise 0.36s var(--ease-smooth) backwards}
+.page.active > *:nth-child(1){animation-delay:0.02s}
+.page.active > *:nth-child(2){animation-delay:0.05s}
+.page.active > *:nth-child(3){animation-delay:0.08s}
+.page.active > *:nth-child(4){animation-delay:0.11s}
+.page.active > *:nth-child(n+5){animation-delay:0.13s}
+@keyframes itemRise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 h1,h2,h3 { font-family: 'DM Sans',sans-serif; font-weight: 500; }
 button,input,select,textarea { font-family: 'DM Sans',sans-serif; font-size: 14px; outline: none; }
@@ -497,25 +520,28 @@ select {
 .txn-grams.delivered { color: var(--green); }
 .txn-grams.received,.txn-grams.payment { color: var(--red); }
 .txn-del { background: none; border: 1px solid var(--red-border); border-radius: 6px; color: var(--red); cursor: pointer; padding: 3px 8px; font-size: 12px; font-weight: 600; }
-.txn-item { transition: background 0.15s; cursor: pointer; }
+.txn-item { transition: background 0.18s var(--ease-smooth), border-color 0.18s var(--ease-smooth), transform 0.15s var(--ease-out); cursor: pointer; }
+.txn-item:active { transform: scale(0.985); }
 .txn-item.selected { background: #DFF5E4 !important; border-color: #25D366 !important; }
 [data-theme="dark"] .txn-item.selected { background: #162A1C !important; border-color: #25D366 !important; }
 .txn-circle {
   width: 22px; height: 22px; border-radius: 50%;
   border: 2px solid var(--gold-border); background: var(--surface);
-  flex-shrink: 0; transition: all 0.15s;
+  flex-shrink: 0; transition: all 0.2s var(--ease-spring);
   display: flex; align-items: center; justify-content: center;
 }
-.txn-item.selected .txn-circle { background: #25D366; border-color: #25D366; }
+.txn-item.selected .txn-circle { background: #25D366; border-color: #25D366; transform: scale(1.08); }
 .txn-item.selected .txn-circle::after { content:'✓'; color:#fff; font-size:13px; font-weight:700; }
 #wa-action-bar {
-  display:none; position:fixed; bottom:68px; left:50%;
-  transform:translateX(-50%); background:#1A1208;
+  display:flex; position:fixed; bottom:68px; left:50%;
+  transform:translateX(-50%) translateY(12px) scale(0.94); opacity:0; background:#1A1208;
   border-radius:28px; padding:10px 20px; gap:16px;
   align-items:center; z-index:500;
   box-shadow:0 4px 20px rgba(0,0,0,0.35); white-space:nowrap;
+  transition: opacity 0.2s var(--ease-out), transform 0.24s var(--ease-spring);
+  pointer-events:none;
 }
-#wa-action-bar.show { display:flex; }
+#wa-action-bar.show { opacity:1; transform:translateX(-50%) translateY(0) scale(1); pointer-events:auto; }
 #wa-action-bar .wa-count { color:#fff; font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; }
 #wa-action-bar .wa-cancel { color:#aaa; font-size:13px; cursor:pointer; font-family:'DM Sans',sans-serif; background:none; border:none; }
 #wa-action-bar .wa-send { background:#25D366; color:#fff; border:none; border-radius:20px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
@@ -576,14 +602,14 @@ select {
 
 .toast {
   position: fixed; bottom: 80px; left: 50%;
-  transform: translateX(-50%) translateY(16px);
+  transform: translateX(-50%) translateY(16px) scale(0.95);
   background: #2D7A3A; color: #fff; border-radius: var(--r);
   padding: 11px 22px; font-size: 14px; font-weight: 500;
-  opacity: 0; transition: all 0.25s var(--ease); pointer-events: none; z-index: 9999;
+  opacity: 0; transition: opacity 0.22s var(--ease-out), transform 0.28s var(--ease-spring); pointer-events: none; z-index: 9999;
   white-space: nowrap;
   box-shadow: 0 6px 20px rgba(0,0,0,0.25);
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 @media(min-width:768px) { .toast { bottom: 24px; } }
 
 .install-banner { background: linear-gradient(135deg,#FFF3CC,#FAEEDA); border: 1.5px solid var(--gold-border); border-radius: var(--r); padding: 12px 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
@@ -615,7 +641,12 @@ select {
   background: rgba(0,0,0,0.45);
   z-index: 1000;
   backdrop-filter: blur(2px);
+  animation: overlayIn 0.22s var(--ease-out);
 }
+.modal-overlay.closing, .modal-box.closing { animation: overlayOut 0.18s var(--ease-out) forwards; pointer-events:none; }
+.modal-box.closing { animation: modalOut 0.18s var(--ease-out) forwards; }
+@keyframes overlayIn { from{opacity:0;} to{opacity:1;} }
+@keyframes overlayOut { from{opacity:1;} to{opacity:0;} }
 .modal-box {
   position: fixed;
   left: 50%; top: 50%;
@@ -627,11 +658,15 @@ select {
   max-width: 420px;
   z-index: 1001;
   box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  animation: modalIn 0.2s ease;
+  animation: modalIn 0.28s var(--ease-spring);
 }
 @keyframes modalIn {
-  from { opacity:0; transform:translate(-50%,-48%); }
-  to   { opacity:1; transform:translate(-50%,-50%); }
+  from { opacity:0; transform:translate(-50%,-46%) scale(0.94); }
+  to   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+}
+@keyframes modalOut {
+  from { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  to   { opacity:0; transform:translate(-50%,-46%) scale(0.95); }
 }
 .modal-header {
   display: flex;
@@ -805,7 +840,8 @@ select {
   z-index: 100;
   box-shadow: 0 4px 16px rgba(0,0,0,0.12);
 }
-.client-dropdown.show { display: block; }
+.client-dropdown.show { display: block; animation: ddIn 0.18s var(--ease-out); }
+@keyframes ddIn { from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:none;} }
 .client-dropdown-item {
   padding: 10px 14px;
   font-size: 14px;
@@ -1740,13 +1776,17 @@ select {
 #login-screen {
   background: linear-gradient(to right,#c9b87a,#f5e6b0);
   overflow: hidden;
+  animation: loginFadeIn 0.35s var(--ease-out);
 }
+@keyframes loginFadeIn { from{opacity:0;} to{opacity:1;} }
 #ls-container {
   background-color: #fff; border-radius: 24px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.28);
   position: relative; overflow: hidden;
   width: min(768px,96vw); min-height: 460px; max-height: 96vh;
+  animation: lsCardIn 0.4s var(--ease-smooth);
 }
+@keyframes lsCardIn { from{opacity:0; transform:translateY(10px) scale(0.97);} to{opacity:1; transform:none;} }
 .ls-form-container {
   position: absolute; top: 0; height: 100%;
   transition: all 0.6s ease-in-out;
@@ -2055,8 +2095,8 @@ select {
   </div>
   <div class="auth-error" id="ls-error" style="display:none;position:absolute;bottom:24px;left:50%;transform:translateX(-50%);max-width:320px;width:90%;z-index:6000"></div>
 </div>
-<div id="vault-entry-overlay" onclick="closeVaultEntry()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
-<div id="vault-entry-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+<div id="vault-entry-overlay" class="modal-overlay" onclick="closeVaultEntry()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
+<div id="vault-entry-modal" class="modal-box" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
   <div class="modal-header">
     <div class="modal-title" id="vault-entry-title">Add Gold to Vault</div>
     <button class="modal-close" onclick="closeVaultEntry()">✕</button>
@@ -2075,8 +2115,8 @@ select {
   </div>
 </div>
 
-<div id="vault-bal-overlay" onclick="closeSetVaultBalance()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
-<div id="vault-bal-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+<div id="vault-bal-overlay" class="modal-overlay" onclick="closeSetVaultBalance()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1500;backdrop-filter:blur(2px)"></div>
+<div id="vault-bal-modal" class="modal-box" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:380px;z-index:1501;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
   <div style="font-size:17px;font-weight:600;color:var(--gold-dark);margin-bottom:4px">⚙️ Set Vault Balance</div>
   <div style="font-size:12px;color:var(--hint);margin-bottom:14px">Enter how much pure gold (in grams) you currently have. This sets your starting point — future Casting/Metal transactions will adjust from here.</div>
   <div class="field">
@@ -2088,8 +2128,8 @@ select {
     <button onclick="saveVaultBalance()" style="flex:1;padding:11px;border:none;border-radius:8px;background:var(--gold-mid);color:#fff;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer">Save</button>
   </div>
 </div>
-<div id="auth-overlay" onclick="closeAuthModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
-<div id="auth-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:18px;padding:24px;width:calc(100% - 32px);max-width:380px;z-index:2001;box-shadow:0 10px 40px rgba(0,0,0,0.25)">
+<div id="auth-overlay" class="modal-overlay" onclick="closeAuthModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:2000;backdrop-filter:blur(2px)"></div>
+<div id="auth-modal" class="modal-box" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:18px;padding:24px;width:calc(100% - 32px);max-width:380px;z-index:2001;box-shadow:0 10px 40px rgba(0,0,0,0.25)">
   <div style="text-align:center;margin-bottom:16px">
     <div style="width:56px;height:56px;border-radius:50%;background:var(--gold-mid);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 8px">⚖️</div>
     <div style="font-size:18px;font-weight:600;color:var(--gold-dark)">Gold Ledger</div>
@@ -2137,8 +2177,8 @@ select {
 
   <button onclick="closeAuthModal()" style="width:100%;margin-top:12px;padding:10px;border:none;background:none;color:var(--hint);font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;">Close</button>
 </div>
-<div id="wa-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
-<div id="wa-modal" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:1001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
+<div id="wa-overlay" class="modal-overlay" onclick="closeWaModal()" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:1000;backdrop-filter:blur(2px)"></div>
+<div id="wa-modal" class="modal-box" style="display:none;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);border-radius:16px;padding:22px;width:calc(100% - 32px);max-width:400px;z-index:1001;box-shadow:0 8px 32px rgba(0,0,0,0.2)">
   <div class="wa-modal-title" style="font-size:17px;font-family:'DM Sans',sans-serif;color:var(--text);margin-bottom:4px">📲 Share on WhatsApp</div>
   <div class="wa-modal-sub" style="font-size:12px;color:var(--muted);margin-bottom:14px">Preview the message before sending</div>
   <textarea id="wa-msg" style="width:100%;height:180px;border:1.5px solid var(--border);border-radius:8px;padding:10px;font-size:13px;font-family:'DM Sans',sans-serif;resize:none;color:var(--text);background:var(--surface);line-height:1.6"></textarea>
@@ -2165,6 +2205,18 @@ let activeClient=null;
 let selectedType='delivered';
 let deferredInstall=null;
 let toastTimer=null;
+
+/* ── smooth modal close: fade+scale out before hiding ── */
+function closeModalAnimated(overlayId, boxId, after){
+  const ov=document.getElementById(overlayId), bx=document.getElementById(boxId);
+  if(!ov||!bx||bx.style.display==='none'){ if(after) after(); return; }
+  ov.classList.add('closing'); bx.classList.add('closing');
+  setTimeout(()=>{
+    ov.style.display='none'; bx.style.display='none';
+    ov.classList.remove('closing'); bx.classList.remove('closing');
+    if(after) after();
+  }, 180);
+}
 
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
@@ -2445,8 +2497,7 @@ function openEditClient(){
   setTimeout(()=>document.getElementById('edit-client-name').focus(),100);
 }
 function closeEditClient(){
-  document.getElementById('modal-edit-overlay').style.display='none';
-  document.getElementById('modal-edit-client').style.display='none';
+  closeModalAnimated('modal-edit-overlay','modal-edit-client');
 }
 function saveEditClient(){
   const newName=(document.getElementById('edit-client-name').value||'').trim();
@@ -3033,8 +3084,7 @@ function openAddClientModal(){
   setTimeout(()=>document.getElementById('mc-name').focus(),100);
 }
 function closeAddClientModal(){
-  document.getElementById('modal-overlay').style.display='none';
-  document.getElementById('modal-add-client').style.display='none';
+  closeModalAnimated('modal-overlay','modal-add-client');
 }
 function saveNewClient(){
   const name=(document.getElementById('mc-name').value||'').trim();
@@ -3455,8 +3505,7 @@ function showWaModal(phone,msg){
   document.getElementById('wa-modal').style.display='block';
 }
 function closeWaModal(){
-  document.getElementById('wa-overlay').style.display='none';
-  document.getElementById('wa-modal').style.display='none';
+  closeModalAnimated('wa-overlay','wa-modal');
 }
 function sendWhatsApp(){
   const msg=document.getElementById('wa-msg').value;
@@ -3472,9 +3521,8 @@ function openAuthModal(){
   updateAuthModalView();
 }
 function closeAuthModal(){
-  document.getElementById('auth-overlay').style.display='none';
-  document.getElementById('auth-modal').style.display='none';
   document.getElementById('auth-error').style.display='none';
+  closeModalAnimated('auth-overlay','auth-modal');
 }
 function switchAuthTab(tab){
   document.getElementById('tab-signin').style.background = tab==='signin'?'var(--gold-mid)':'#fff';
@@ -3666,8 +3714,7 @@ function openSetVaultBalance(){
   setTimeout(()=>document.getElementById('vault-bal-input').select(),100);
 }
 function closeSetVaultBalance(){
-  document.getElementById('vault-bal-overlay').style.display='none';
-  document.getElementById('vault-bal-modal').style.display='none';
+  closeModalAnimated('vault-bal-overlay','vault-bal-modal');
 }
 function saveVaultBalance(){
   const val=parseFloat(document.getElementById('vault-bal-input').value);
@@ -4600,7 +4647,18 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
     const ov = document.getElementById('kb-overlay');
     if(!ov) return;
     const visible = ov.style.display === 'flex';
-    ov.style.display = visible ? 'none' : 'flex';
+    if(visible){
+      ov.style.transition = 'opacity 0.16s var(--ease-out)';
+      ov.style.opacity = '0';
+      setTimeout(()=>{ ov.style.display = 'none'; }, 160);
+    } else {
+      ov.style.display = 'flex';
+      ov.style.opacity = '0';
+      requestAnimationFrame(()=>{
+        ov.style.transition = 'opacity 0.2s var(--ease-out)';
+        ov.style.opacity = '1';
+      });
+    }
   };
 
   /* ── Add ? button to topbar ── */
