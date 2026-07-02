@@ -2351,22 +2351,38 @@ function drawMonthlyChart(){
     months.push({label: MONTH_NAMES[d.getMonth()].slice(0,3), delivered:vals.delivered||0, received:vals.received||0});
   }
   const maxVal = Math.max(1, ...months.map(m=>Math.max(m.delivered,m.received)));
-  const padL=6, padR=6, padT=10, padB=22;
+  const padL=6, padR=6, padT=22, padB=22;
   const chartW = cssW-padL-padR, chartH = cssH-padT-padB;
   const groupW = chartW/months.length;
   const barW = Math.max(6, Math.min(16, groupW/3.2));
   const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-  ctx.font = '10px DM Sans, sans-serif';
   ctx.textAlign='center';
 
   months.forEach((m,i)=>{
     const cx = padL + groupW*i + groupW/2;
     const hD = (m.delivered/maxVal)*chartH;
     const hR = (m.received/maxVal)*chartH;
+    const total = m.delivered+m.received;
+    const pctD = total>0 ? Math.round((m.delivered/total)*100) : 0;
+    const pctR = total>0 ? Math.round((m.received/total)*100) : 0;
+
     ctx.fillStyle = '#D4A017';
     ctx.fillRect(cx-barW-2, padT+chartH-hD, barW, hD);
     ctx.fillStyle = '#4A9DE0';
     ctx.fillRect(cx+2, padT+chartH-hR, barW, hR);
+
+    // Percentage labels above each bar
+    ctx.font = '9px DM Sans, sans-serif';
+    if(total>0 && m.delivered>0){
+      ctx.fillStyle = '#B8860B';
+      ctx.fillText(pctD+'%', cx-barW-2+barW/2, Math.max(padT-4, padT+chartH-hD-5));
+    }
+    if(total>0 && m.received>0){
+      ctx.fillStyle = '#3B7EBF';
+      ctx.fillText(pctR+'%', cx+2+barW/2, Math.max(padT-4, padT+chartH-hR-5));
+    }
+
+    ctx.font = '10px DM Sans, sans-serif';
     ctx.fillStyle = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)';
     ctx.fillText(m.label, cx, cssH-6);
   });
