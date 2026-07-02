@@ -492,6 +492,12 @@ select {
 .client-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
 .client-bal { text-align: right; flex-shrink: 0; }
 .bal-amt { font-size: 16px; font-weight: 500; font-family: 'DM Sans',sans-serif; }
+.reminder-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); cursor:pointer; transition: opacity 0.15s var(--ease-out); }
+.reminder-row:last-child { border-bottom:none; }
+.reminder-row:active { opacity:0.6; }
+.reminder-name { font-size:13px; font-weight:600; color:var(--text); }
+.reminder-meta { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.reminder-meta .bal-amt { font-size:13px; font-weight:600; }
 .bal-amt.get { color: var(--green); } .bal-amt.give { color: var(--red); } .bal-amt.settled { color: var(--hint); }
 .bal-tag { font-size: 10px; margin-top: 3px; padding: 2px 7px; border-radius: 20px; display: inline-block; font-weight: 600; }
 .bal-tag.get { background: var(--green-bg); color: var(--green); }
@@ -1204,6 +1210,7 @@ select {
       <button class="side-btn" id="snav-history" onclick="showPage('history')"><span class="sb-icon">🗂️</span> History</button>
       <button class="side-btn" id="snav-daybook" onclick="showPage('daybook')"><span class="sb-icon">📒</span> Daybook</button>
       <button class="side-btn" id="snav-vault" onclick="showPage('vault')"><span class="sb-icon">🔒</span> Vault</button>
+      <button class="side-btn" id="snav-reports" onclick="showPage('reports')"><span class="sb-icon">📊</span> Reports</button>
       <button class="side-btn" id="snav-settings" onclick="showPage('settings')"><span class="sb-icon">⚙️</span> Settings</button>
     </nav>
     <div class="sidebar-stats" id="sidebar-stats"></div>
@@ -1234,6 +1241,19 @@ select {
       <!-- DASHBOARD -->
       <div id="page-dashboard" class="page active">
         <div id="install-wrap"></div>
+
+        <!-- Overdue balance reminders -->
+        <div id="reminders-card" style="display:none;background:var(--card);border:1.5px solid #E0A800;border-radius:16px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">
+              <span>⏰</span><span>Reminders</span>
+              <span id="reminders-count" style="background:#E0A800;color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px">0</span>
+            </div>
+            <button onclick="showPage('clients')" style="background:none;border:none;color:var(--gold-mid);font-size:12px;font-weight:600;cursor:pointer">View all →</button>
+          </div>
+          <div id="reminders-list"></div>
+        </div>
+
         <!-- Big beautiful stat cards -->
         <div class="big-stat-grid">
           <div class="big-stat-card big-stat-get">
@@ -1260,10 +1280,40 @@ select {
           <div id="dash-vault-card" style="display:flex;flex-direction:column"></div>
           <div id="dash-vaultpp-card" style="display:flex;flex-direction:column"></div>
         </div>
+        <!-- Reports quick link -->
+        <button onclick="showPage('reports')" style="width:100%;margin-top:12px;padding:13px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--card);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:var(--shadow-sm)">
+          📊 View Reports &amp; Trends
+        </button>
         <!-- Quick tip at bottom of dashboard -->
         <div style="text-align:center;margin-top:10px;font-size:13px;color:var(--muted)">
           Go to <strong>Clients</strong> to view all balances
         </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="page-reports" class="page">
+        <div class="section-header" style="margin-bottom:16px">
+          <div class="section-title" style="font-size:17px">📊 Reports</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+          <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Clients</div><div style="font-size:20px;font-weight:700" id="rep-total-clients">0</div></div>
+          <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Net Outstanding</div><div style="font-size:20px;font-weight:700" id="rep-net-outstanding">0g</div></div>
+          <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total Delivered</div><div style="font-size:20px;font-weight:700" id="rep-total-delivered">0g</div></div>
+          <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total Received</div><div style="font-size:20px;font-weight:700" id="rep-total-received">0g</div></div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Monthly Trend (last 6 months)</div>
+        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;margin-bottom:20px;box-shadow:var(--shadow-sm)">
+          <canvas id="rep-chart" style="width:100%;height:180px;display:block"></canvas>
+          <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;color:var(--muted)">
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#D4A017;margin-right:4px"></span>Delivered</span>
+            <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#4A9DE0;margin-right:4px"></span>Received</span>
+          </div>
+        </div>
+
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Top Balances</div>
+        <div id="rep-top-clients" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)"></div>
       </div>
 
       <!-- CLIENTS -->
@@ -1676,9 +1726,27 @@ select {
         </div>
 
         <!-- Language -->
-        <div>
+        <div style="margin-bottom:28px">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">🌐 Language</div>
           <div id="settings-lang-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+        </div>
+
+        <!-- Reminders -->
+        <div style="margin-bottom:28px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">⏰ Reminders</div>
+          <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)">
+            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:14px">
+              <span style="font-size:13px;font-weight:600">Notify me about overdue balances</span>
+              <input type="checkbox" id="reminders-toggle" onchange="toggleReminders(this.checked)" style="width:20px;height:20px;accent-color:var(--gold-mid);cursor:pointer">
+            </label>
+            <label style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <span style="font-size:13px;color:var(--muted)">Remind after balance untouched for</span>
+              <span style="display:flex;align-items:center;gap:6px">
+                <input type="number" id="reminder-days-input" min="1" max="365" value="30" onchange="updateReminderDays(this.value)" style="width:56px;padding:7px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;text-align:center;font-family:'DM Sans',sans-serif">
+                <span style="font-size:13px;color:var(--muted)">days</span>
+              </span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -2247,6 +2315,192 @@ async function loadFromFirebase(){
   });
 }
 
+/* ── REMINDERS ──────────────────────────────── */
+function getOverdueClients(){
+  const days = (db.settings && db.settings.reminderDays) || 30;
+  const cutoff = Date.now() - days*24*60*60*1000;
+  const list = [];
+  Object.keys(db.clients).forEach(name=>{
+    const c = db.clients[name];
+    const bal = balance(name);
+    if(!c || !c.transactions || !c.transactions.length || bal===0) return;
+    let lastDate = c.transactions[0].date;
+    c.transactions.forEach(t=>{ if(t.date && t.date>lastDate) lastDate=t.date; });
+    const lastTime = new Date(lastDate).getTime();
+    if(isNaN(lastTime)) return;
+    if(lastTime < cutoff){
+      const daysSince = Math.floor((Date.now()-lastTime)/(24*60*60*1000));
+      list.push({name, balance:bal, daysSince, lastDate});
+    }
+  });
+  list.sort((a,b)=>b.daysSince-a.daysSince);
+  return list;
+}
+function renderReminders(){
+  const wrap = document.getElementById('reminders-card');
+  if(!wrap) return;
+  const list = getOverdueClients();
+  if(!list.length){ wrap.style.display='none'; return; }
+  wrap.style.display='block';
+  const countEl = document.getElementById('reminders-count');
+  if(countEl) countEl.textContent = list.length;
+  const listEl = document.getElementById('reminders-list');
+  if(listEl){
+    listEl.innerHTML = list.slice(0,3).map(r=>{
+      const info = balInfo(r.balance);
+      return '<div class="reminder-row" onclick="showPage(\'clients\');setTimeout(()=>openDetail(\''+esc(r.name).replace(/'/g,"\\'")+'\'),150)">'
+        + '<span class="reminder-name">'+esc(r.name)+'</span>'
+        + '<span class="reminder-meta"><span class="bal-amt '+info.cls+'">'+info.sign+fmtG(r.balance)+'</span> · '+r.daysSince+'d ago</span>'
+        + '</div>';
+    }).join('');
+  }
+}
+async function toggleReminders(checked){
+  if(!db.settings) db.settings={};
+  if(checked){
+    if('Notification' in window){
+      let perm = Notification.permission;
+      if(perm==='default') perm = await Notification.requestPermission();
+      if(perm!=='granted'){
+        showToast('Notifications blocked — enable in browser settings');
+        db.settings.remindersEnabled=false;
+        const cb=document.getElementById('reminders-toggle'); if(cb)cb.checked=false;
+        save(); return;
+      }
+    }
+    db.settings.remindersEnabled=true;
+    showToast('Reminders enabled ✓');
+  } else {
+    db.settings.remindersEnabled=false;
+    showToast('Reminders disabled');
+  }
+  save();
+}
+function updateReminderDays(val){
+  if(!db.settings) db.settings={};
+  const days = parseInt(val,10);
+  db.settings.reminderDays = (days>0) ? days : 30;
+  save();
+  renderReminders();
+}
+function maybeNotifyReminders(){
+  if(!db.settings || !db.settings.remindersEnabled) return;
+  if(!('Notification' in window) || Notification.permission!=='granted') return;
+  const todayKey = todayStr();
+  let lastNotified=null;
+  try{ lastNotified = localStorage.getItem('gl_last_reminder_notify'); }catch(e){}
+  if(lastNotified===todayKey) return;
+  const list = getOverdueClients();
+  if(!list.length) return;
+  try{
+    new Notification('Gold Ledger reminders', {
+      body: list.length+' client balance(s) untouched for a while. Tap to review.',
+      icon: 'icons/icon-192.png'
+    });
+  }catch(e){}
+  try{ localStorage.setItem('gl_last_reminder_notify', todayKey); }catch(e){}
+}
+
+function syncReminderSettings(){
+  const cb=document.getElementById('reminders-toggle');
+  const dayInp=document.getElementById('reminder-days-input');
+  if(cb) cb.checked = !!(db.settings && db.settings.remindersEnabled);
+  if(dayInp) dayInp.value = (db.settings && db.settings.reminderDays) || 30;
+}
+
+/* ── REPORTS ────────────────────────────────── */
+function computeMonthlyTotals(){
+  const map = {};
+  Object.values(db.clients).forEach(c=>{
+    (c.transactions||[]).forEach(t=>{
+      if(!t.date) return;
+      const key = t.date.slice(0,7);
+      if(!map[key]) map[key]={delivered:0,received:0};
+      map[key][t.type] = (map[key][t.type]||0) + t.grams;
+    });
+  });
+  return map;
+}
+function renderReports(){
+  const names = Object.keys(db.clients);
+  let totalDelivered=0, totalReceived=0;
+  const balances = [];
+  names.forEach(name=>{
+    const c = db.clients[name];
+    (c.transactions||[]).forEach(t=> t.type==='delivered' ? totalDelivered+=t.grams : totalReceived+=t.grams);
+    const b = balance(name);
+    if(b!==0) balances.push({name,b});
+  });
+  const setTxt=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  setTxt('rep-total-clients', names.length);
+  setTxt('rep-total-delivered', fmtG(totalDelivered));
+  setTxt('rep-total-received', fmtG(totalReceived));
+  setTxt('rep-net-outstanding', fmtG(totalDelivered-totalReceived));
+
+  balances.sort((a,b)=>Math.abs(b.b)-Math.abs(a.b));
+  const top = balances.slice(0,5);
+  const listEl = document.getElementById('rep-top-clients');
+  if(listEl){
+    if(!top.length){
+      listEl.innerHTML = '<div class="empty-state" style="padding:12px"><span class="empty-icon">📊</span><p>No outstanding balances yet.</p></div>';
+    } else {
+      const maxAbs = Math.max(1, ...top.map(x=>Math.abs(x.b)));
+      listEl.innerHTML = top.map(x=>{
+        const pct = Math.round(Math.abs(x.b)/maxAbs*100);
+        const info = balInfo(x.b);
+        return '<div style="margin-bottom:14px">'
+          + '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px">'
+          + '<span>'+esc(x.name)+'</span><span class="bal-amt '+info.cls+'">'+info.sign+fmtG(x.b)+'</span></div>'
+          + '<div style="height:8px;border-radius:4px;background:var(--surface);overflow:hidden">'
+          + '<div style="height:100%;width:'+pct+'%;border-radius:4px;background:linear-gradient(90deg,#D4A017,#8A6200);transition:width .5s var(--ease-smooth)"></div>'
+          + '</div></div>';
+      }).join('');
+    }
+  }
+  drawMonthlyChart();
+}
+function drawMonthlyChart(){
+  const canvas = document.getElementById('rep-chart');
+  if(!canvas || !canvas.getContext) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio||1;
+  const cssW = canvas.clientWidth||300, cssH = 180;
+  canvas.width = cssW*dpr; canvas.height = cssH*dpr;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,cssW,cssH);
+
+  const monthly = computeMonthlyTotals();
+  const now = new Date();
+  const months = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    const vals = monthly[key]||{delivered:0,received:0};
+    months.push({label: MONTH_NAMES[d.getMonth()].slice(0,3), delivered:vals.delivered||0, received:vals.received||0});
+  }
+  const maxVal = Math.max(1, ...months.map(m=>Math.max(m.delivered,m.received)));
+  const padL=6, padR=6, padT=10, padB=22;
+  const chartW = cssW-padL-padR, chartH = cssH-padT-padB;
+  const groupW = chartW/months.length;
+  const barW = Math.max(6, Math.min(16, groupW/3.2));
+  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
+  ctx.font = '10px DM Sans, sans-serif';
+  ctx.textAlign='center';
+
+  months.forEach((m,i)=>{
+    const cx = padL + groupW*i + groupW/2;
+    const hD = (m.delivered/maxVal)*chartH;
+    const hR = (m.received/maxVal)*chartH;
+    ctx.fillStyle = '#D4A017';
+    ctx.fillRect(cx-barW-2, padT+chartH-hD, barW, hD);
+    ctx.fillStyle = '#4A9DE0';
+    ctx.fillRect(cx+2, padT+chartH-hR, barW, hR);
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)';
+    ctx.fillText(m.label, cx, cssH-6);
+  });
+}
+
 /* ── LAYOUT ─────────────────────────────── */
 function applyLayout(){
   const isDesktop = window.innerWidth >= 768;
@@ -2266,6 +2520,8 @@ function applyLayout(){
     mainCol.style.cssText = '';
   }
   updateSidebarStats();
+  const reportsPage=document.getElementById('page-reports');
+  if(reportsPage && reportsPage.classList.contains('active')) drawMonthlyChart();
 }
 window.addEventListener('resize', applyLayout);
 
@@ -2337,7 +2593,8 @@ function showPage(p){
   if(p==='history'){populateHistoryYears();renderHistory();}
   if(p==='daybook'){populateDaybookYears();renderDaybook();}
   if(p==='vault'){renderVault();}
-  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();syncSwToggle();}
+  if(p==='reports'){renderReports();}
+  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();syncSwToggle();syncReminderSettings();}
 }
 
 /* ── DASHBOARD ──────────────────────────── */
@@ -2390,6 +2647,7 @@ function renderDashboard(){
   const netCard=document.getElementById('net-card');
   netCard.className='big-stat-card '+(net>0?'big-stat-get':net<0?'big-stat-give':'big-stat-net');
   updateSidebarStats();
+  renderReminders();
 }
 function updateSidebarStats(){
   const ss=document.getElementById('sidebar-stats'); if(!ss)return;
@@ -4523,6 +4781,7 @@ applyResolvedTheme();
 // Load saved language preference
 try{const sl=localStorage.getItem('gold_ledger_lang');if(sl&&LANGS[sl])currentLang=sl;}catch(e){}
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+setTimeout(maybeNotifyReminders, 1200);
 // Apply language and theme buttons after DOM ready
 setTimeout(()=>{
   applyLang();
@@ -4592,6 +4851,7 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
         ${[
           ['1','Dashboard'],['2','Clients'],['3','Add Transaction'],
           ['4','History'],['5','Daybook'],['6','Vault'],['7','Settings'],
+          ['8','Reports'],
           ['N','New Transaction'],['T','Toggle Theme'],
           ['/','Search Clients'],['Enter','Save (Add page)'],
           ['Esc','Close / Back'],['?','This help panel'],
@@ -4803,6 +5063,11 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
         e.preventDefault();
         showPage('settings');
         flashBadge('⚙️ Settings');
+        break;
+      case '8':
+        e.preventDefault();
+        showPage('reports');
+        flashBadge('📊 Reports');
         break;
 
       /* ── New transaction from anywhere ── */
