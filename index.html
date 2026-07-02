@@ -2321,7 +2321,7 @@ function renderReports(){
         const info = balInfo(x.b);
         return '<div style="margin-bottom:14px">'
           + '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px">'
-          + '<span>'+esc(x.name)+'</span><span class="bal-amt '+info.cls+'">'+info.sign+fmtG(x.b)+'</span></div>'
+          + '<span>'+esc(x.name)+'</span><span class="bal-amt '+info.cls+'">'+info.sign+fmtG(x.b)+' <span style="font-size:11px;color:var(--muted);font-weight:500">('+pct+'%)</span></span></div>'
           + '<div style="height:8px;border-radius:4px;background:var(--surface);overflow:hidden">'
           + '<div style="height:100%;width:'+pct+'%;border-radius:4px;background:linear-gradient(90deg,#D4A017,#8A6200);transition:width .5s var(--ease-smooth)"></div>'
           + '</div></div>';
@@ -2351,7 +2351,7 @@ function drawMonthlyChart(){
     months.push({label: MONTH_NAMES[d.getMonth()].slice(0,3), delivered:vals.delivered||0, received:vals.received||0});
   }
   const maxVal = Math.max(1, ...months.map(m=>Math.max(m.delivered,m.received)));
-  const padL=6, padR=6, padT=22, padB=22;
+  const padL=6, padR=6, padT=26, padB=22;
   const chartW = cssW-padL-padR, chartH = cssH-padT-padB;
   const groupW = chartW/months.length;
   const barW = Math.max(6, Math.min(16, groupW/3.2));
@@ -2371,15 +2371,13 @@ function drawMonthlyChart(){
     ctx.fillStyle = '#4A9DE0';
     ctx.fillRect(cx+2, padT+chartH-hR, barW, hR);
 
-    // Percentage labels above each bar
-    ctx.font = '9px DM Sans, sans-serif';
-    if(total>0 && m.delivered>0){
-      ctx.fillStyle = '#B8860B';
-      ctx.fillText(pctD+'%', cx-barW-2+barW/2, Math.max(padT-4, padT+chartH-hD-5));
-    }
-    if(total>0 && m.received>0){
-      ctx.fillStyle = '#3B7EBF';
-      ctx.fillText(pctR+'%', cx+2+barW/2, Math.max(padT-4, padT+chartH-hR-5));
+    // Percentage labels above each bar (shown together whenever the month has any activity)
+    if(total>0){
+      ctx.font = 'bold 10px DM Sans, sans-serif';
+      ctx.fillStyle = isDark ? '#F0C955' : '#8A6200';
+      ctx.fillText(pctD+'%', cx-barW-2+barW/2, Math.max(padT-8, padT+chartH-hD-6));
+      ctx.fillStyle = isDark ? '#7FC1F5' : '#2E6BA6';
+      ctx.fillText(pctR+'%', cx+2+barW/2, Math.max(padT-8, padT+chartH-hR-6));
     }
 
     ctx.font = '10px DM Sans, sans-serif';
