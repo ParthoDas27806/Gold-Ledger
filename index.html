@@ -492,12 +492,6 @@ select {
 .client-meta { font-size: 12px; color: var(--muted); margin-top: 1px; }
 .client-bal { text-align: right; flex-shrink: 0; }
 .bal-amt { font-size: 16px; font-weight: 500; font-family: 'DM Sans',sans-serif; }
-.reminder-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); cursor:pointer; transition: opacity 0.15s var(--ease-out); }
-.reminder-row:last-child { border-bottom:none; }
-.reminder-row:active { opacity:0.6; }
-.reminder-name { font-size:13px; font-weight:600; color:var(--text); }
-.reminder-meta { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
-.reminder-meta .bal-amt { font-size:13px; font-weight:600; }
 .bal-amt.get { color: var(--green); } .bal-amt.give { color: var(--red); } .bal-amt.settled { color: var(--hint); }
 .bal-tag { font-size: 10px; margin-top: 3px; padding: 2px 7px; border-radius: 20px; display: inline-block; font-weight: 600; }
 .bal-tag.get { background: var(--green-bg); color: var(--green); }
@@ -1242,18 +1236,6 @@ select {
       <div id="page-dashboard" class="page active">
         <div id="install-wrap"></div>
 
-        <!-- Overdue balance reminders -->
-        <div id="reminders-card" style="display:none;background:var(--card);border:1.5px solid #E0A800;border-radius:16px;padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm)">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-            <div style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">
-              <span>⏰</span><span>Reminders</span>
-              <span id="reminders-count" style="background:#E0A800;color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px">0</span>
-            </div>
-            <button onclick="showPage('clients')" style="background:none;border:none;color:var(--gold-mid);font-size:12px;font-weight:600;cursor:pointer">View all →</button>
-          </div>
-          <div id="reminders-list"></div>
-        </div>
-
         <!-- Big beautiful stat cards -->
         <div class="big-stat-grid">
           <div class="big-stat-card big-stat-get">
@@ -1729,24 +1711,6 @@ select {
         <div style="margin-bottom:28px">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">🌐 Language</div>
           <div id="settings-lang-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
-        </div>
-
-        <!-- Reminders -->
-        <div style="margin-bottom:28px">
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:14px">⏰ Reminders</div>
-          <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;box-shadow:var(--shadow-sm)">
-            <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:14px">
-              <span style="font-size:13px;font-weight:600">Notify me about overdue balances</span>
-              <input type="checkbox" id="reminders-toggle" onchange="toggleReminders(this.checked)" style="width:20px;height:20px;accent-color:var(--gold-mid);cursor:pointer">
-            </label>
-            <label style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <span style="font-size:13px;color:var(--muted)">Remind after balance untouched for</span>
-              <span style="display:flex;align-items:center;gap:6px">
-                <input type="number" id="reminder-days-input" min="1" max="365" value="30" onchange="updateReminderDays(this.value)" style="width:56px;padding:7px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:13px;text-align:center;font-family:'DM Sans',sans-serif">
-                <span style="font-size:13px;color:var(--muted)">days</span>
-              </span>
-            </label>
-          </div>
         </div>
       </div>
 
@@ -2315,99 +2279,6 @@ async function loadFromFirebase(){
   });
 }
 
-/* ── REMINDERS ──────────────────────────────── */
-function getOverdueClients(){
-  const days = (db.settings && db.settings.reminderDays) || 30;
-  const cutoff = Date.now() - days*24*60*60*1000;
-  const list = [];
-  Object.keys(db.clients).forEach(name=>{
-    const c = db.clients[name];
-    const bal = balance(name);
-    if(!c || !c.transactions || !c.transactions.length || bal===0) return;
-    let lastDate = c.transactions[0].date;
-    c.transactions.forEach(t=>{ if(t.date && t.date>lastDate) lastDate=t.date; });
-    const lastTime = new Date(lastDate).getTime();
-    if(isNaN(lastTime)) return;
-    if(lastTime < cutoff){
-      const daysSince = Math.floor((Date.now()-lastTime)/(24*60*60*1000));
-      list.push({name, balance:bal, daysSince, lastDate});
-    }
-  });
-  list.sort((a,b)=>b.daysSince-a.daysSince);
-  return list;
-}
-function renderReminders(){
-  const wrap = document.getElementById('reminders-card');
-  if(!wrap) return;
-  const list = getOverdueClients();
-  if(!list.length){ wrap.style.display='none'; return; }
-  wrap.style.display='block';
-  const countEl = document.getElementById('reminders-count');
-  if(countEl) countEl.textContent = list.length;
-  const listEl = document.getElementById('reminders-list');
-  if(listEl){
-    listEl.innerHTML = list.slice(0,3).map(r=>{
-      const info = balInfo(r.balance);
-      return '<div class="reminder-row" onclick="showPage(\'clients\');setTimeout(()=>openDetail(\''+esc(r.name).replace(/'/g,"\\'")+'\'),150)">'
-        + '<span class="reminder-name">'+esc(r.name)+'</span>'
-        + '<span class="reminder-meta"><span class="bal-amt '+info.cls+'">'+info.sign+fmtG(r.balance)+'</span> · '+r.daysSince+'d ago</span>'
-        + '</div>';
-    }).join('');
-  }
-}
-async function toggleReminders(checked){
-  if(!db.settings) db.settings={};
-  if(checked){
-    if('Notification' in window){
-      let perm = Notification.permission;
-      if(perm==='default') perm = await Notification.requestPermission();
-      if(perm!=='granted'){
-        showToast('Notifications blocked — enable in browser settings');
-        db.settings.remindersEnabled=false;
-        const cb=document.getElementById('reminders-toggle'); if(cb)cb.checked=false;
-        save(); return;
-      }
-    }
-    db.settings.remindersEnabled=true;
-    showToast('Reminders enabled ✓');
-  } else {
-    db.settings.remindersEnabled=false;
-    showToast('Reminders disabled');
-  }
-  save();
-}
-function updateReminderDays(val){
-  if(!db.settings) db.settings={};
-  const days = parseInt(val,10);
-  db.settings.reminderDays = (days>0) ? days : 30;
-  save();
-  renderReminders();
-}
-function maybeNotifyReminders(){
-  if(!db.settings || !db.settings.remindersEnabled) return;
-  if(!('Notification' in window) || Notification.permission!=='granted') return;
-  const todayKey = todayStr();
-  let lastNotified=null;
-  try{ lastNotified = localStorage.getItem('gl_last_reminder_notify'); }catch(e){}
-  if(lastNotified===todayKey) return;
-  const list = getOverdueClients();
-  if(!list.length) return;
-  try{
-    new Notification('Gold Ledger reminders', {
-      body: list.length+' client balance(s) untouched for a while. Tap to review.',
-      icon: 'icons/icon-192.png'
-    });
-  }catch(e){}
-  try{ localStorage.setItem('gl_last_reminder_notify', todayKey); }catch(e){}
-}
-
-function syncReminderSettings(){
-  const cb=document.getElementById('reminders-toggle');
-  const dayInp=document.getElementById('reminder-days-input');
-  if(cb) cb.checked = !!(db.settings && db.settings.remindersEnabled);
-  if(dayInp) dayInp.value = (db.settings && db.settings.reminderDays) || 30;
-}
-
 /* ── REPORTS ────────────────────────────────── */
 function computeMonthlyTotals(){
   const map = {};
@@ -2594,7 +2465,7 @@ function showPage(p){
   if(p==='daybook'){populateDaybookYears();renderDaybook();}
   if(p==='vault'){renderVault();}
   if(p==='reports'){renderReports();}
-  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();syncSwToggle();syncReminderSettings();}
+  if(p==='settings'){renderSettingsLangGrid();updateThemeButtons();syncSwToggle();}
 }
 
 /* ── DASHBOARD ──────────────────────────── */
@@ -2647,7 +2518,6 @@ function renderDashboard(){
   const netCard=document.getElementById('net-card');
   netCard.className='big-stat-card '+(net>0?'big-stat-get':net<0?'big-stat-give':'big-stat-net');
   updateSidebarStats();
-  renderReminders();
 }
 function updateSidebarStats(){
   const ss=document.getElementById('sidebar-stats'); if(!ss)return;
@@ -4781,7 +4651,6 @@ applyResolvedTheme();
 // Load saved language preference
 try{const sl=localStorage.getItem('gold_ledger_lang');if(sl&&LANGS[sl])currentLang=sl;}catch(e){}
 load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
-setTimeout(maybeNotifyReminders, 1200);
 // Apply language and theme buttons after DOM ready
 setTimeout(()=>{
   applyLang();
