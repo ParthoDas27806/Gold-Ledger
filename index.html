@@ -2371,13 +2371,31 @@ function drawMonthlyChart(){
     ctx.fillStyle = '#4A9DE0';
     ctx.fillRect(cx+2, padT+chartH-hR, barW, hR);
 
-    // Percentage labels above each bar (shown together whenever the month has any activity)
+    // Percentage labels above each bar — drawn with a solid pill background
+    // so they stay readable regardless of theme, font-weight availability, or bar height.
     if(total>0){
-      ctx.font = 'bold 10px DM Sans, sans-serif';
-      ctx.fillStyle = isDark ? '#F0C955' : '#8A6200';
-      ctx.fillText(pctD+'%', cx-barW-2+barW/2, Math.max(padT-8, padT+chartH-hD-6));
-      ctx.fillStyle = isDark ? '#7FC1F5' : '#2E6BA6';
-      ctx.fillText(pctR+'%', cx+2+barW/2, Math.max(padT-8, padT+chartH-hR-6));
+      ctx.font = '11px Arial, sans-serif';
+      ctx.textBaseline = 'middle';
+
+      const yD = Math.min(padT+chartH-hD-11, padT+8);
+      const wD = ctx.measureText(pctD+'%').width + 8;
+      ctx.fillStyle = '#D4A017';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(cx-barW-2+barW/2-wD/2, yD-8, wD, 16, 8) : ctx.rect(cx-barW-2+barW/2-wD/2, yD-8, wD, 16);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(pctD+'%', cx-barW-2+barW/2, yD);
+
+      const yR = Math.min(padT+chartH-hR-11, padT+8);
+      const wR = ctx.measureText(pctR+'%').width + 8;
+      ctx.fillStyle = '#4A9DE0';
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(cx+2+barW/2-wR/2, yR-8, wR, 16, 8) : ctx.rect(cx+2+barW/2-wR/2, yR-8, wR, 16);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillText(pctR+'%', cx+2+barW/2, yR);
+
+      ctx.textBaseline = 'alphabetic';
     }
 
     ctx.font = '10px DM Sans, sans-serif';
