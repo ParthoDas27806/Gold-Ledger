@@ -2345,7 +2345,7 @@ function drawMonthlyChart(){
     months.push({label: MONTH_NAMES[d.getMonth()].slice(0,3), delivered:vals.delivered||0, received:vals.received||0});
   }
   const maxVal = Math.max(1, ...months.map(m=>Math.max(m.delivered,m.received)));
-  const padL=6, padR=6, padT=26, padB=22;
+  const padL=6, padR=6, padT=44, padB=22;
   const chartW = cssW-padL-padR, chartH = cssH-padT-padB;
   const groupW = chartW/months.length;
   const barW = Math.max(6, Math.min(16, groupW/3.2));
@@ -2369,19 +2369,18 @@ function drawMonthlyChart(){
     svg += '<rect x="'+barDx+'" y="'+(padT+chartH-hD)+'" width="'+barW+'" height="'+hD+'" rx="2" fill="#D4A017"/>';
     svg += '<rect x="'+barRx+'" y="'+(padT+chartH-hR)+'" width="'+barW+'" height="'+hR+'" rx="2" fill="#4A9DE0"/>';
 
-    // Percentage pill badges
+    // Percentage pill badges — stacked vertically in the reserved top margin,
+    // centered on the group, so they never collide with each other or the bars.
     if(total>0){
       const txtD = pctD+'%', txtR = pctR+'%';
       const wD = pillWidth(txtD), wR = pillWidth(txtR);
-      const yD = Math.min(padT+chartH-hD-11, padT+8);
-      const yR = Math.min(padT+chartH-hR-11, padT+8);
-      const cxD = barDx+barW/2, cxR = barRx+barW/2;
+      const yD = 13, yR = 31;
 
-      svg += '<rect x="'+(cxD-wD/2)+'" y="'+(yD-8)+'" width="'+wD+'" height="16" rx="8" fill="#D4A017"/>';
-      svg += '<text x="'+cxD+'" y="'+yD+'" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">'+txtD+'</text>';
+      svg += '<rect x="'+(cx-wD/2)+'" y="'+(yD-8)+'" width="'+wD+'" height="16" rx="8" fill="#D4A017"/>';
+      svg += '<text x="'+cx+'" y="'+yD+'" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">'+txtD+'</text>';
 
-      svg += '<rect x="'+(cxR-wR/2)+'" y="'+(yR-8)+'" width="'+wR+'" height="16" rx="8" fill="#4A9DE0"/>';
-      svg += '<text x="'+cxR+'" y="'+yR+'" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">'+txtR+'</text>';
+      svg += '<rect x="'+(cx-wR/2)+'" y="'+(yR-8)+'" width="'+wR+'" height="16" rx="8" fill="#4A9DE0"/>';
+      svg += '<text x="'+cx+'" y="'+yR+'" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">'+txtR+'</text>';
     }
 
     // Month label
