@@ -941,9 +941,10 @@ select {
 .db-day-card { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r); margin-bottom:10px; overflow:hidden; }
 .db-day-header { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--border); }
 .db-day-date { font-size:14px; font-weight:600; color:var(--text); }
-.db-day-net { font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; }
+.db-day-net { font-size:13px; font-weight:600; font-family:'DM Sans',sans-serif; text-align:right; }
 .db-day-net.get { color:var(--green); }
 .db-day-net.give { color:var(--red); }
+.db-day-breakdown { font-size:11px; color:var(--muted); font-family:'DM Sans',sans-serif; text-align:right; margin-top:2px; }
 .db-row { display:flex; justify-content:space-between; align-items:center; padding:9px 14px; border-bottom:1px solid var(--border); }
 .db-row:last-child { border-bottom:none; }
 .db-row-left { display:flex; align-items:center; gap:8px; }
@@ -1285,9 +1286,27 @@ select {
           <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total Received</div><div style="font-size:20px;font-weight:700" id="rep-total-received">0g</div></div>
         </div>
 
-        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Monthly Trend (last 6 months)</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px" id="rep-trend-title">Trend</div>
+          <select id="rep-range-select" onchange="onReportRangeChange(this.value)" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+            <option value="3m">Last 3 Months</option>
+            <option value="6m" selected>Last 6 Months</option>
+            <option value="1y">Last 1 Year</option>
+            <option value="2y">Last 2 Years</option>
+            <option value="all">All Time</option>
+            <option value="custom">Custom Range…</option>
+          </select>
+        </div>
+        <div id="rep-custom-range" style="display:none;gap:8px;margin-bottom:10px">
+          <input type="date" id="rep-custom-from" onchange="onReportCustomChange()" style="flex:1;min-width:0;padding:9px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
+          <input type="date" id="rep-custom-to" onchange="onReportCustomChange()" style="flex:1;min-width:0;padding:9px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
+        </div>
         <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;margin-bottom:20px;box-shadow:var(--shadow-sm)">
-          <div id="rep-chart" style="width:100%;height:180px;display:block"></div>
+          <div style="width:100%;overflow-x:auto;overflow-y:hidden">
+            <div id="rep-chart" style="height:180px;display:block"></div>
+          </div>
           <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;color:var(--muted)">
             <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#D4A017;margin-right:4px"></span>Delivered</span>
             <span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:#4A9DE0;margin-right:4px"></span>Received</span>
@@ -1966,7 +1985,7 @@ select {
   /* login-screen is full screen flex column */
   #login-screen {
     padding: 0 !important;
-    background: #fff !important;
+    background: linear-gradient(to right,#c9b87a,#f5e6b0) !important;
     align-items: stretch !important;
     justify-content: flex-start !important;
   }
@@ -1989,16 +2008,52 @@ select {
     border-radius: 0 !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow: hidden;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 
-  /* Hide the desktop sliding toggle */
-  #ls-toggle-container { display: none !important; }
+  /* Hide the old mobile tab bar — the gold panel's own buttons now switch modes */
+  #ls-mobile-tabs { display: none !important; }
 
-  /* Show mobile tabs */
-  #ls-mobile-tabs { display: flex !important; }
+  /* Gold branding panel becomes a fixed-height header card, same content as desktop */
+  #ls-toggle-container {
+    position: relative !important;
+    top: auto !important; left: auto !important;
+    width: 100% !important; height: 230px !important;
+    flex-shrink: 0 !important;
+    border-radius: 0 0 32px 32px !important;
+    transform: none !important;
+    overflow: hidden;
+  }
+  #ls-container.active #ls-toggle-container { transform: none !important; border-radius: 0 0 32px 32px !important; }
 
-  /* Panels: fill remaining vertical space */
+  #ls-toggle {
+    position: static !important;
+    width: 100% !important; height: 100% !important;
+    left: 0 !important; transform: none !important;
+  }
+  #ls-container.active #ls-toggle { transform: none !important; }
+
+  .ls-toggle-panel {
+    position: absolute !important;
+    width: 100% !important; height: 100% !important;
+    left: 0 !important; top: 0 !important;
+    padding: 22px 26px !important;
+    transition: opacity 0.3s ease !important;
+  }
+  /* Default (sign-in mode): show the "Gold Ledger / Register" panel, like desktop */
+  .ls-toggle-right { opacity: 1 !important; pointer-events: auto !important; }
+  .ls-toggle-left  { opacity: 0 !important; pointer-events: none !important; }
+  #ls-container.active .ls-toggle-right { opacity: 0 !important; pointer-events: none !important; }
+  #ls-container.active .ls-toggle-left  { opacity: 1 !important; pointer-events: auto !important; }
+
+  .ls-logo-wrap { width: 46px !important; height: 46px !important; margin-bottom: 8px !important; font-size: 20px !important; }
+  .ls-logo-wrap img { width: 46px !important; height: 46px !important; }
+  .ls-toggle-panel h1 { font-size: 18px !important; margin-bottom: 5px !important; }
+  .ls-toggle-panel p { font-size: 12px !important; margin-bottom: 12px !important; line-height: 1.45 !important; }
+  .ls-ghost-btn { padding: 8px 26px !important; font-size: 10.5px !important; }
+
+  /* Form panels: stacked below the gold header, only the active one shown */
   #ls-sign-in, #ls-sign-up {
     position: relative !important;
     width: 100% !important;
@@ -2007,26 +2062,26 @@ select {
     transform: none !important;
     opacity: 1 !important;
     z-index: 2 !important;
-    display: flex !important;
+    display: none !important;
     flex-direction: column !important;
   }
-  #ls-sign-up { display: none !important; }
-  #ls-container.active #ls-sign-in { display: none !important; }
+  #ls-container:not(.active) #ls-sign-in { display: flex !important; }
   #ls-container.active #ls-sign-up { display: flex !important; }
 
-  /* Form inner: center content vertically in the remaining space */
+  /* Form inner: left-aligned like the desktop card */
   .ls-form-inner {
     flex: 1;
     height: auto !important;
-    padding: 32px 28px 40px !important;
-    justify-content: center !important;
-    align-items: flex-start !important;
+    padding: 28px 26px 40px !important;
+    justify-content: flex-start !important;
+    align-items: stretch !important;
     gap: 0 !important;
   }
   .ls-form-inner h1 {
-    font-size: 26px !important;
-    margin-bottom: 20px !important;
+    font-size: 22px !important;
+    margin-bottom: 14px !important;
     color: #7A5800;
+    text-align: left;
   }
 
   /* Inputs: full width */
@@ -2280,18 +2335,117 @@ async function loadFromFirebase(){
 }
 
 /* ── REPORTS ────────────────────────────────── */
-function computeMonthlyTotals(){
-  const map = {};
+let reportRange = '6m';
+let reportCustomFrom = null, reportCustomTo = null;
+
+function onReportRangeChange(val){
+  reportRange = val;
+  const customWrap = document.getElementById('rep-custom-range');
+  if(customWrap) customWrap.style.display = (val==='custom') ? 'flex' : 'none';
+  if(val==='custom'){
+    const fromInp=document.getElementById('rep-custom-from'), toInp=document.getElementById('rep-custom-to');
+    if(fromInp && !fromInp.value){
+      const d=new Date(); d.setMonth(d.getMonth()-1);
+      fromInp.value = d.toISOString().slice(0,10);
+    }
+    if(toInp && !toInp.value) toInp.value = todayStr();
+    reportCustomFrom = fromInp ? fromInp.value : null;
+    reportCustomTo = toInp ? toInp.value : null;
+  }
+  drawMonthlyChart();
+}
+function onReportCustomChange(){
+  const fromInp=document.getElementById('rep-custom-from'), toInp=document.getElementById('rep-custom-to');
+  reportCustomFrom = fromInp ? fromInp.value : null;
+  reportCustomTo = toInp ? toInp.value : null;
+  drawMonthlyChart();
+}
+const REPORT_RANGE_LABELS = {
+  '7d':'Last 7 Days','30d':'Last 30 Days','3m':'Last 3 Months','6m':'Last 6 Months',
+  '1y':'Last 1 Year','2y':'Last 2 Years','all':'All Time','custom':'Custom Range'
+};
+function getReportRangeDates(){
+  const now = new Date();
+  let from, to = now;
+  switch(reportRange){
+    case '7d':  from = new Date(now); from.setDate(from.getDate()-6); break;
+    case '30d': from = new Date(now); from.setDate(from.getDate()-29); break;
+    case '3m':  from = new Date(now.getFullYear(), now.getMonth()-2, 1); break;
+    case '1y':  from = new Date(now.getFullYear(), now.getMonth()-11, 1); break;
+    case '2y':  from = new Date(now.getFullYear(), now.getMonth()-23, 1); break;
+    case 'all': {
+      let earliest=null;
+      Object.values(db.clients).forEach(c=>(c.transactions||[]).forEach(t=>{
+        if(t.date && (!earliest || t.date<earliest)) earliest=t.date;
+      }));
+      from = earliest ? new Date(earliest) : new Date(now.getFullYear(), now.getMonth()-5, 1);
+      break;
+    }
+    case 'custom': {
+      from = reportCustomFrom ? new Date(reportCustomFrom) : new Date(now.getFullYear(), now.getMonth()-1, 1);
+      to = reportCustomTo ? new Date(reportCustomTo) : now;
+      if(from>to){ const tmp=from; from=to; to=tmp; }
+      break;
+    }
+    default: from = new Date(now.getFullYear(), now.getMonth()-5, 1); // '6m'
+  }
+  return {from, to};
+}
+function getReportBuckets(){
+  const {from, to} = getReportRangeDates();
+  const dayMs = 24*60*60*1000;
+  const spanDays = Math.max(1, Math.round((to-from)/dayMs));
+  let granularity;
+  if(spanDays <= 45) granularity='day';
+  else if(spanDays <= 731) granularity='month';
+  else granularity='year';
+
+  // Aggregate all transactions by exact date first
+  const dayMap = {};
   Object.values(db.clients).forEach(c=>{
     (c.transactions||[]).forEach(t=>{
       if(!t.date) return;
-      const key = t.date.slice(0,7);
-      if(!map[key]) map[key]={delivered:0,received:0};
-      map[key][t.type] = (map[key][t.type]||0) + t.grams;
+      if(!dayMap[t.date]) dayMap[t.date]={delivered:0,received:0};
+      dayMap[t.date][t.type] = (dayMap[t.date][t.type]||0) + t.grams;
     });
   });
-  return map;
+  const dayKeys = Object.keys(dayMap);
+
+  const buckets = [];
+  if(granularity==='day'){
+    for(let d=new Date(from); d<=to; d.setDate(d.getDate()+1)){
+      const key = d.toISOString().slice(0,10);
+      const v = dayMap[key]||{delivered:0,received:0};
+      buckets.push({label: d.getDate()+' '+MONTH_NAMES[d.getMonth()].slice(0,3), delivered:v.delivered||0, received:v.received||0});
+    }
+  } else if(granularity==='month'){
+    let d = new Date(from.getFullYear(), from.getMonth(), 1);
+    const end = new Date(to.getFullYear(), to.getMonth(), 1);
+    while(d<=end){
+      const ykey = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      let delivered=0, received=0;
+      dayKeys.forEach(dayKey=>{
+        if(dayKey.slice(0,7)===ykey){ delivered+=dayMap[dayKey].delivered||0; received+=dayMap[dayKey].received||0; }
+      });
+      const yearSuffix = d.getFullYear()!==now_year() ? " '"+String(d.getFullYear()).slice(2) : '';
+      buckets.push({label: MONTH_NAMES[d.getMonth()].slice(0,3)+yearSuffix, delivered, received});
+      d.setMonth(d.getMonth()+1);
+    }
+  } else {
+    let y = from.getFullYear();
+    while(y <= to.getFullYear()){
+      let delivered=0, received=0;
+      dayKeys.forEach(dayKey=>{
+        if(dayKey.slice(0,4)===String(y)){ delivered+=dayMap[dayKey].delivered||0; received+=dayMap[dayKey].received||0; }
+      });
+      buckets.push({label: String(y), delivered, received});
+      y++;
+    }
+  }
+  return buckets;
 }
+function now_year(){ return new Date().getFullYear(); }
+
 function renderReports(){
   const names = Object.keys(db.clients);
   let totalDelivered=0, totalReceived=0;
@@ -2328,35 +2482,35 @@ function renderReports(){
       }).join('');
     }
   }
+  const titleEl = document.getElementById('rep-trend-title');
+  if(titleEl) titleEl.textContent = 'Trend ('+(REPORT_RANGE_LABELS[reportRange]||'Last 6 Months')+')';
   drawMonthlyChart();
 }
 function drawMonthlyChart(){
   const container = document.getElementById('rep-chart');
   if(!container) return;
-  const cssW = container.clientWidth||300, cssH = 180;
+  const wrapWidth = container.parentElement ? container.parentElement.clientWidth : (container.clientWidth||300);
+  const cssH = 180;
 
-  const monthly = computeMonthlyTotals();
-  const now = new Date();
-  const months = [];
-  for(let i=5;i>=0;i--){
-    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
-    const key = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    const vals = monthly[key]||{delivered:0,received:0};
-    months.push({label: MONTH_NAMES[d.getMonth()].slice(0,3), delivered:vals.delivered||0, received:vals.received||0});
-  }
-  const maxVal = Math.max(1, ...months.map(m=>Math.max(m.delivered,m.received)));
+  const buckets = getReportBuckets();
+  const n = Math.max(1, buckets.length);
+  const minBucketW = 46;
+  const cssW = Math.max(wrapWidth, n*minBucketW);
+
+  const maxVal = Math.max(1, ...buckets.map(m=>Math.max(m.delivered,m.received)));
   const padL=6, padR=6, padT=44, padB=22;
   const chartW = cssW-padL-padR, chartH = cssH-padT-padB;
-  const groupW = chartW/months.length;
+  const groupW = chartW/n;
   const barW = Math.max(6, Math.min(16, groupW/3.2));
   const isDark = document.documentElement.getAttribute('data-theme')==='dark';
   const labelColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)';
 
   const pillWidth = str => str.length*6.2 + 10;
+  const showPills = n<=12; // keep dense charts (many days/months) readable — skip badges when too crowded
 
-  let svg = '<svg viewBox="0 0 '+cssW+' '+cssH+'" width="100%" height="'+cssH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">';
+  let svg = '<svg viewBox="0 0 '+cssW+' '+cssH+'" width="'+cssW+'" height="'+cssH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">';
 
-  months.forEach((m,i)=>{
+  buckets.forEach((m,i)=>{
     const cx = padL + groupW*i + groupW/2;
     const hD = (m.delivered/maxVal)*chartH;
     const hR = (m.received/maxVal)*chartH;
@@ -2371,7 +2525,7 @@ function drawMonthlyChart(){
 
     // Percentage pill badges — stacked vertically in the reserved top margin,
     // centered on the group, so they never collide with each other or the bars.
-    if(total>0){
+    if(total>0 && showPills){
       const txtD = pctD+'%', txtR = pctR+'%';
       const wD = pillWidth(txtD), wR = pillWidth(txtR);
       const yD = 13, yR = 31;
@@ -2383,7 +2537,7 @@ function drawMonthlyChart(){
       svg += '<text x="'+cx+'" y="'+yR+'" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="10.5" font-weight="700" fill="#ffffff">'+txtR+'</text>';
     }
 
-    // Month label
+    // Bucket label (day / month / year depending on granularity)
     svg += '<text x="'+cx+'" y="'+(cssH-6)+'" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="10" fill="'+labelColor+'">'+m.label+'</text>';
   });
 
@@ -3570,7 +3724,10 @@ function renderDaybook(){
     card.className='db-day-card';
     card.innerHTML=`<div class="db-day-header">
       <div class="db-day-date">📅 ${niceDateStr}</div>
-      <div class="db-day-net ${netCls}">${netSign}${dayNet.toFixed(3)}g net</div>
+      <div>
+        <div class="db-day-net ${netCls}">${netSign}${dayNet.toFixed(3)}g net</div>
+        <div class="db-day-breakdown">Kaaj ${dayKaaj.toFixed(3)}g · Metal ${dayMetal.toFixed(3)}g</div>
+      </div>
     </div>`;
 
     dayTxns.forEach(t=>{
