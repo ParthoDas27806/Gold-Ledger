@@ -2228,7 +2228,6 @@ select {
   <div id="auth-signed-in-view" style="display:none;text-align:center">
     <div style="font-size:14px;color:var(--text);margin-bottom:4px">Signed in as</div>
     <div id="auth-user-name" style="font-size:16px;font-weight:600;color:var(--gold-dark);margin-bottom:16px"></div>
-    <button onclick="doSwitchAccount()" style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">🔄 Switch Account</button>
     <button onclick="doSignOut()" style="width:100%;padding:12px;border:1.5px solid var(--red-border);border-radius:var(--rs);background:var(--red-bg);color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px">Sign Out</button>
   </div>
 
@@ -2604,9 +2603,27 @@ function fmtDate(d){
 /* Temporary form reset when switching tabs */
 function resetUnsavedInputs(){
   try{
+    // Add Transaction form
     clearForm();
+    document.getElementById('f-actual-purity').value='';
+    document.getElementById('calc-result-actual').style.display='none';
+    window._actualPureGold=0;
+
+    // Add Client modal fields
     document.getElementById('mc-name').value='';
     document.getElementById('mc-phone').value='';
+
+    // Clients page search box
+    const clSearch=document.getElementById('cl-search');
+    if(clSearch) clSearch.value='';
+
+    // Vault page inline amount/note entry
+    const vAmt=document.getElementById('vault-inline-amount');
+    const vNote=document.getElementById('vault-inline-note');
+    const vPrev=document.getElementById('vault-inline-preview');
+    if(vAmt) vAmt.value='';
+    if(vNote) vNote.value='';
+    if(vPrev) vPrev.style.display='none';
   }catch(e){}
 }
 
@@ -3869,10 +3886,6 @@ function doRegister(){
   if(pass.length<6){window.showAuthError('Password must be at least 6 characters.');return;}
   window.authRegister(name,email,pass);
 }
-function doSwitchAccount(){
-  if(!confirm('Switch account? Your current data will be cleared from this device and you will be signed out.'))return;
-  window.authSignOut();
-}
 function doSignOut(){
   if(!confirm('Sign out? Your client data will be cleared from this device and only visible after signing in again.'))return;
   window._glSigningOut = true;
@@ -4242,7 +4255,6 @@ const LANGS = {
     saveTxn:'✓ Save Transaction', clear:'Clear',
     newTxn:'New Transaction', txnType:'Transaction Type *',
     signIn:'Sign In', signOut:'Sign Out', register:'Register',
-    switchAccount:'🔄 Switch Account',
     emailAddr:'Email Address', password:'Password',
     orContinue:'or continue with', continueGoogle:'Continue with Google',
     signedInAs:'Signed in as',
@@ -4274,7 +4286,6 @@ const LANGS = {
     saveTxn:'✓ लेनदेन सहेजें', clear:'साफ करें',
     newTxn:'नया लेनदेन', txnType:'लेनदेन प्रकार *',
     signIn:'साइन इन', signOut:'साइन आउट', register:'रजिस्टर',
-    switchAccount:'🔄 खाता बदलें',
     emailAddr:'ईमेल पता', password:'पासवर्ड',
     orContinue:'या जारी रखें', continueGoogle:'Google से जारी रखें',
     signedInAs:'के रूप में लॉग इन',
@@ -4306,7 +4317,6 @@ const LANGS = {
     saveTxn:'✓ লেনদেন সংরক্ষণ করুন', clear:'পরিষ্কার করুন',
     newTxn:'নতুন লেনদেন', txnType:'লেনদেনের ধরন *',
     signIn:'সাইন ইন', signOut:'সাইন আউট', register:'নিবন্ধন',
-    switchAccount:'🔄 অ্যাকাউন্ট পরিবর্তন',
     emailAddr:'ইমেইল ঠিকানা', password:'পাসওয়ার্ড',
     orContinue:'অথবা চালিয়ে যান', continueGoogle:'Google দিয়ে চালিয়ে যান',
     signedInAs:'হিসেবে সাইন ইন করা',
@@ -4338,7 +4348,6 @@ const LANGS = {
     saveTxn:'✓ વ્યવહાર સાચવો', clear:'સાફ કરો',
     newTxn:'નવો વ્યવહાર', txnType:'વ્યવહારનો પ્રકાર *',
     signIn:'સાઇન ઇન', signOut:'સાઇન આઉટ', register:'નોંધણી',
-    switchAccount:'🔄 ખાતું બદલો',
     emailAddr:'ઈમેઇલ સરનામું', password:'પાસવર્ડ',
     orContinue:'અથવા ચાલુ રાખો', continueGoogle:'Google સાથે ચાલુ રાખો',
     signedInAs:'તરીકે સાઇન ઇન',
@@ -4370,7 +4379,6 @@ const LANGS = {
     saveTxn:'✓ பரிவர்த்தனை சேமி', clear:'அழி',
     newTxn:'புதிய பரிவர்த்தனை', txnType:'பரிவர்த்தனை வகை *',
     signIn:'உள்நுழை', signOut:'வெளியேறு', register:'பதிவு செய்',
-    switchAccount:'🔄 கணக்கை மாற்று',
     emailAddr:'மின்னஞ்சல் முகவரி', password:'கடவுச்சொல்',
     orContinue:'அல்லது தொடர்க', continueGoogle:'Google உடன் தொடர்க',
     signedInAs:'என்று உள்நுழைந்தீர்கள்',
@@ -4402,7 +4410,6 @@ const LANGS = {
     saveTxn:'✓ व्यवहार जतन करा', clear:'साफ करा',
     newTxn:'नवीन व्यवहार', txnType:'व्यवहार प्रकार *',
     signIn:'साइन इन', signOut:'साइन आउट', register:'नोंदणी करा',
-    switchAccount:'🔄 खाते बदला',
     emailAddr:'ईमेल पत्ता', password:'पासवर्ड',
     orContinue:'किंवा सुरू ठेवा', continueGoogle:'Google सह सुरू ठेवा',
     signedInAs:'म्हणून साइन इन केले',
@@ -4434,7 +4441,6 @@ const LANGS = {
     saveTxn:'✓ లావాదేవీని సేవ్ చేయండి', clear:'క్లియర్',
     newTxn:'కొత్త లావాదేవీ', txnType:'లావాదేవీ రకం *',
     signIn:'సైన్ ఇన్', signOut:'సైన్ అవుట్', register:'నమోదు',
-    switchAccount:'🔄 ఖాతా మార్చు',
     emailAddr:'ఇమెయిల్ చిరునామా', password:'పాస్‌వర్డ్',
     orContinue:'లేదా కొనసాగించండి', continueGoogle:'Google తో కొనసాగించండి',
     signedInAs:'గా సైన్ ఇన్ చేయబడింది',
@@ -4466,7 +4472,6 @@ const LANGS = {
     saveTxn:'✓ ವಹಿವಾಟು ಉಳಿಸಿ', clear:'ಅಳಿಸಿ',
     newTxn:'ಹೊಸ ವಹಿವಾಟು', txnType:'ವಹಿವಾಟು ಪ್ರಕಾರ *',
     signIn:'ಸೈನ್ ಇನ್', signOut:'ಸೈನ್ ಔಟ್', register:'ನೋಂದಣಿ',
-    switchAccount:'🔄 ಖಾತೆ ಬದಲಿಸಿ',
     emailAddr:'ಇಮೇಲ್ ವಿಳಾಸ', password:'ಪಾಸ್‌ವರ್ಡ್',
     orContinue:'ಅಥವಾ ಮುಂದುವರಿಸಿ', continueGoogle:'Google ನೊಂದಿಗೆ ಮುಂದುವರಿಸಿ',
     signedInAs:'ಎಂದು ಸೈನ್ ಇನ್ ಆಗಿದೆ',
@@ -4498,7 +4503,6 @@ const LANGS = {
     saveTxn:'✓ ഇടപാട് സംരക്ഷിക്കുക', clear:'മായ്ക്കുക',
     newTxn:'പുതിയ ഇടപാട്', txnType:'ഇടപാട് തരം *',
     signIn:'സൈൻ ഇൻ', signOut:'സൈൻ ഔട്ട്', register:'രജിസ്റ്റർ',
-    switchAccount:'🔄 അക്കൗണ്ട് മാറ്റുക',
     emailAddr:'ഇമെയിൽ വിലാസം', password:'പാസ്‌വേഡ്',
     orContinue:'അല്ലെങ്കിൽ തുടരുക', continueGoogle:'Google ഉപയോഗിച്ച് തുടരുക',
     signedInAs:'ആയി സൈൻ ഇൻ ചെയ്തു',
@@ -4530,7 +4534,6 @@ const LANGS = {
     saveTxn:'✓ ਲੈਣ-ਦੇਣ ਸੰਭਾਲੋ', clear:'ਸਾਫ਼ ਕਰੋ',
     newTxn:'ਨਵਾਂ ਲੈਣ-ਦੇਣ', txnType:'ਲੈਣ-ਦੇਣ ਦੀ ਕਿਸਮ *',
     signIn:'ਸਾਈਨ ਇਨ', signOut:'ਸਾਈਨ ਆਉਟ', register:'ਰਜਿਸਟਰ',
-    switchAccount:'🔄 ਖਾਤਾ ਬਦਲੋ',
     emailAddr:'ਈਮੇਲ ਪਤਾ', password:'ਪਾਸਵਰਡ',
     orContinue:'ਜਾਂ ਜਾਰੀ ਰੱਖੋ', continueGoogle:'Google ਨਾਲ ਜਾਰੀ ਰੱਖੋ',
     signedInAs:'ਵਜੋਂ ਸਾਈਨ ਇਨ ਕੀਤਾ',
@@ -4562,7 +4565,6 @@ const LANGS = {
     saveTxn:'✓ କାରବାର ସେଭ୍ କରନ୍ତୁ', clear:'ସଫା କରନ୍ତୁ',
     newTxn:'ନୂତନ କାରବାର', txnType:'କାରବାର ପ୍ରକାର *',
     signIn:'ସାଇନ୍ ଇନ୍', signOut:'ସାଇନ୍ ଆଉଟ୍', register:'ପଞ୍ଜିକରଣ',
-    switchAccount:'🔄 ଖାତା ବଦଳାନ୍ତୁ',
     emailAddr:'ଇମେଲ ଠିକଣା', password:'ପାସୱାର୍ଡ',
     orContinue:'କିମ୍ବା ଜାରି ରଖନ୍ତୁ', continueGoogle:'Google ସହିତ ଜାରି ରଖନ୍ତୁ',
     signedInAs:'ଭାବରେ ସାଇନ୍ ଇନ୍ ହୋଇଛି',
@@ -4594,7 +4596,6 @@ const LANGS = {
     saveTxn:'✓ لین دین محفوظ کریں', clear:'صاف کریں',
     newTxn:'نیا لین دین', txnType:'لین دین کی قسم *',
     signIn:'سائن ان', signOut:'سائن آؤٹ', register:'رجسٹر',
-    switchAccount:'🔄 اکاؤنٹ تبدیل کریں',
     emailAddr:'ای میل پتہ', password:'پاس ورڈ',
     orContinue:'یا جاری رکھیں', continueGoogle:'Google کے ساتھ جاری رکھیں',
     signedInAs:'کے طور پر سائن ان',
