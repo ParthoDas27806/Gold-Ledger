@@ -1,4 +1,4 @@
-const CACHE = 'gold-ledger-v21';
+const CACHE = 'gold-ledger-v22';
 
 self.addEventListener('install', e => {
   self.skipWaiting();
