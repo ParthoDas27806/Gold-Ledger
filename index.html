@@ -2973,7 +2973,7 @@ function deleteClient(){
   delete db.clients[activeClient]; save(); showToast('Client deleted'); closeDetail(); renderDashboard();
 }
 function deleteTxn(name,idx){
-  if(!confirm('Delete this transaction?'))return;
+  if(!confirm('Delete this transaction? This will also reverse its effect on the vault balance.'))return;
   const txn = db.clients[name].transactions[idx];
 
   // Remove matching vault entry if this transaction had one
@@ -4249,6 +4249,23 @@ function saveInlineVaultEntry(){
   if(note2) note2.value='';
 }
 
+function deleteVaultLogEntry(seq){
+  if(!confirm('Delete this vault entry? The vault balance will be recalculated.'))return;
+  if(!db.vaultLog || !db.vaultLog.length) return;
+  const vIdx = db.vaultLog.findIndex(v=>v._seq===seq && v.manual);
+  if(vIdx===-1) return;
+  db.vaultLog.splice(vIdx,1);
+  // Recalculate vault balance from baseline + all remaining log entries
+  let bal = db.vaultInitial || 0;
+  const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
+  sorted.forEach(v=>{ bal = Math.round((bal+v.delta)*1000)/1000; v.balanceAfter = bal; });
+  db.vaultBalance = bal;
+  save();
+  renderVault();
+  renderDashboard();
+  showToast('Vault entry removed ✓');
+}
+
 // Legacy stubs so any old references don't crash
 function openVaultEntry(mode){ openInlineVault(mode); }
 function closeVaultEntry(){}
@@ -4368,6 +4385,9 @@ function renderVault(){
       let typeLabel;
       if(v.manual) typeLabel=isAdd?'Manual Add':'Manual Withdrawal';
       else typeLabel=v.type==='delivered'?'Casting':'Metal';
+      const delBtn = v.manual
+        ? `<button class="txn-del" onclick="event.stopPropagation();deleteVaultLogEntry(${v._seq})">✕</button>`
+        : '';
       return `<div class="txn-item" style="cursor:default;margin-bottom:6px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div style="flex:1;min-width:0">
@@ -4378,6 +4398,7 @@ function renderVault(){
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
             <div class="txn-grams" style="color:${color}">${sign}${Math.abs(v.delta).toFixed(3)}g</div>
             <div class="txn-gram-mg">${fmtGramMg(Math.abs(v.delta))}</div>
+            ${delBtn}
           </div>
         </div>
       </div>`;
