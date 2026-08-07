@@ -24,6 +24,12 @@ button:active{transform:scale(0.96);transition-duration:0.08s}
 ::-webkit-scrollbar{width:8px;height:8px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--gold-border);border-radius:8px}
+/* Keyboard-only focus ring — visible for keyboard users, silent for mouse clicks */
+:focus{outline:none}
+:focus-visible{outline:2.5px solid var(--gold-mid);outline-offset:2px;border-radius:4px}
+button:focus-visible,.nav-btn:focus-visible,.side-btn:focus-visible,.btn:focus-visible{outline-offset:3px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1px}
+[tabindex]:focus-visible,.txn-item:focus-visible,.client-dropdown-item:focus-visible{outline-offset:-2px}
 ::-webkit-scrollbar-thumb:hover{background:var(--gold-mid)}
 :root{
   --gold:#B8860B;--gold-mid:#D4A017;--gold-dark:#7A5A00;
@@ -2906,10 +2912,21 @@ function renderDetailTxns(name){
       const div=document.createElement('div'); div.className='txn-item';
       div.setAttribute('data-idx', idx);
       div.style.cursor='pointer';
+      div.setAttribute('tabindex','0');
+      div.setAttribute('role','button');
+      div.setAttribute('aria-pressed','false');
       div.onclick=function(e){
         if(e.target.closest('.txn-del'))return;
         this.classList.toggle('selected');
+        this.setAttribute('aria-pressed', this.classList.contains('selected') ? 'true' : 'false');
         updateWaBar();
+      };
+      div.onkeydown=function(e){
+        if(e.target.closest('.txn-del'))return;
+        if(e.key==='Enter' || e.key===' '){
+          e.preventDefault();
+          this.click();
+        }
       };
       div.innerHTML=`
         <div style="display:flex;align-items:center;gap:10px">
@@ -5166,7 +5183,7 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
         ${[
           ['1','Dashboard'],['2','Clients'],['3','Add Transaction'],
           ['4','History'],['5','Daybook'],['6','Vault'],['7','Settings'],
-          ['8','Reports'],
+          ['8','Reports'],['← →','Cycle pages'],['Tab','Move focus'],
           ['N','New Transaction'],['T','Toggle Theme'],
           ['/','Search Clients'],['Enter','Save (Add page)'],
           ['Esc','Close / Back'],['?','This help panel'],
@@ -5291,17 +5308,28 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
     // Keyboard shortcut help
     const kbOv = document.getElementById('kb-overlay');
     if(kbOv && kbOv.style.display === 'flex'){ kbOv.style.display='none'; return true; }
-    // Generic modal overlay
+    // Generic modal overlay (Add Client)
     const mo = document.getElementById('modal-overlay');
     if(mo && mo.style.display==='block'){
-      mo.style.display='none';
-      document.querySelectorAll('[id^="modal-"]').forEach(m=>{ if(m!==mo) m.style.display='none'; });
+      if(typeof closeAddClientModal==='function') closeAddClientModal();
+      return true;
+    }
+    // Edit Client modal
+    const emo = document.getElementById('modal-edit-overlay');
+    if(emo && emo.style.display==='block'){
+      if(typeof closeEditClient==='function') closeEditClient();
       return true;
     }
     // Auth modal
     const am = document.getElementById('auth-modal');
     if(am && am.style.display==='block'){
       if(typeof closeAuthModal==='function') closeAuthModal();
+      return true;
+    }
+    // WhatsApp share modal
+    const wm = document.getElementById('wa-modal');
+    if(wm && wm.style.display==='block'){
+      if(typeof closeWaModal==='function') closeWaModal();
       return true;
     }
     // Vault balance overlay
@@ -5313,7 +5341,59 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
     return false;
   }
 
-  /* ── Main keydown handler ── */
+  /* ── Focus trap: Tab cycles within whichever modal is currently open ── */
+  function getOpenModalBox(){
+    const kbOv = document.getElementById('kb-overlay');
+    if(kbOv && kbOv.style.display === 'flex') return kbOv.querySelector('div');
+    const pairs = [
+      ['modal-overlay','modal-add-client'],
+      ['modal-edit-overlay','modal-edit-client'],
+      ['auth-overlay','auth-modal'],
+      ['wa-overlay','wa-modal'],
+      ['vault-bal-overlay','vault-bal-modal']
+    ];
+    for(let i=0;i<pairs.length;i++){
+      const ov=document.getElementById(pairs[i][0]), box=document.getElementById(pairs[i][1]);
+      if(ov && box && ov.style.display==='block' && box.style.display==='block') return box;
+    }
+    return null;
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Tab') return;
+    const box = getOpenModalBox();
+    if(!box) return;
+    const focusables = Array.prototype.slice.call(
+      box.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')
+    ).filter(function(el){ return !el.disabled && el.offsetParent!==null; });
+    if(!focusables.length) return;
+    const first = focusables[0], last = focusables[focusables.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  });
+
+  /* ── Auto-focus the first field whenever a modal opens ── */
+  const AUTO_FOCUS_BOX_IDS = ['modal-add-client','modal-edit-client','auth-modal','wa-modal','vault-bal-modal'];
+  AUTO_FOCUS_BOX_IDS.forEach(function(id){
+    const box = document.getElementById(id);
+    if(!box) return;
+    const obs = new MutationObserver(function(){
+      if(box.style.display === 'block'){
+        const focusables = box.querySelectorAll('input,select,textarea,button');
+        if(focusables.length) setTimeout(function(){ focusables[0].focus(); }, 30);
+      }
+    });
+    obs.observe(box, {attributes:true, attributeFilter:['style']});
+  });
+  const kbOverlayEl = document.getElementById('kb-overlay');
+  if(kbOverlayEl){
+    const kbObs = new MutationObserver(function(){
+      if(kbOverlayEl.style.display === 'flex'){
+        const closeBtn = kbOverlayEl.querySelector('button');
+        if(closeBtn) setTimeout(function(){ closeBtn.focus(); }, 30);
+      }
+    });
+    kbObs.observe(kbOverlayEl, {attributes:true, attributeFilter:['style']});
+  }
   document.addEventListener('keydown', function(e){
 
     // Always handle Escape (close modal)
@@ -5383,6 +5463,23 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
         e.preventDefault();
         showPage('reports');
         flashBadge('📊 Reports');
+        break;
+
+      /* ── Cycle pages with arrow keys ── */
+      case 'ArrowRight':
+      case 'ArrowLeft':
+        {
+          const order = ['dashboard','clients','add','history','daybook','vault','reports','settings'];
+          const icons = {dashboard:'🏠',clients:'👥',add:'➕',history:'🗂️',daybook:'📒',vault:'🔒',reports:'📊',settings:'⚙️'};
+          const labels = {dashboard:'Dashboard',clients:'Clients',add:'Add Transaction',history:'History',daybook:'Daybook',vault:'Vault',reports:'Reports',settings:'Settings'};
+          const curIdx = order.indexOf(page);
+          if(curIdx === -1) break;
+          e.preventDefault();
+          const dir = e.key === 'ArrowRight' ? 1 : -1;
+          const nextPage = order[(curIdx + dir + order.length) % order.length];
+          showPage(nextPage);
+          flashBadge(icons[nextPage]+' '+labels[nextPage]);
+        }
         break;
 
       /* ── New transaction from anywhere ── */
