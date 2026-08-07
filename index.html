@@ -945,6 +945,12 @@ select {
 .db-day-net.get { color:var(--green); }
 .db-day-net.give { color:var(--red); }
 .db-day-breakdown { font-size:11px; color:var(--muted); font-family:'DM Sans',sans-serif; text-align:right; margin-top:2px; }
+/* Client detail: transaction rows grouped inside a day-card, like the Daybook */
+#det-txns .db-day-card { margin-bottom: 12px; }
+#det-txns .txn-item { border:none; border-radius:0; margin-bottom:0; box-shadow:none; padding:10px 14px; border-bottom:1px solid var(--border); }
+#det-txns .txn-item:last-child { border-bottom:none; }
+#det-txns .txn-item:hover { box-shadow:none; }
+#det-txns .txn-item.selected { border-radius:0; }
 .db-row { display:flex; justify-content:space-between; align-items:center; padding:9px 14px; border-bottom:1px solid var(--border); }
 .db-row:last-child { border-bottom:none; }
 .db-row-left { display:flex; align-items:center; gap:8px; }
@@ -2848,49 +2854,84 @@ function renderDetailTxns(name){
   const txns=c.transactions||[];
   if(!txns.length){empty.style.display='block';return;} empty.style.display='none';
   const typeMap={delivered:{label:'Kaaj',sign:'+',cls:'delivered'},received:{label:'Metal',sign:'-',cls:'received'}};
-  [...txns].reverse().forEach((t,ri)=>{
-    const idx=txns.length-1-ri;
-    const tm=typeMap[t.type]||{label:t.type,sign:'',cls:'received'};
-    const gramsDisplay=t.grams.toFixed(3)+'g';
-    const gramMgDisplay=fmtGramMg(t.grams);
-    let extraInfo='';
-    if(t.grossGrams&&t.purity){
-      extraInfo=`<div class="txn-calc-info">Gross: ${fmtGramMg(t.grossGrams)} × ${t.purity}% = ${gramMgDisplay}</div>`;
-    }
-    const div=document.createElement('div'); div.className='txn-item';
-    div.setAttribute('data-idx', idx);
-    div.style.cursor='pointer';
-    div.onclick=function(e){
-      if(e.target.closest('.txn-del'))return;
-      this.classList.toggle('selected');
-      updateWaBar();
-    };
-    div.innerHTML=`
-      <div style="display:flex;align-items:center;gap:10px">
-        <div class="txn-circle"></div>
-        <div style="flex:1;min-width:0">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-            <div style="display:flex;gap:8px;flex:1;min-width:0">
-              <div class="txn-dot ${tm.cls}" style="margin-top:4px;flex-shrink:0"></div>
-              <div style="flex:1;min-width:0">
-                <div class="txn-label">${tm.label}</div>
-                <div class="txn-meta">${fmtDate(t.date)}${t.note?' · '+esc(t.note):''}</div>
-                ${extraInfo}
+
+  // Group transactions by date (keep original array index for edit/delete)
+  const days={};
+  txns.forEach((t,idx)=>{
+    const key=t.date||'—';
+    if(!days[key]) days[key]=[];
+    days[key].push({t,idx});
+  });
+  const sortedDates=Object.keys(days).sort((a,b)=>b.localeCompare(a));
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  sortedDates.forEach(date=>{
+    const dayEntries=days[date].slice().sort((a,b)=>(b.t._seq||0)-(a.t._seq||0));
+    let dayKaaj=0, dayMetal=0;
+    dayEntries.forEach(({t})=>{ t.type==='delivered'?dayKaaj+=t.grams:dayMetal+=t.grams; });
+    const dayNet=dayKaaj-dayMetal;
+    const netCls=dayNet>=0?'get':'give';
+    const netSign=dayNet>=0?'+':'';
+
+    const [y,m,d]=date.split('-');
+    const niceDateStr=(y&&m&&d)?`${d} ${months[parseInt(m)-1]} ${y}`:date;
+
+    const card=document.createElement('div');
+    card.className='db-day-card';
+    card.innerHTML=`<div class="db-day-header">
+      <div class="db-day-date">📅 ${niceDateStr}</div>
+      <div>
+        <div class="db-day-net ${netCls}">${netSign}${dayNet.toFixed(3)}g net</div>
+        <div class="db-day-breakdown">Kaaj ${dayKaaj.toFixed(3)}g · Metal ${dayMetal.toFixed(3)}g</div>
+      </div>
+    </div>`;
+
+    dayEntries.forEach(({t,idx})=>{
+      const tm=typeMap[t.type]||{label:t.type,sign:'',cls:'received'};
+      const gramsDisplay=t.grams.toFixed(3)+'g';
+      const gramMgDisplay=fmtGramMg(t.grams);
+      let extraInfo='';
+      if(t.grossGrams&&t.purity){
+        extraInfo=`<div class="txn-calc-info">Gross: ${fmtGramMg(t.grossGrams)} × ${t.purity}% = ${gramMgDisplay}</div>`;
+      }
+      const div=document.createElement('div'); div.className='txn-item';
+      div.setAttribute('data-idx', idx);
+      div.style.cursor='pointer';
+      div.onclick=function(e){
+        if(e.target.closest('.txn-del'))return;
+        this.classList.toggle('selected');
+        updateWaBar();
+      };
+      div.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="txn-circle"></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+              <div style="display:flex;gap:8px;flex:1;min-width:0">
+                <div class="txn-dot ${tm.cls}" style="margin-top:4px;flex-shrink:0"></div>
+                <div style="flex:1;min-width:0">
+                  <div class="txn-label">${tm.label}</div>
+                  ${t.note?`<div class="txn-meta">${esc(t.note)}</div>`:''}
+                  ${extraInfo}
+                </div>
               </div>
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
-              <div class="txn-grams ${tm.cls}">${tm.sign}${gramsDisplay}</div>
-              <div class="txn-gram-mg">${gramMgDisplay}</div>
-              <div style="display:flex;gap:4px">
-                <button class="txn-del" style="color:var(--gold-mid);border-color:var(--gold-border)" onclick="event.stopPropagation();editTxn('${esc(name)}',${idx})">✏️</button>
-                <button class="txn-del" onclick="event.stopPropagation();deleteTxn('${esc(name)}',${idx})">✕</button>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
+                <div class="txn-grams ${tm.cls}">${tm.sign}${gramsDisplay}</div>
+                <div class="txn-gram-mg">${gramMgDisplay}</div>
+                <div style="display:flex;gap:4px">
+                  <button class="txn-del" style="color:var(--gold-mid);border-color:var(--gold-border)" onclick="event.stopPropagation();editTxn('${esc(name)}',${idx})">✏️</button>
+                  <button class="txn-del" onclick="event.stopPropagation();deleteTxn('${esc(name)}',${idx})">✕</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>`;
-    wrap.appendChild(div);
+        </div>`;
+      card.appendChild(div);
+    });
+
+    wrap.appendChild(card);
   });
+
   updateWaBar();
 }
 function closeDetail(){activeClient=null;showClientList();renderClients();}
