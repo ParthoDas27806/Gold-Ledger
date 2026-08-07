@@ -1693,7 +1693,14 @@ select {
           <!-- Note input -->
           <input type="text" id="vault-inline-note"
             placeholder="Note (optional) — e.g. Stock purchase"
-            style="width:100%;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;margin-bottom:12px">
+            style="width:100%;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none;margin-bottom:10px">
+
+          <!-- Date input — defaults to today, editable for backdated entries -->
+          <div style="margin-bottom:12px">
+            <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:5px">Date</label>
+            <input type="date" id="vault-inline-date"
+              style="width:100%;padding:10px 14px;font-size:13px;font-family:'DM Sans',sans-serif;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);box-sizing:border-box;outline:none">
+          </div>
 
           <!-- Action button -->
           <button id="vault-inline-save" onclick="saveInlineVaultEntry()"
@@ -2708,13 +2715,15 @@ function resetUnsavedInputs(){
     const clSearch=document.getElementById('cl-search');
     if(clSearch) clSearch.value='';
 
-    // Vault page inline amount/note entry
+    // Vault page inline amount/note/date entry
     const vAmt=document.getElementById('vault-inline-amount');
     const vNote=document.getElementById('vault-inline-note');
     const vPrev=document.getElementById('vault-inline-preview');
+    const vDate=document.getElementById('vault-inline-date');
     if(vAmt) vAmt.value='';
     if(vNote) vNote.value='';
     if(vPrev) vPrev.style.display='none';
+    if(vDate) vDate.value=todayStr();
   }catch(e){}
 }
 
@@ -2967,27 +2976,34 @@ function saveEditClient(){
   renderDashboard();
   showToast('Client updated ✓');
 }
+function removeVaultEntriesBySeqs(seqSet){
+  if(!db.vaultLog || !db.vaultLog.length || !seqSet || !seqSet.size) return;
+  db.vaultLog = db.vaultLog.filter(v => !(seqSet.has(v._seq) && !v.manual));
+  let bal = db.vaultInitial || 0;
+  const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
+  sorted.forEach(v=>{ bal = Math.round((bal+v.delta)*1000)/1000; v.balanceAfter = bal; });
+  db.vaultBalance = bal;
+}
 function deleteClient(){
   if(!activeClient)return;
   if(!confirm('Delete ALL data for '+activeClient+'?\nThis cannot be undone.'))return;
-  delete db.clients[activeClient]; save(); showToast('Client deleted'); closeDetail(); renderDashboard();
+  const c = db.clients[activeClient];
+  const seqs = new Set((c.transactions||[]).map(t=>t._seq).filter(Boolean));
+  removeVaultEntriesBySeqs(seqs);
+  delete db.clients[activeClient];
+  save();
+  showToast('Client deleted — vault balance adjusted');
+  closeDetail();
+  renderDashboard();
+  if(typeof renderVault==='function') renderVault();
 }
 function deleteTxn(name,idx){
   if(!confirm('Delete this transaction? This will also reverse its effect on the vault balance.'))return;
   const txn = db.clients[name].transactions[idx];
 
   // Remove matching vault entry if this transaction had one
-  if(txn && txn._seq && db.vaultLog && db.vaultLog.length){
-    const vIdx = db.vaultLog.findIndex(v => v._seq === txn._seq && !v.manual);
-    if(vIdx !== -1){
-      // Remove vault entry and recalculate balance from scratch
-      db.vaultLog.splice(vIdx, 1);
-      // Recalculate vault balance from all remaining log entries
-      let bal = db.vaultInitial || 0;
-      const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
-      sorted.forEach(v=>{ bal = Math.round((bal + v.delta)*1000)/1000; v.balanceAfter = bal; });
-      db.vaultBalance = bal;
-    }
+  if(txn && txn._seq){
+    removeVaultEntriesBySeqs(new Set([txn._seq]));
   }
 
   db.clients[name].transactions.splice(idx, 1);
@@ -3707,21 +3723,9 @@ function updateExistingTransaction(f){
   const seq = oldTxn._seq || getNextSeq();
 
   // Remove the old vault log entry tied to this transaction (if any)
-  if(db.vaultLog && db.vaultLog.length){
-    const vIdx = db.vaultLog.findIndex(v=>v._seq===seq && !v.manual);
-    if(vIdx!==-1) db.vaultLog.splice(vIdx,1);
-  }
+  removeVaultEntriesBySeqs(new Set([seq]));
   // Remove the old transaction from its (possibly old) client
   db.clients[ref.name].transactions.splice(ref.idx,1);
-
-  // Recalculate the vault balance from baseline + remaining log entries
-  function recalcVault(){
-    let bal = db.vaultInitial || 0;
-    const sorted=[...(db.vaultLog||[])].sort((a,b)=>(a._seq||0)-(b._seq||0));
-    sorted.forEach(v=>{ bal=Math.round((bal+v.delta)*1000)/1000; v.balanceAfter=bal; });
-    db.vaultBalance=bal;
-  }
-  recalcVault();
 
   // Insert the updated transaction (client may have been changed during edit)
   if(!db.clients[name]) db.clients[name]={phone:'',transactions:[]};
@@ -4207,6 +4211,8 @@ function openInlineVault(mode){
   if(prev){ prev.style.display='none'; prev.textContent=''; }
   const noteEl = document.getElementById('vault-inline-note');
   if(noteEl) noteEl.value='';
+  const dateEl = document.getElementById('vault-inline-date');
+  if(dateEl) dateEl.value = todayStr();
 }
 
 function updateVaultPreview(){
@@ -4225,6 +4231,7 @@ function updateVaultPreview(){
 function saveInlineVaultEntry(){
   const amount = parseFloat((document.getElementById('vault-inline-amount')||{}).value);
   const note   = ((document.getElementById('vault-inline-note')||{}).value||'').trim();
+  const entryDate = ((document.getElementById('vault-inline-date')||{}).value||'').trim() || todayStr();
   if(!amount||amount<=0){ showToast('⚠️ Enter a valid gold amount'); return; }
   if(!db.vaultBalance) db.vaultBalance=0;
   if(!db.vaultLog)     db.vaultLog=[];
@@ -4232,7 +4239,7 @@ function saveInlineVaultEntry(){
   db.vaultBalance = Math.round((db.vaultBalance+delta)*1000)/1000;
   db.vaultLog.push({
     clientName: _vaultEntryMode==='add' ? '(Manual Add)' : '(Manual Withdrawal)',
-    date: todayStr(), note, type: _vaultEntryMode,
+    date: entryDate, note, type: _vaultEntryMode,
     grams: amount, actualPureGold: amount, delta,
     balanceAfter: db.vaultBalance,
     _seq: getNextSeq(), manual: true
@@ -4244,18 +4251,19 @@ function saveInlineVaultEntry(){
   const inp  = document.getElementById('vault-inline-amount');
   const prev = document.getElementById('vault-inline-preview');
   const note2= document.getElementById('vault-inline-note');
+  const date2= document.getElementById('vault-inline-date');
   if(inp)  { inp.value=''; inp.focus(); }
   if(prev) prev.style.display='none';
   if(note2) note2.value='';
+  if(date2) date2.value = todayStr();
 }
 
 function deleteVaultLogEntry(seq){
   if(!confirm('Delete this vault entry? The vault balance will be recalculated.'))return;
   if(!db.vaultLog || !db.vaultLog.length) return;
-  const vIdx = db.vaultLog.findIndex(v=>v._seq===seq && v.manual);
-  if(vIdx===-1) return;
-  db.vaultLog.splice(vIdx,1);
-  // Recalculate vault balance from baseline + all remaining log entries
+  const entry = db.vaultLog.find(v=>v._seq===seq && v.manual);
+  if(!entry) return;
+  db.vaultLog = db.vaultLog.filter(v=>v!==entry);
   let bal = db.vaultInitial || 0;
   const sorted = [...db.vaultLog].sort((a,b)=>(a._seq||0)-(b._seq||0));
   sorted.forEach(v=>{ bal = Math.round((bal+v.delta)*1000)/1000; v.balanceAfter = bal; });
