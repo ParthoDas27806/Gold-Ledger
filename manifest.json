@@ -38,14 +38,14 @@
     },
     {
       "src": "screenshots/add-transaction-narrow.jpeg",
-      "sizes": "717x1600",
+      "sizes": "719x1605",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Add a new transaction with the gold weight calculator"
     },
     {
       "src": "screenshots/vault-narrow.jpeg",
-      "sizes": "717x1600",
+      "sizes": "719x1605",
       "type": "image/jpeg",
       "form_factor": "narrow",
       "label": "Vault screen showing private gold stock and history"
