@@ -2889,7 +2889,9 @@ function renderDetailTxns(name){
     const netSign=dayNet>=0?'+':'';
 
     const [y,m,d]=date.split('-');
-    const niceDateStr=(y&&m&&d)?`${d} ${months[parseInt(m)-1]} ${y}`:date;
+    const dObj=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    const weekday=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dObj.getDay()];
+    const niceDateStr=(y&&m&&d)?`${d} ${months[parseInt(m)-1]} ${y} - ${weekday}`:date;
 
     const card=document.createElement('div');
     card.className='db-day-card';
@@ -3995,7 +3997,9 @@ function renderDaybook(){
     // Format date nicely
     const [y,m,d]=date.split('-');
     const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const niceDateStr=`${d} ${months[parseInt(m)-1]} ${y}`;
+    const dObj=new Date(parseInt(y),parseInt(m)-1,parseInt(d));
+    const weekday=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][dObj.getDay()];
+    const niceDateStr=`${d} ${months[parseInt(m)-1]} ${y} - ${weekday}`;
 
     const card=document.createElement('div');
     card.className='db-day-card';
