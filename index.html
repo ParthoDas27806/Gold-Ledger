@@ -5611,19 +5611,52 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
   100%{opacity:0;transform:scale(1.4) translate(-16px,-10px)}
 }
 
-.ta-bucket.fill { animation: ta-bucket-bounce 0.42s var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1)); }
-@keyframes ta-bucket-bounce { 0%,100%{transform:scale(1)} 45%{transform:scale(1.22) rotate(-3deg)} }
+.ta-bucket.fill { animation: ta-bucket-bounce 0.42s var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1)) forwards; }
+@keyframes ta-bucket-bounce { 0%,100%{opacity:1;transform:scale(1)} 45%{opacity:1;transform:scale(1.22) rotate(-3deg)} }
+.ta-bucket.fill-big { animation: ta-bucket-bounce-big 0.55s var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1)) forwards; }
+@keyframes ta-bucket-bounce-big { 0%,100%{opacity:1;transform:scale(1)} 40%{opacity:1;transform:scale(1.32) rotate(-4deg)} 70%{opacity:1;transform:scale(0.96) rotate(2deg)} }
 .ta-glow {
   position:absolute; border-radius:50%;
   background: radial-gradient(closest-side, rgba(255,205,90,0.55), rgba(255,205,90,0));
-  opacity:0; transform:scale(0.3); transition: opacity 0.3s ease, transform 0.4s var(--ease-spring, ease);
+  opacity:0; transform:scale(0.3); transition: opacity 0.3s ease, transform 0.4s var(--ease-spring, ease), width 0.35s ease, height 0.35s ease;
 }
 .ta-glow.show { opacity:1; transform:scale(1); }
-.ta-drop.fall { animation: ta-drop-arc 0.75s cubic-bezier(0.45,0,0.55,1) forwards; }
+.ta-glow.flash { animation: ta-glow-flash 0.5s ease; }
+@keyframes ta-glow-flash { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.7)} }
+.ta-fill-bar {
+  position:absolute; left:50%; bottom:16%; width:22px; height:0;
+  margin-left:-11px; border-radius:4px 4px 2px 2px;
+  background: linear-gradient(180deg,#ffe28a,#e8b022 60%,#c98f14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+  transition: height 0.32s var(--ease-spring, cubic-bezier(0.34,1.56,0.64,1));
+  z-index: -1;
+}
+
+.ta-worker.walk-in { animation: ta-walk-in 0.6s ease-out forwards; }
+@keyframes ta-walk-in {
+  0%{opacity:0;transform:translateX(-70px) translateY(0)}
+  55%{opacity:1;transform:translateX(6px) translateY(-3px)}
+  100%{opacity:1;transform:translateX(0) translateY(0)}
+}
+.ta-worker.walk-off { animation: ta-walk-off 0.9s cubic-bezier(0.45,0,0.2,1) forwards; }
+@keyframes ta-walk-off {
+  0%{opacity:1;transform:translateX(0) translateY(0) rotate(0deg)}
+  20%{opacity:1;transform:translateX(20px) translateY(-4px) rotate(-2deg)}
+  45%{opacity:1;transform:translateX(70px) translateY(0) rotate(2deg)}
+  70%{opacity:1;transform:translateX(150px) translateY(-4px) rotate(-2deg)}
+  100%{opacity:0;transform:translateX(260px) translateY(0) rotate(0deg)}
+}
+.ta-pouch { position:absolute; transform-origin: 30% 20%; }
+.ta-pouch.tip { animation: ta-tip 0.35s ease forwards; }
+@keyframes ta-tip { 0%{transform:rotate(0deg)} 100%{transform:rotate(-58deg) translate(-2px,-2px)} }
+.ta-pouch.untip { animation: ta-untip 0.3s ease forwards; }
+@keyframes ta-untip { 0%{transform:rotate(-58deg) translate(-2px,-2px)} 100%{transform:rotate(0deg) scaleY(0.72)} }
+
+.ta-drop.fall { animation: ta-drop-arc 0.7s cubic-bezier(0.45,0,0.55,1) forwards; }
 @keyframes ta-drop-arc {
   0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
-  60%{opacity:1;transform:translate(var(--dx,0px),46px) scale(0.85) rotate(180deg)}
-  100%{opacity:0;transform:translate(calc(var(--dx,0px) * 1.4),68px) scale(0.5) rotate(280deg)}
+  55%{opacity:1;transform:translate(var(--dx,0px),40px) scale(0.85) rotate(160deg)}
+  100%{opacity:0;transform:translate(calc(var(--dx,0px) * 1.4),62px) scale(0.5) rotate(260deg)}
 }
 .ta-splash { position:absolute; opacity:0; font-size:14px; }
 .ta-splash.pop { animation: ta-splash-pop 0.4s ease-out forwards; }
@@ -5741,39 +5774,72 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
       closeTimer = setTimeout(closeTxnAnim, 2900);
     } else {
       scene.innerHTML =
-        '<div class="ta-glow" id="ta-glow" style="left:50%;bottom:14%;margin-left:-30px;width:60px;height:22px"></div>'+
-        '<div class="ta-el ta-pop ta-worker" id="ta-worker" style="left:50%;top:0%;margin-left:-27px;font-size:40px">🧑‍🏭</div>'+
+        '<div class="ta-shadow" id="ta-worker-shadow" style="left:50%;top:78%;margin-left:-20px;opacity:0"></div>'+
+        '<div class="ta-glow" id="ta-glow" style="left:50%;bottom:14%;margin-left:-30px;width:52px;height:18px"></div>'+
+        '<div class="ta-fill-bar" id="ta-fill"></div>'+
+        '<div class="ta-el ta-worker" id="ta-worker" style="left:50%;top:2%;margin-left:-27px;font-size:40px">'+
+          '🧑‍🏭<span class="ta-pouch" id="ta-pouch" style="position:absolute;left:28px;top:14px;font-size:20px">💰</span>'+
+        '</div>'+
         '<div class="ta-el ta-pop ta-bucket" id="ta-bucket" style="left:50%;bottom:16%;margin-left:-24px;font-size:46px">🪣</div>';
 
       const worker = document.getElementById('ta-worker');
+      const pouch = document.getElementById('ta-pouch');
       const bucket = document.getElementById('ta-bucket');
       const glow = document.getElementById('ta-glow');
+      const fillBar = document.getElementById('ta-fill');
+      const workerShadow = document.getElementById('ta-worker-shadow');
 
-      setTimeout(()=>{ worker.classList.add('show'); bucket.classList.add('show'); }, 20);
-      const dropPlan = [ {t:480,dx:-10}, {t:660,dx:4}, {t:840,dx:-2} ];
-      dropPlan.forEach(function(dp){
+      setTimeout(()=>{
+        worker.style.opacity = '1';
+        worker.classList.add('walk-in');
+        workerShadow.style.opacity = '1';
+        bucket.classList.add('show');
+      }, 20);
+
+      setTimeout(()=>{ pouch.classList.add('tip'); }, 620);
+
+      const dropPlan = [ {t:780,dx:-9}, {t:960,dx:5}, {t:1140,dx:-3}, {t:1320,dx:8} ];
+      dropPlan.forEach(function(dp, i){
         setTimeout(()=>{
           const drop = document.createElement('div');
           drop.className = 'ta-el ta-drop fall';
-          drop.style.cssText = 'left:calc(50% - 2px);top:32%;font-size:18px;--dx:'+dp.dx+'px';
+          drop.style.cssText = 'left:calc(50% + 6px);top:30%;font-size:17px;--dx:'+dp.dx+'px';
           drop.textContent = '✨';
           scene.appendChild(drop);
           setTimeout(()=>{
-            glow.classList.add('show');
-            glow.style.width = (60 + 6)+'px';
+            glow.classList.add('show','flash');
+            setTimeout(()=>glow.classList.remove('flash'), 500);
+            fillBar.style.height = (10 + (i+1)*7) + 'px';
             bucket.classList.remove('fill'); void bucket.offsetWidth; bucket.classList.add('fill');
             const splash = document.createElement('div');
             splash.className = 'ta-el ta-splash pop';
             splash.style.cssText = 'left:calc(50% + '+(dp.dx*0.8)+'px);bottom:20%';
             splash.textContent = '·';
             scene.appendChild(splash);
-          }, 620);
+          }, 580);
         }, dp.t);
       });
+
+      setTimeout(()=>{
+        pouch.classList.remove('tip');
+        pouch.classList.add('untip');
+      }, 1780);
+      setTimeout(()=>{
+        bucket.classList.remove('fill'); void bucket.offsetWidth; bucket.classList.add('fill-big');
+        glow.classList.add('flash');
+        setTimeout(()=>glow.classList.remove('flash'), 500);
+      }, 2000);
       setTimeout(()=>{
         showLabel('🪣 −'+amountStr+'g metal received'+(who?' from '+who:''));
-      }, 1550);
-      closeTimer = setTimeout(closeTxnAnim, 2700);
+      }, 2150);
+      setTimeout(()=>{
+        workerShadow.style.transition = 'transform 0.9s cubic-bezier(0.45,0,0.2,1), opacity 0.3s ease 0.6s';
+        workerShadow.style.transform = 'translateX(260px)';
+        workerShadow.style.opacity = '0';
+        worker.classList.remove('walk-in');
+        worker.classList.add('walk-off');
+      }, 2300);
+      closeTimer = setTimeout(closeTxnAnim, 3300);
     }
   };
 
