@@ -1298,6 +1298,9 @@ select {
           <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total Received</div><div style="font-size:20px;font-weight:700" id="rep-total-received">0g</div></div>
         </div>
 
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Vault++ Trend</div>
+        <div id="rep-vaultpp-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px;box-shadow:var(--shadow-sm)"></div>
+
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px" id="rep-trend-title">Trend</div>
           <select id="rep-range-select" onchange="onReportRangeChange(this.value)" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
@@ -2542,6 +2545,59 @@ function getReportBuckets(){
 }
 function now_year(){ return new Date().getFullYear(); }
 
+function recordVaultPPSnapshot(vpp){
+  if(!db.vaultPPHistory) db.vaultPPHistory = {};
+  const key = todayStr();
+  const rounded = Math.round(vpp*1000)/1000;
+  if(db.vaultPPHistory[key] !== rounded){
+    db.vaultPPHistory[key] = rounded;
+    save();
+  }
+}
+function getVaultPPTrend(){
+  const hist = db.vaultPPHistory || {};
+  const today = todayStr();
+  const currentVpp = (typeof hist[today] === 'number') ? hist[today] : null;
+  const priorDates = Object.keys(hist).filter(d=>d!==today).sort().reverse();
+  const prevDate = priorDates[0] || null;
+  const prevVpp = prevDate ? hist[prevDate] : null;
+  return {currentVpp, prevDate, prevVpp};
+}
+function renderVaultPPTrend(){
+  const el = document.getElementById('rep-vaultpp-card');
+  if(!el) return;
+  const {currentVpp, prevDate, prevVpp} = getVaultPPTrend();
+  if(currentVpp===null){
+    el.innerHTML = '<div class="empty-state" style="padding:8px"><p>Vault++ hasn\'t been recorded yet — open the Dashboard once to start tracking it.</p></div>';
+    return;
+  }
+  const curSign = currentVpp>=0 ? '+' : '';
+  let rows = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:'+(prevVpp!==null?'10px':'0')+'">'
+    + '<span style="font-size:12px;color:var(--muted)">Today</span>'
+    + '<span style="font-size:18px;font-weight:700">'+curSign+currentVpp.toFixed(3)+'g</span>'
+    + '</div>';
+  if(prevVpp!==null){
+    const diff = Math.round((currentVpp-prevVpp)*1000)/1000;
+    const diffCls = diff>0?'get':diff<0?'give':'settled';
+    const diffSign = diff>0?'+':diff<0?'':'';
+    const arrow = diff>0?'▲':diff<0?'▼':'—';
+    const [py,pm,pd] = prevDate.split('-');
+    const monthsShort=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const prevLabel = (py&&pm&&pd) ? (pd+' '+monthsShort[parseInt(pm)-1]) : prevDate;
+    rows += '<div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border)">'
+      + '<span style="font-size:12px;color:var(--muted)">'+esc(prevLabel)+'</span>'
+      + '<span style="font-size:14px;color:var(--muted)">'+(prevVpp>=0?'+':'')+prevVpp.toFixed(3)+'g</span>'
+      + '</div>'
+      + '<div style="margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--surface);display:flex;justify-content:space-between;align-items:center">'
+      + '<span style="font-size:12px;font-weight:600;color:var(--muted)">Change</span>'
+      + '<span class="bal-amt '+diffCls+'" style="font-size:15px;font-weight:700">'+arrow+' '+diffSign+diff.toFixed(3)+'g</span>'
+      + '</div>';
+  } else {
+    rows += '<div style="font-size:12px;color:var(--muted);padding-top:8px">No earlier snapshot yet — check back tomorrow to see the change.</div>';
+  }
+  el.innerHTML = rows;
+}
+
 function renderReports(){
   const names = Object.keys(db.clients);
   let totalDelivered=0, totalReceived=0;
@@ -2580,6 +2636,7 @@ function renderReports(){
   }
   const titleEl = document.getElementById('rep-trend-title');
   if(titleEl) titleEl.textContent = 'Trend ('+(REPORT_RANGE_LABELS[reportRange]||'Last 6 Months')+')';
+  renderVaultPPTrend();
   drawMonthlyChart();
 }
 function drawMonthlyChart(){
@@ -2809,6 +2866,7 @@ function renderDashboard(){
       <div style="font-size:38px;font-family:'DM Sans',sans-serif;font-weight:600;line-height:1.05;letter-spacing:-1px;color:#fff;z-index:1">${vppSign}${vpp.toFixed(3)}g</div>
       <div style="font-size:14px;opacity:0.7;font-weight:400;margin-top:2px;color:#fff;z-index:1">${fmtGramMg(Math.abs(vpp))}</div>
     </div>`;
+    recordVaultPPSnapshot(vpp);
   }
   // Change net card color based on value
   const netCard=document.getElementById('net-card');
