@@ -1598,11 +1598,12 @@ select {
 
         <!-- Vault door illustration — animates in place when gold is added/removed -->
         <div style="position:relative;margin-bottom:32px">
-          <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:18px 12px;box-shadow:var(--shadow-sm);display:flex;justify-content:center;overflow:visible">
+          <div class="vdp-showcase">
             <div class="vdp-root" id="vdp-root" aria-hidden="true">
               <div class="vdp-scene">
                 <div class="vdp-vault">
                   <div class="vdp-shadow"></div>
+                  <div class="vdp-reflection"></div>
                   <div class="vdp-interior">
                     <div class="vdp-room"></div>
                     <div class="vdp-bars">
@@ -1617,40 +1618,52 @@ select {
                   </div>
                   <div class="vdp-door">
                     <div class="vdp-face">
+                      <div class="vdp-sheen"></div>
                       <span class="vdp-rivet vdp-rv1"></span>
                       <span class="vdp-rivet vdp-rv2"></span>
                       <span class="vdp-rivet vdp-rv3"></span>
                       <span class="vdp-rivet vdp-rv4"></span>
                       <span class="vdp-rivet vdp-rv5"></span>
                       <span class="vdp-rivet vdp-rv6"></span>
+                      <div class="vdp-plate">
+                        <span class="vdp-plate-icon">🔒</span>
+                        <span class="vdp-plate-text">SECURE VAULT</span>
+                      </div>
                       <div class="vdp-wheel">
-                        <svg viewBox="0 0 96 96" width="86" height="86">
+                        <svg viewBox="0 0 96 96" width="94" height="94">
                           <defs>
                             <linearGradient id="vdp-rim-static" x1="0" y1="0" x2="1" y2="1">
-                              <stop offset="0" stop-color="#5a6472"></stop>
-                              <stop offset="0.5" stop-color="#39414d"></stop>
-                              <stop offset="1" stop-color="#232932"></stop>
+                              <stop offset="0" stop-color="#7a8494"></stop>
+                              <stop offset="0.35" stop-color="#4a5561"></stop>
+                              <stop offset="0.65" stop-color="#2d3540"></stop>
+                              <stop offset="1" stop-color="#1a1f26"></stop>
                             </linearGradient>
-                            <radialGradient id="vdp-hub-static" cx="0.38" cy="0.34" r="0.85">
-                              <stop offset="0" stop-color="#6a7480"></stop>
-                              <stop offset="0.6" stop-color="#3a424d"></stop>
-                              <stop offset="1" stop-color="#20252d"></stop>
+                            <radialGradient id="vdp-hub-static" cx="0.35" cy="0.3" r="0.9">
+                              <stop offset="0" stop-color="#8a94a0"></stop>
+                              <stop offset="0.5" stop-color="#454e5a"></stop>
+                              <stop offset="1" stop-color="#1c2128"></stop>
                             </radialGradient>
+                            <linearGradient id="vdp-shine" x1="0" y1="0" x2="1" y2="1">
+                              <stop offset="0" stop-color="#ffffff" stop-opacity="0.65"></stop>
+                              <stop offset="1" stop-color="#ffffff" stop-opacity="0"></stop>
+                            </linearGradient>
                           </defs>
                           <g class="vdp-wheel-rot">
-                            <circle cx="48" cy="48" r="30" fill="none" stroke="url(#vdp-rim-static)" stroke-width="7"></circle>
+                            <circle cx="48" cy="48" r="31" fill="none" stroke="url(#vdp-rim-static)" stroke-width="8"></circle>
+                            <path d="M 22 26 A 31 31 0 0 1 48 17" fill="none" stroke="url(#vdp-shine)" stroke-width="4" stroke-linecap="round"></path>
                             <g stroke="url(#vdp-rim-static)" stroke-width="8" stroke-linecap="round">
-                              <line x1="48" y1="48" x2="48" y2="6"></line>
-                              <line x1="48" y1="48" x2="84.4" y2="69"></line>
-                              <line x1="48" y1="48" x2="11.6" y2="69"></line>
+                              <line x1="48" y1="48" x2="48" y2="4"></line>
+                              <line x1="48" y1="48" x2="86.1" y2="70"></line>
+                              <line x1="48" y1="48" x2="9.9" y2="70"></line>
                             </g>
-                            <g fill="#525c69">
-                              <circle cx="48" cy="6" r="4.6"></circle>
-                              <circle cx="84.4" cy="69" r="4.6"></circle>
-                              <circle cx="11.6" cy="69" r="4.6"></circle>
+                            <g fill="#5c6673">
+                              <circle cx="48" cy="4" r="5"></circle>
+                              <circle cx="86.1" cy="70" r="5"></circle>
+                              <circle cx="9.9" cy="70" r="5"></circle>
                             </g>
-                            <circle cx="48" cy="48" r="11" fill="url(#vdp-hub-static)"></circle>
-                            <circle cx="48" cy="48" r="3.4" fill="#171b21"></circle>
+                            <circle cx="48" cy="48" r="12.5" fill="url(#vdp-hub-static)"></circle>
+                            <circle cx="44" cy="44" r="3.5" fill="#ffffff" opacity="0.35"></circle>
+                            <circle cx="48" cy="48" r="3.6" fill="#12151a"></circle>
                           </g>
                         </svg>
                       </div>
@@ -5930,6 +5943,21 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+.vdp-showcase {
+  display: flex; justify-content: center; overflow: visible;
+  padding: 22px 12px 30px; border-radius: 18px;
+  background:
+    radial-gradient(120% 90% at 50% 8%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, var(--card) 0%, var(--surface) 100%);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+[data-theme="dark"] .vdp-showcase {
+  background:
+    radial-gradient(120% 90% at 50% 8%, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(180deg, var(--card) 0%, var(--surface) 100%);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.04);
+}
 .vdp-scene { position: relative; width: 280px; height: 200px; max-width: 82vw; perspective: 1000px; }
 .vdp-vault {
   position: absolute; inset: 0; border-radius: 24px;
@@ -5940,6 +5968,14 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
 .vdp-shadow {
   position: absolute; left: 50%; bottom: -20px; width: 240px; height: 16px; margin-left: -120px;
   border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(2,4,8,0.5), rgba(2,4,8,0) 72%);
+}
+.vdp-reflection {
+  position: absolute; left: 50%; bottom: -19px; width: 190px; height: 26px; margin-left: -95px;
+  border-radius: 50%; overflow: hidden; opacity: 0.14; pointer-events: none;
+  background: linear-gradient(160deg, #333b47 0%, #232a34 50%, #14181f 100%);
+  transform: scaleY(-0.5);
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0) 80%);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0) 80%);
 }
 .vdp-interior {
   position: absolute; inset: 9px; border-radius: 17px; overflow: hidden;
@@ -5991,21 +6027,37 @@ updateAuthButton(); // will confirm/correct once Firebase resolves
 .vdp-face {
   position: absolute; inset: 0; border-radius: 17px; overflow: hidden;
   background: repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 1px, rgba(0,0,0,0) 1px 3px),
-    radial-gradient(120% 90% at 30% 12%, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0) 46%),
+    radial-gradient(120% 90% at 30% 12%, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 46%),
     linear-gradient(160deg, var(--vdp-steel-hi) 0%, var(--vdp-steel) 40%, #242b35 72%, var(--vdp-steel-lo) 100%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(0,0,0,0.35), inset -10px 0 18px rgba(0,0,0,0.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.14), inset 0 0 0 1px rgba(0,0,0,0.35), inset -10px 0 18px rgba(0,0,0,0.28);
   backface-visibility: hidden;
+}
+.vdp-sheen {
+  position: absolute; inset: -20% -60%; pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,0) 38%, rgba(255,255,255,0.16) 49%, rgba(255,255,255,0) 60%);
+}
+.vdp-plate {
+  position: absolute; left: 16px; top: 50%; margin-top: -34px;
+  width: 60px; padding: 7px 4px; border-radius: 6px; text-align: center;
+  background: linear-gradient(180deg, #e8cf8e 0%, #c9a355 45%, #a3823c 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 2px rgba(90,65,15,0.5), 0 2px 4px rgba(0,0,0,0.35);
+  border: 1px solid rgba(120,90,30,0.4);
+}
+.vdp-plate-icon { display: block; font-size: 13px; line-height: 1; margin-bottom: 3px; filter: drop-shadow(0 1px 0 rgba(255,255,255,0.3)); }
+.vdp-plate-text {
+  display: block; font-size: 6px; font-weight: 700; letter-spacing: 0.04em;
+  color: #4a3410; font-family: 'DM Sans', sans-serif; line-height: 1.2;
 }
 .vdp-edge {
   position: absolute; top: 2px; bottom: 2px; right: 0; width: 16px; transform-origin: 100% 50%;
   transform: rotateY(90deg); background: linear-gradient(180deg, #39414c 0%, #21262e 55%, #14181e 100%);
   box-shadow: inset 0 0 4px rgba(0,0,0,0.55); border-radius: 2px;
 }
-.vdp-rivet { position: absolute; width: 8px; height: 8px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #5d6675, #2a313b 62%, #171c22); box-shadow: 0 1px 1px rgba(0,0,0,0.55), inset 0 -1px 1px rgba(0,0,0,0.4); }
+.vdp-rivet { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: radial-gradient(circle at 32% 28%, #7a8492, #3a424e 55%, #171c22 90%); box-shadow: 0 1px 2px rgba(0,0,0,0.6), inset 0 -1px 1px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15); }
 .vdp-rv1 { left: 11px; top: 11px; } .vdp-rv2 { left: 11px; bottom: 11px; }
 .vdp-rv3 { right: 28px; top: 11px; } .vdp-rv4 { right: 28px; bottom: 11px; }
 .vdp-rv5 { left: 11px; top: 50%; margin-top: -4px; } .vdp-rv6 { right: 28px; top: 50%; margin-top: -4px; }
-.vdp-wheel { position: absolute; right: 30px; top: 50%; width: 86px; height: 86px; margin-top: -43px; filter: drop-shadow(0 5px 7px rgba(0,0,0,0.45)); }
+.vdp-wheel { position: absolute; right: 26px; top: 50%; width: 94px; height: 94px; margin-top: -47px; filter: drop-shadow(0 6px 8px rgba(0,0,0,0.5)); }
 .vdp-wheel-rot { transform-origin: 43px 43px; transform: rotate(var(--vdp-wrot, 0deg)); }
 .vdp-bolts { position: absolute; right: 5px; top: 50%; width: 18px; height: 136px; margin-top: -68px; }
 .vdp-slot { position: absolute; right: 0; width: 18px; height: 13px; border-radius: 4px; background: linear-gradient(180deg, #14181e, #1f242c); box-shadow: inset 0 1px 3px rgba(0,0,0,0.7); }
