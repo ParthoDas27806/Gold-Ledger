@@ -1298,8 +1298,14 @@ select {
           <div class="stat-card"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Total Received</div><div style="font-size:20px;font-weight:700" id="rep-total-received">0g</div></div>
         </div>
 
-        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Vault++ Trend</div>
-        <div id="rep-vaultpp-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:20px;box-shadow:var(--shadow-sm)"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px">Vault++ Trend</div>
+          <button id="rep-vaultpp-history-toggle" onclick="toggleVaultPPHistory()" style="background:none;border:1.5px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">Full History ▾</button>
+        </div>
+        <div id="rep-vaultpp-card" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow-sm)"></div>
+        <div id="rep-vaultpp-history-wrap" style="display:none;margin-bottom:20px">
+          <div id="rep-vaultpp-history" style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:6px 16px;max-height:320px;overflow-y:auto;box-shadow:var(--shadow-sm)"></div>
+        </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px" id="rep-trend-title">Trend</div>
@@ -2605,6 +2611,74 @@ function renderVaultPPTrend(){
     + '<span style="font-size:12px;font-weight:600;color:var(--muted)">Change</span>'
     + '<span class="bal-amt '+diffCls+'" style="font-size:15px;font-weight:700">'+arrow+' '+diffSign+diff.toFixed(3)+'g</span>'
     + '</div>';
+}
+
+function getVaultPPHistoryDates(){
+  const datesSet = new Set();
+  Object.values(db.clients).forEach(c=>{
+    (c.transactions||[]).forEach(t=>{ if(t.date) datesSet.add(t.date); });
+  });
+  (db.vaultLog||[]).forEach(v=>{ if(v.date) datesSet.add(v.date); });
+  datesSet.add(todayStr());
+  return Array.from(datesSet).sort(); // ascending (oldest first)
+}
+function renderVaultPPHistoryList(){
+  const el = document.getElementById('rep-vaultpp-history');
+  if(!el) return;
+  const ascDates = getVaultPPHistoryDates();
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  // Compute values oldest→newest first so each day's change compares to the day before it
+  const rows = [];
+  let prevVpp = null;
+  ascDates.forEach(d=>{
+    const vpp = computeVaultPPAsOf(d);
+    const diff = prevVpp===null ? null : Math.round((vpp-prevVpp)*1000)/1000;
+    rows.push({date:d, vpp, diff});
+    prevVpp = vpp;
+  });
+  rows.reverse(); // now newest first for display
+
+  if(!rows.length){
+    el.innerHTML = '<div class="empty-state" style="padding:12px"><p>No history yet.</p></div>';
+    return;
+  }
+
+  el.innerHTML = rows.map(r=>{
+    const [y,m,dd] = r.date.split('-');
+    const label = (y&&m&&dd) ? (dd+' '+months[parseInt(m)-1]+' '+y) : r.date;
+    const sign = r.vpp>=0?'+':'';
+    let diffHtml;
+    if(r.diff===null){
+      diffHtml = '<span style="font-size:11px;color:var(--hint)">first record</span>';
+    } else {
+      const cls = r.diff>0?'get':r.diff<0?'give':'settled';
+      const arrow = r.diff>0?'▲':r.diff<0?'▼':'—';
+      const dsign = r.diff>0?'+':'';
+      diffHtml = '<span class="bal-amt '+cls+'" style="font-size:12px;font-weight:600">'+arrow+' '+dsign+r.diff.toFixed(3)+'g</span>';
+    }
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">'
+      + '<span style="font-size:12px;color:var(--muted)">'+esc(label)+'</span>'
+      + '<div style="text-align:right">'
+      + '<div style="font-size:13px;font-weight:700">'+sign+r.vpp.toFixed(3)+'g</div>'
+      + '<div>'+diffHtml+'</div>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+function toggleVaultPPHistory(){
+  const wrap = document.getElementById('rep-vaultpp-history-wrap');
+  const btn = document.getElementById('rep-vaultpp-history-toggle');
+  if(!wrap) return;
+  const showing = wrap.style.display !== 'none';
+  if(showing){
+    wrap.style.display = 'none';
+    if(btn) btn.textContent = 'Full History ▾';
+  } else {
+    renderVaultPPHistoryList();
+    wrap.style.display = 'block';
+    if(btn) btn.textContent = 'Hide History ▴';
+  }
 }
 
 function renderReports(){
