@@ -1308,28 +1308,6 @@ select {
         </div>
 
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
-          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px" id="vaultpp-chart-title">Vault++ Over Time</div>
-          <select id="vaultpp-range-select" onchange="onVaultPPRangeChange(this.value)" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
-            <option value="7d">Last 7 Days</option>
-            <option value="30d" selected>Last 30 Days</option>
-            <option value="3m">Last 3 Months</option>
-            <option value="6m">Last 6 Months</option>
-            <option value="1y">Last 1 Year</option>
-            <option value="all">All Time</option>
-            <option value="custom">Custom Range…</option>
-          </select>
-        </div>
-        <div id="vaultpp-custom-range" style="display:none;gap:8px;margin-bottom:10px">
-          <input type="date" id="vaultpp-custom-from" onchange="onVaultPPCustomChange()" style="flex:1;min-width:0;padding:9px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
-          <input type="date" id="vaultpp-custom-to" onchange="onVaultPPCustomChange()" style="flex:1;min-width:0;padding:9px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
-        </div>
-        <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px;margin-bottom:20px;box-shadow:var(--shadow-sm)">
-          <div style="width:100%;overflow-x:auto;overflow-y:hidden">
-            <div id="vaultpp-chart" style="height:180px;display:block"></div>
-          </div>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
           <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px" id="rep-trend-title">Trend</div>
           <select id="rep-range-select" onchange="onReportRangeChange(this.value)" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif">
             <option value="7d">Last 7 Days</option>
@@ -2703,163 +2681,6 @@ function toggleVaultPPHistory(){
   }
 }
 
-let vaultppRange = '30d';
-let vaultppCustomFrom = null, vaultppCustomTo = null;
-
-function onVaultPPRangeChange(val){
-  vaultppRange = val;
-  const wrap = document.getElementById('vaultpp-custom-range');
-  if(wrap) wrap.style.display = (val==='custom') ? 'flex' : 'none';
-  if(val==='custom'){
-    const fromInp=document.getElementById('vaultpp-custom-from'), toInp=document.getElementById('vaultpp-custom-to');
-    if(fromInp && !fromInp.value){
-      const d=new Date(); d.setMonth(d.getMonth()-1);
-      fromInp.value = d.toISOString().slice(0,10);
-    }
-    if(toInp && !toInp.value) toInp.value = todayStr();
-    vaultppCustomFrom = fromInp ? fromInp.value : null;
-    vaultppCustomTo = toInp ? toInp.value : null;
-  }
-  drawVaultPPChart();
-}
-function onVaultPPCustomChange(){
-  const fromInp=document.getElementById('vaultpp-custom-from'), toInp=document.getElementById('vaultpp-custom-to');
-  vaultppCustomFrom = fromInp ? fromInp.value : null;
-  vaultppCustomTo = toInp ? toInp.value : null;
-  drawVaultPPChart();
-}
-function getVaultPPRangeDates(){
-  const now = new Date();
-  let from, to = now;
-  switch(vaultppRange){
-    case '7d':  from = new Date(now); from.setDate(from.getDate()-6); break;
-    case '30d': from = new Date(now); from.setDate(from.getDate()-29); break;
-    case '3m':  from = new Date(now.getFullYear(), now.getMonth()-2, 1); break;
-    case '6m':  from = new Date(now.getFullYear(), now.getMonth()-5, 1); break;
-    case '1y':  from = new Date(now.getFullYear(), now.getMonth()-11, 1); break;
-    case 'all': {
-      let earliest=null;
-      Object.values(db.clients).forEach(c=>(c.transactions||[]).forEach(t=>{
-        if(t.date && (!earliest || t.date<earliest)) earliest=t.date;
-      }));
-      (db.vaultLog||[]).forEach(v=>{ if(v.date && (!earliest || v.date<earliest)) earliest=v.date; });
-      from = earliest ? new Date(earliest) : new Date(now.getFullYear(), now.getMonth()-1, 1);
-      break;
-    }
-    case 'custom': {
-      from = vaultppCustomFrom ? new Date(vaultppCustomFrom) : new Date(now.getFullYear(), now.getMonth()-1, 1);
-      to = vaultppCustomTo ? new Date(vaultppCustomTo) : now;
-      if(from>to){ const tmp=from; from=to; to=tmp; }
-      break;
-    }
-    default: from = new Date(now); from.setDate(from.getDate()-29); // 30d
-  }
-  return {from, to};
-}
-function getVaultPPSeries(){
-  const {from, to} = getVaultPPRangeDates();
-  const dayMs = 24*60*60*1000;
-  const spanDays = Math.max(1, Math.round((to-from)/dayMs));
-  let granularity;
-  if(spanDays <= 45) granularity='day';
-  else if(spanDays <= 731) granularity='month';
-  else granularity='year';
-
-  const points = [];
-  if(granularity==='day'){
-    for(let d=new Date(from); d<=to; d.setDate(d.getDate()+1)){
-      const key = d.toISOString().slice(0,10);
-      points.push({label: d.getDate()+' '+MONTH_NAMES[d.getMonth()].slice(0,3), value: computeVaultPPAsOf(key)});
-    }
-  } else if(granularity==='month'){
-    let d = new Date(from.getFullYear(), from.getMonth(), 1);
-    const end = new Date(to.getFullYear(), to.getMonth(), 1);
-    while(d<=end){
-      const isLastMonth = (d.getFullYear()===end.getFullYear() && d.getMonth()===end.getMonth());
-      const snapshot = isLastMonth ? to : new Date(d.getFullYear(), d.getMonth()+1, 0);
-      const key = snapshot.toISOString().slice(0,10);
-      points.push({label: MONTH_NAMES[d.getMonth()].slice(0,3), value: computeVaultPPAsOf(key)});
-      d.setMonth(d.getMonth()+1);
-    }
-  } else {
-    let y = from.getFullYear();
-    while(y <= to.getFullYear()){
-      const isLastYear = y===to.getFullYear();
-      const snapshot = isLastYear ? to : new Date(y,11,31);
-      const key = snapshot.toISOString().slice(0,10);
-      points.push({label: String(y), value: computeVaultPPAsOf(key)});
-      y++;
-    }
-  }
-  return points;
-}
-function drawVaultPPChart(){
-  const container = document.getElementById('vaultpp-chart');
-  if(!container) return;
-  const wrapWidth = container.parentElement ? container.parentElement.clientWidth : (container.clientWidth||300);
-  const cssH = 180;
-  const points = getVaultPPSeries();
-  const n = Math.max(1, points.length);
-  const minPointGap = 40;
-  const cssW = Math.max(wrapWidth, n*minPointGap);
-
-  const values = points.map(p=>p.value);
-  let minV = Math.min.apply(null, values), maxV = Math.max.apply(null, values);
-  if(minV===maxV){ minV -= 1; maxV += 1; }
-  const pad = (maxV-minV)*0.18 || 1;
-  minV -= pad; maxV += pad;
-
-  const padL=10, padR=10, padT=26, padB=22;
-  const chartW = cssW-padL-padR, chartH = cssH-padT-padB;
-  const isDark = document.documentElement.getAttribute('data-theme')==='dark';
-  const labelColor = isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.5)';
-  const lineColor = '#D4A017';
-
-  const stepX = n>1 ? chartW/(n-1) : 0;
-  const xy = points.map((p,i)=>{
-    const x = padL + (n>1 ? i*stepX : chartW/2);
-    const y = padT + chartH - ((p.value-minV)/(maxV-minV))*chartH;
-    return [x,y];
-  });
-
-  const pathD = xy.map((pt,i)=> (i===0?'M':'L')+pt[0].toFixed(1)+' '+pt[1].toFixed(1)).join(' ');
-  const areaD = pathD + ' L'+xy[xy.length-1][0].toFixed(1)+' '+(padT+chartH)+' L'+xy[0][0].toFixed(1)+' '+(padT+chartH)+' Z';
-
-  let svg = '<svg viewBox="0 0 '+cssW+' '+cssH+'" width="'+cssW+'" height="'+cssH+'" xmlns="http://www.w3.org/2000/svg" style="display:block">';
-  svg += '<defs><linearGradient id="vppFillGrad" x1="0" y1="0" x2="0" y2="1">'
-       + '<stop offset="0%" stop-color="'+lineColor+'" stop-opacity="0.35"/>'
-       + '<stop offset="100%" stop-color="'+lineColor+'" stop-opacity="0"/>'
-       + '</linearGradient></defs>';
-  svg += '<path d="'+areaD+'" fill="url(#vppFillGrad)"/>';
-  svg += '<path d="'+pathD+'" fill="none" stroke="'+lineColor+'" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
-
-  const labelEvery = Math.max(1, Math.ceil(n/7));
-  points.forEach((p,i)=>{
-    const [x,y] = xy[i];
-    const isEnd = (i===0 || i===n-1);
-    svg += '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(isEnd?3.2:2.2)+'" fill="'+lineColor+'"/>';
-    if(i % labelEvery === 0 || isEnd){
-      svg += '<text x="'+x.toFixed(1)+'" y="'+(cssH-6)+'" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="10" fill="'+labelColor+'">'+p.label+'</text>';
-    }
-  });
-
-  const lastPt = xy[xy.length-1];
-  const lastVal = points[points.length-1].value;
-  const badgeText = (lastVal>=0?'+':'')+lastVal.toFixed(3)+'g';
-  const badgeW = badgeText.length*6.4 + 12;
-  const badgeX = Math.min(Math.max(lastPt[0], badgeW/2+2), cssW-badgeW/2-2);
-  const badgeY = Math.max(padT-10, lastPt[1]-18);
-  svg += '<rect x="'+(badgeX-badgeW/2).toFixed(1)+'" y="'+(badgeY-9).toFixed(1)+'" width="'+badgeW.toFixed(1)+'" height="18" rx="9" fill="'+lineColor+'"/>';
-  svg += '<text x="'+badgeX.toFixed(1)+'" y="'+badgeY.toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#ffffff">'+badgeText+'</text>';
-
-  svg += '</svg>';
-  container.innerHTML = svg;
-
-  // Show the most recent data by default when the chart is wider than its viewport
-  const scrollParent = container.parentElement;
-  if(scrollParent) scrollParent.scrollLeft = scrollParent.scrollWidth;
-}
-
 function renderReports(){
   const names = Object.keys(db.clients);
   let totalDelivered=0, totalReceived=0;
@@ -2899,7 +2720,6 @@ function renderReports(){
   const titleEl = document.getElementById('rep-trend-title');
   if(titleEl) titleEl.textContent = 'Trend ('+(REPORT_RANGE_LABELS[reportRange]||'Last 6 Months')+')';
   renderVaultPPTrend();
-  drawVaultPPChart();
   drawMonthlyChart();
 }
 function drawMonthlyChart(){
@@ -2985,7 +2805,7 @@ function applyLayout(){
   }
   updateSidebarStats();
   const reportsPage=document.getElementById('page-reports');
-  if(reportsPage && reportsPage.classList.contains('active')){ drawMonthlyChart(); drawVaultPPChart(); }
+  if(reportsPage && reportsPage.classList.contains('active')){ drawMonthlyChart(); }
 }
 window.addEventListener('resize', applyLayout);
 
