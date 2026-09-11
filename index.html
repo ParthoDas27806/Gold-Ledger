@@ -3027,7 +3027,7 @@ function renderDetailTxns(name){
   sortedDates.forEach(date=>{
     const dayEntries=days[date].slice().sort((a,b)=>(b.t._seq||0)-(a.t._seq||0));
     let dayKaaj=0, dayMetal=0;
-    dayEntries.forEach(({t})=>{ t.type==='delivered'?dayKaaj+=t.grams:dayMetal+=t.grams; });
+    dayEntries.forEach(({t})=>{ if(t.carryForward) return; t.type==='delivered'?dayKaaj+=t.grams:dayMetal+=t.grams; });
     const dayNet=dayKaaj-dayMetal;
     const netCls=dayNet>=0?'get':'give';
     const netSign=dayNet>=0?'+':'';
@@ -3055,6 +3055,14 @@ function renderDetailTxns(name){
       if(t.grossGrams&&t.purity){
         extraInfo=`<div class="txn-calc-info">Gross: ${fmtGramMg(t.grossGrams)} × ${t.purity}% = ${gramMgDisplay}</div>`;
       }
+      const isCarryForward = !!t.carryForward;
+      const rowLabel = isCarryForward ? '📋 Opening Balance' : tm.label;
+      const rowDotCls = isCarryForward ? 'settled' : tm.cls;
+      const rowAmtCls = isCarryForward ? 'settled' : tm.cls;
+      const actionBtns = isCarryForward
+        ? '<span style="font-size:10px;color:var(--hint);white-space:nowrap">carried forward</span>'
+        : `<button class="txn-del" style="color:var(--gold-mid);border-color:var(--gold-border)" onclick="event.stopPropagation();editTxn('${esc(name)}',${idx})">✏️</button>
+                  <button class="txn-del" onclick="event.stopPropagation();deleteTxn('${esc(name)}',${idx})">✕</button>`;
       const div=document.createElement('div'); div.className='txn-item';
       div.setAttribute('data-idx', idx);
       div.style.cursor='pointer';
@@ -3080,19 +3088,18 @@ function renderDetailTxns(name){
           <div style="flex:1;min-width:0">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
               <div style="display:flex;gap:8px;flex:1;min-width:0">
-                <div class="txn-dot ${tm.cls}" style="margin-top:4px;flex-shrink:0"></div>
+                <div class="txn-dot ${rowDotCls}" style="margin-top:4px;flex-shrink:0"></div>
                 <div style="flex:1;min-width:0">
-                  <div class="txn-label">${tm.label}</div>
+                  <div class="txn-label">${rowLabel}</div>
                   ${t.note?`<div class="txn-meta">${esc(t.note)}</div>`:''}
                   ${extraInfo}
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0">
-                <div class="txn-grams ${tm.cls}">${tm.sign}${gramsDisplay}</div>
+                <div class="txn-grams ${rowAmtCls}">${tm.sign}${gramsDisplay}</div>
                 <div class="txn-gram-mg">${gramMgDisplay}</div>
-                <div style="display:flex;gap:4px">
-                  <button class="txn-del" style="color:var(--gold-mid);border-color:var(--gold-border)" onclick="event.stopPropagation();editTxn('${esc(name)}',${idx})">✏️</button>
-                  <button class="txn-del" onclick="event.stopPropagation();deleteTxn('${esc(name)}',${idx})">✕</button>
+                <div style="display:flex;gap:4px;align-items:center">
+                  ${actionBtns}
                 </div>
               </div>
             </div>
@@ -3147,6 +3154,61 @@ function removeVaultEntriesBySeqs(seqSet){
   sorted.forEach(v=>{ bal = Math.round((bal+v.delta)*1000)/1000; v.balanceAfter = bal; });
   db.vaultBalance = bal;
 }
+
+/* ── QUARTERLY CLOSING (automatic, irreversible) ─────────────────
+   When a new calendar quarter begins, each client's detailed transaction
+   history for the prior period is permanently cleared — not archived,
+   not stored anywhere, not recoverable by this app or anyone with access
+   to its data. Only their exact running balance survives, carried
+   forward as a single opening-balance entry into the new quarter.
+   The Vault (your physical gold stock) is never touched by this — it
+   only affects each client's own transaction record. */
+function getQuarterOfDate(d){ return Math.floor(d.getMonth()/3)+1; }
+function getQuarterKey(d){ return d.getFullYear()+'-Q'+getQuarterOfDate(d); }
+
+function checkAndRunQuarterlyClose(){
+  const now = new Date();
+  const curKey = getQuarterKey(now);
+
+  if(!db.lastQuarterClose){
+    // First time this feature has run — baseline to the current quarter
+    // without wiping any existing history the user already has.
+    db.lastQuarterClose = curKey;
+    save();
+    return;
+  }
+  if(db.lastQuarterClose === curKey) return; // still the same quarter — nothing to do
+
+  const clientNames = Object.keys(db.clients);
+  const withActivity = clientNames.filter(n => (db.clients[n].transactions||[]).length>0);
+  const todayDate = todayStr();
+  let clearedCount = 0;
+
+  withActivity.forEach(name=>{
+    const c = db.clients[name];
+    const bal = balance(name);
+    c.transactions = []; // permanently cleared — no copy is kept anywhere
+    if(bal !== 0){
+      c.transactions.push({
+        type: bal>=0 ? 'delivered' : 'received',
+        grams: Math.abs(bal),
+        date: todayDate,
+        note: 'Opening balance carried forward',
+        carryForward: true,
+        _seq: getNextSeq()
+      });
+    }
+    clearedCount++;
+  });
+
+  db.lastQuarterClose = curKey;
+  save();
+  if(clearedCount>0 && typeof showToast==='function'){
+    showToast('New quarter — '+clearedCount+' client histor'+(clearedCount===1?'y':'ies')+' cleared, balances carried forward');
+  }
+  if(typeof renderClients==='function') renderClients();
+}
+
 function deleteClient(){
   if(!activeClient)return;
   if(!confirm('Delete ALL data for '+activeClient+'?\nThis cannot be undone.'))return;
@@ -3161,6 +3223,11 @@ function deleteClient(){
   if(typeof renderVault==='function') renderVault();
 }
 function deleteTxn(name,idx){
+  const existingTxn = db.clients[name].transactions[idx];
+  if(existingTxn && existingTxn.carryForward){
+    alert('This is an opening balance carried forward from a quarterly close and can\'t be edited or deleted — the detailed transactions it replaced were permanently cleared and cannot be recovered.');
+    return;
+  }
   if(!confirm('Delete this transaction? This will also reverse its effect on the vault balance.'))return;
   const txn = db.clients[name].transactions[idx];
 
@@ -3179,6 +3246,10 @@ function deleteTxn(name,idx){
 function editTxn(name, idx){
   const txn = db.clients[name] && db.clients[name].transactions[idx];
   if(!txn) return;
+  if(txn.carryForward){
+    alert('This is an opening balance carried forward from a quarterly close and can\'t be edited or deleted — the detailed transactions it replaced were permanently cleared and cannot be recovered.');
+    return;
+  }
   showPage('add'); // resets the form (and any stale edit state) first
   editingTxnRef = {name, idx};
   selectType(txn.type);
@@ -5263,7 +5334,7 @@ try{const st=localStorage.getItem('gold_ledger_theme');if(st)themeMode=st;}catch
 applyResolvedTheme();
 // Load saved language preference
 try{const sl=localStorage.getItem('gold_ledger_lang');if(sl&&LANGS[sl])currentLang=sl;}catch(e){}
-load(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
+load(); checkAndRunQuarterlyClose(); setTodayDate(); updateSuggestions(); applyLayout(); renderDashboard();
 // Apply language and theme buttons after DOM ready
 setTimeout(()=>{
   applyLang();
