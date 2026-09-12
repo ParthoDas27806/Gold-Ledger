@@ -3156,13 +3156,15 @@ function removeVaultEntriesBySeqs(seqSet){
 }
 
 /* ── QUARTERLY CLOSING (automatic, irreversible) ─────────────────
-   When a new calendar quarter begins, each client's detailed transaction
-   history for the prior period is permanently cleared — not archived,
-   not stored anywhere, not recoverable by this app or anyone with access
-   to its data. Only their exact running balance survives, carried
-   forward as a single opening-balance entry into the new quarter.
-   The Vault (your physical gold stock) is never touched by this — it
-   only affects each client's own transaction record. */
+   When a new calendar quarter begins:
+   - Each client's detailed transaction history for the prior period is
+     permanently cleared — not archived, not stored anywhere, not
+     recoverable by this app or anyone with access to its data. Only
+     their exact running balance survives, carried forward as a single
+     opening-balance entry into the new quarter.
+   - The Vault's transaction log (history of manual add/remove entries)
+     is cleared the same way — but the actual gold amount currently in
+     the Vault (vaultBalance) is never changed, only its history list. */
 function getQuarterOfDate(d){ return Math.floor(d.getMonth()/3)+1; }
 function getQuarterKey(d){ return d.getFullYear()+'-Q'+getQuarterOfDate(d); }
 
@@ -3201,12 +3203,22 @@ function checkAndRunQuarterlyClose(){
     clearedCount++;
   });
 
+  // Clear the Vault's transaction history too — but the actual gold amount
+  // (vaultBalance) is untouched. vaultInitial becomes the new baseline so
+  // future recalculations stay correct with an empty log.
+  const vaultHadHistory = (db.vaultLog && db.vaultLog.length > 0);
+  if(vaultHadHistory){
+    db.vaultInitial = db.vaultBalance || 0;
+    db.vaultLog = [];
+  }
+
   db.lastQuarterClose = curKey;
   save();
   if(clearedCount>0 && typeof showToast==='function'){
     showToast('New quarter — '+clearedCount+' client histor'+(clearedCount===1?'y':'ies')+' cleared, balances carried forward');
   }
   if(typeof renderClients==='function') renderClients();
+  if(typeof renderVault==='function') renderVault();
 }
 
 function deleteClient(){
